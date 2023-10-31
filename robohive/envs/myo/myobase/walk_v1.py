@@ -71,11 +71,15 @@ class ReachEnvV0(BaseV0):
             self.obs_dict['target_pos'] = np.append(self.obs_dict['target_pos'], self.sim.data.site_xpos[self.target_sids[isite]].copy())
         self.obs_dict['reach_err'] = np.array(self.obs_dict['target_pos'])-np.array(self.obs_dict['tip_pos'])
         
+        ## didn't run, add one myself
+        labels = ['calcn_r', 'calcn_l', 'toes_r', 'toes_l']
+
         # center of mass and base of support
         xpos = {}
-        for names in self.sim.model.body_names: xpos[names] = self.sim.data.xipos[self.sim.model.body_name2id(names)].copy() # store x and y position of the com of the bodies
+        print('body names', self.sim.model.body_name2id('calcn_r'))
+        for names in labels: xpos[names] = self.sim.data.xipos[self.sim.model.body_name2id(names)].copy() # store x and y position of the com of the bodies
         # Bodies relevant for hte base of support: 
-        labels = ['calcn_r', 'calcn_l', 'toes_r', 'toes_l']
+        
         x, y = [], [] # Storing position of the foot
         for label in labels:
             x.append(xpos[label][0]) # storing x position

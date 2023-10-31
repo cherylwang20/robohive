@@ -412,7 +412,7 @@ register_env_with_variants(id='myoLegStairTerrainWalk-v0',
 register_env_with_variants(id='myoLegReachFixed-v0',
         entry_point='robohive.envs.myo.myobase.walk_v0:ReachEnvV0',
         # max_episode_steps=500,
-        max_episode_steps=100,
+        max_episode_steps=500,
         kwargs={
             'model_path': curr_dir + leg_model,
             'target_reach_range': {
@@ -437,7 +437,7 @@ register_env_with_variants(id='myoLegReachFixed-v0',
 register_env_with_variants(id='myoLegReachFixed-v1',
         entry_point='robohive.envs.myo.myobase.walk_v1:ReachEnvV0',
         # max_episode_steps=500,
-        max_episode_steps=100,
+        max_episode_steps=500,
         kwargs={
             'model_path': curr_dir + leg_model,
             'target_reach_range': {

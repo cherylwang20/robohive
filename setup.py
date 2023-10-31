@@ -8,6 +8,7 @@ License :: Under Apache License, Version 2.0 (the "License"); you may not use th
 import os
 import sys
 from setuptools import setup, find_packages
+import codecs
 
 if sys.version_info.major != 3:
     print("This library is only compatible with Python 3, but you are running "
@@ -24,6 +25,7 @@ def package_files(directory):
     return paths
 
 extra_files = package_files('robohive')
+f = codecs.open('README.md', "r", "utf-8")
 
 setup(
     name='robohive',
@@ -33,7 +35,7 @@ setup(
     package_data={"": extra_files},
     include_package_data=True,
     description='environments simulated in MuJoCo',
-    long_description=read('README.md'),
+    long_description= f.read(),
     long_description_content_type="text/markdown",
     url='https://github.com/vikashplus/robohive.git',
     author='Movement Control Lab, UW',
