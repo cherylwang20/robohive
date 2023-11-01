@@ -20,7 +20,7 @@ class ReachEnvV0(BaseV0):
         "positionError":    1.0,
         "smallErrorBonus":  4.0,
         "highError":        50,
-        "metabolicCost":    0
+        "metabolicCost":    0, 
     } 
 
     def __init__(self, model_path, obsd_model_path=None, seed=None, **kwargs):
@@ -71,15 +71,13 @@ class ReachEnvV0(BaseV0):
             self.obs_dict['target_pos'] = np.append(self.obs_dict['target_pos'], self.sim.data.site_xpos[self.target_sids[isite]].copy())
         self.obs_dict['reach_err'] = np.array(self.obs_dict['target_pos'])-np.array(self.obs_dict['tip_pos'])
         
-        ## didn't run, add one myself
-        labels = ['calcn_r', 'calcn_l', 'toes_r', 'toes_l']
-
-        # center of mass and base of support
+         # center of mass and base of support
         xpos = {}
-        print('body names', self.sim.model.body_name2id('calcn_r'))
-        for names in labels: xpos[names] = self.sim.data.xipos[self.sim.model.body_name2id(names)].copy() # store x and y position of the com of the bodies
+        body_names = ['calcn_l', 'calcn_r', 'femur_l', 'femur_r', 'head', 'patella_l', 'patella_r', 'pelvis', 'root',
+                      'talus_l', 'talus_r', 'tibia_l', 'tibia_r', 'toes_l', 'toes_r', 'torso', 'world']
+        for names in body_names: xpos[names] = self.sim.data.xipos[self.sim.model.body_name2id(names)].copy() # store x and y position of the com of the bodies
         # Bodies relevant for hte base of support: 
-        
+        labels = ['calcn_r', 'calcn_l', 'toes_r', 'toes_l']
         x, y = [], [] # Storing position of the foot
         for label in labels:
             x.append(xpos[label][0]) # storing x position
@@ -158,7 +156,6 @@ class ReachEnvV0(BaseV0):
             ('solved',              1.*positionError<nearThresh),  # standing task succesful
             ('done',                1.*positionError > farThresh), # model has failed to complete the task 
         ))
-
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         return rwd_dict
 
