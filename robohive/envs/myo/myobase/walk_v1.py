@@ -9,7 +9,7 @@ import gym
 import numpy as np
 from robohive.envs.myo.base_v0 import BaseV0
 import matplotlib.path as mplPath
-
+from shapely.geometry import Polygon
 
 
 class ReachEnvV0(BaseV0):
@@ -129,12 +129,13 @@ class ReachEnvV0(BaseV0):
     def get_reward_dict(self, obs_dict):
         positionError = np.linalg.norm(obs_dict['reach_err'], axis=-1) # error x y and z
         # positionError = np.linalg.norm(obs_dict['reach_err'][0][0][:2], axis=-1) # error x and y
-        # timeStanding = np.linalg.norm(obs_dict['time'], axis=-1)
+        timeStanding = np.linalg.norm(obs_dict['time'], axis=-1)
         # vel_dist = np.linalg.norm(obs_dict['qvel'], axis=-1)
         metabolicCost = np.sum(np.square(obs_dict['act']))/self.sim.model.na
         # act_mag = np.linalg.norm(self.obs_dict['act'], axis=-1)/self.sim.model.na if self.sim.model.na !=0 else 0
         # Within: center of mass in between toes and calcaneous and rihgt foot left foot
         baseSupport = obs_dict['base_support'].reshape(2,4)
+        areaofbase = Polygon(zip(baseSupport[0], baseSupport[1])).area
         centerMass = np.squeeze(obs_dict['com']) #.reshape(1,2)
         bos = mplPath.Path(baseSupport.T)
         within = bos.contains_point(centerMass)
@@ -143,19 +144,23 @@ class ReachEnvV0(BaseV0):
         farThresh = self.far_th*len(self.tip_sids) if np.squeeze(obs_dict['time'])>2*self.dt else np.inf # farThresh = 0.5
         nearThresh = len(self.tip_sids)*.050 # nearThresh = 0.05
         # Rewards are defined ni the dictionary with the appropiate sign
+        timeStanding = timeStanding[0][0]
+        positionError = positionError[0][0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys
             ('positionError',       -1.*positionError ),#-10.*vel_dist
             ('smallErrorBonus',     1.*(positionError<2*nearThresh) + 1.*(positionError<nearThresh)),
-            # ('timeStanding',        1.*timeStanding), 
+            #('timeStanding',        1.*timeStanding), 
             ('metabolicCost',       -1.*metabolicCost),
             ('highError',           -1.*(positionError>farThresh)),
             ('centerOfMass',        1.*(com_bos)),
+            ('areaOfbase',           1*(areaofbase) ),
             # Must keys
             ('sparse',              -1.*positionError),
             ('solved',              1.*positionError<nearThresh),  # standing task succesful
             ('done',                1.*positionError > farThresh), # model has failed to complete the task 
         ))
+        #to_sum= [print(key, rwd_dict[key]) for key, wt in self.rwd_keys_wt.items()]
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         return rwd_dict
 

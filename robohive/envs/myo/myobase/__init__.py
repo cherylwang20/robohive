@@ -450,11 +450,12 @@ register_env_with_variants(id='myoLegReachFixed-v1',
             'far_th': 0.5,
             'weighted_reward_keys':{
                                 "positionError":        1,
-                                "smallErrorBonus":      0,
-                                # "timeStanding":         1,
-                                "metabolicCost":        1,
-                                "highError":            0,
-                                "centerOfMass":         1,
+                                "smallErrorBonus":      1,
+                                #"timeStanding":        2,
+                                "metabolicCost":        2,
+                                "highError":            1,
+                                "centerOfMass":         2,
+                                "areaOfbase":           1
                 }        
             }
     )
