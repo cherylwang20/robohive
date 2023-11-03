@@ -9,7 +9,7 @@ import gym
 import numpy as np
 from robohive.envs.myo.base_v0 import BaseV0
 import matplotlib.path as mplPath
-
+from shapely.geometry import Polygon
 
 
 class ReachEnvV0(BaseV0):
@@ -88,7 +88,9 @@ class ReachEnvV0(BaseV0):
         
         # center of mass and base of support
         xpos = {}
-        for names in self.sim.model.body_names: xpos[names] = self.sim.data.xipos[self.sim.model.body_name2id(names)].copy() # store x and y position of the com of the bodies
+        body_names = ['calcn_l', 'calcn_r', 'femur_l', 'femur_r', 'head', 'patella_l', 'patella_r', 'pelvis', 'root',
+                      'talus_l', 'talus_r', 'tibia_l', 'tibia_r', 'toes_l', 'toes_r', 'torso', 'world']
+        for names in body_names: xpos[names] = self.sim.data.xipos[self.sim.model.body_name2id(names)].copy() # store x and y position of the com of the bodies
         # Bodies relevant for hte base of support: 
         labels = ['calcn_r', 'calcn_l', 'toes_r', 'toes_l']
         x, y = [], [] # Storing position of the foot
@@ -151,19 +153,22 @@ class ReachEnvV0(BaseV0):
         centerMass = np.squeeze(obs_dict['com']) #.reshape(1,2)
         bos = mplPath.Path(baseSupport.T)
         within = bos.contains_point(centerMass)
+        areaofbase = Polygon(zip(baseSupport[0], baseSupport[1])).area
 
         com_bos = 1 if within else -1 # Reward is 100 if com is in bos.
         farThresh = self.far_th*len(self.tip_sids) if np.squeeze(obs_dict['time'])>2*self.dt else np.inf # farThresh = 0.5
         nearThresh = len(self.tip_sids)*.050 # nearThresh = 0.05
         # Rewards are defined ni the dictionary with the appropiate sign
+        positionError = positionError[0][0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys
             ('positionError',       -1.*positionError ),#-10.*vel_dist
             ('smallErrorBonus',     1.*(positionError<2*nearThresh) + 1.*(positionError<nearThresh)),
-            # ('timeStanding',        1.*timeStanding), 
+            #('timeStanding',        1.*timeStanding), 
             ('metabolicCost',       -1.*metabolicCost),
             ('highError',           -1.*(positionError>farThresh)),
             ('centerOfMass',        1.*(com_bos)),
+            ('areaOfbase',           1*(areaofbase) ),
             # Must keys
             ('sparse',              -1.*positionError),
             ('solved',              1.*positionError<nearThresh),  # standing task succesful
@@ -179,9 +184,9 @@ class ReachEnvV0(BaseV0):
         g = np.abs(self.sim.model.opt.gravity.sum())
         self.perturbation_time = np.random.uniform(self.time*(0.1*self.horizon), self.time*(0.2*self.horizon)) # between 10 and 20 percent
         # perturbation_magnitude = np.random.uniform(0.08*M*g, 0.14*M*g)
-        perturbation_magnitude = np.random.uniform(1, 50)
+        perturbation_magnitude = np.random.uniform(1, 20)
         self.perturbation_magnitude = [0, perturbation_magnitude, 0, 0, 0, 0] # front and back
-        self.perturbation_duration = 10#20 # steps
+        self.perturbation_duration = 10 #20 # steps
         return
     
     def reset(self):
