@@ -288,9 +288,9 @@ register_env_with_variants(id='myoHandPoseRandom-v0',  #reconsider
 from robohive.physics.sim_scene import SimBackend
 sim_backend = SimBackend.get_sim_backend()
 if sim_backend == SimBackend.MUJOCO_PY:
-    leg_model='/../../../simhive/myo_sim/leg/myolegs_v0.54(mj210).mjb'
+    leg_model='/../../../simhive/myo_sim/leg/myolegs.xml'
 elif sim_backend == SimBackend.MUJOCO:
-    leg_model='/../../../simhive/myo_sim/leg/myolegs_v0.56(mj237).mjb'
+    leg_model='/../../../simhive/myo_sim/leg/myolegs.xml'
     # leg_model='/../../../simhive/myo_sim/leg/myolegs_suspended_v0.56(mj236).mjb'
 
 
@@ -452,8 +452,8 @@ register_env_with_variants(id='myoLegReachFixed-v1',
                                 "positionError":        1,
                                 "smallErrorBonus":      1,
                                 #"timeStanding":        2,
-                                "metabolicCost":        2,
-                                "highError":            1,
+                                "metabolicCost":        1,
+                                "highError":            5,
                                 "centerOfMass":         2,
                                 "areaOfbase":           1
                 }        
