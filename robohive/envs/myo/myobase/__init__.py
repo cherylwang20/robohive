@@ -291,7 +291,7 @@ if sim_backend == SimBackend.MUJOCO_PY:
     leg_model='/../../../simhive/myo_sim/leg/myolegs.xml'
 elif sim_backend == SimBackend.MUJOCO:
     leg_model='/../../../simhive/myo_sim/leg/myolegs.xml'
-    # leg_model='/../../../simhive/myo_sim/leg/myolegs_suspended_v0.56(mj236).mjb'
+    #leg_model='/../../../simhive/myo_sim/leg/myolegs_v0.56(mj237).mjb'
 
 
 register_env_with_variants(id='myoLegStandRandom-v0',
@@ -450,12 +450,12 @@ register_env_with_variants(id='myoLegReachFixed-v1',
             'far_th': 0.5,
             'weighted_reward_keys':{
                                 "positionError":        1,
-                                "smallErrorBonus":      1,
-                                #"timeStanding":        2,
+                                "smallErrorBonus":      0,
+                                #"timeStanding":        0,
                                 "metabolicCost":        1,
-                                "highError":            5,
-                                "centerOfMass":         2,
-                                "areaOfbase":           1
+                                "highError":            0,
+                                "centerOfMass":         1
+                                #"areaOfbase":          1
                 }        
             }
     )

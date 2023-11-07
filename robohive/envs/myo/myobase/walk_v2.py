@@ -77,7 +77,7 @@ class ReachEnvV0(BaseV0):
         self.obs_dict['qvel'] = self.sim.data.qvel[:].copy()*self.dt
         if self.sim.model.na>0:
             self.obs_dict['act'] = self.sim.data.act[:].copy()
-
+        print(self.obs_dict['act'])
         # reach error
         self.obs_dict['tip_pos'] = np.array([])
         self.obs_dict['target_pos'] = np.array([])
@@ -88,8 +88,9 @@ class ReachEnvV0(BaseV0):
         
         # center of mass and base of support
         xpos = {}
-        body_names = ['calcn_l', 'calcn_r', 'femur_l', 'femur_r', 'head', 'patella_l', 'patella_r', 'pelvis', 'root',
-                      'talus_l', 'talus_r', 'tibia_l', 'tibia_r', 'toes_l', 'toes_r', 'torso', 'world']
+        #print(self.sim.model.body())
+        body_names = ['calcn_l', 'calcn_r', 'femur_l', 'femur_r', 'patella_l', 'patella_r', 'pelvis', 
+                      'root', 'talus_l', 'talus_r', 'tibia_l', 'tibia_r', 'toes_l', 'toes_r', 'world']
         for names in body_names: xpos[names] = self.sim.data.xipos[self.sim.model.body_name2id(names)].copy() # store x and y position of the com of the bodies
         # Bodies relevant for hte base of support: 
         labels = ['calcn_r', 'calcn_l', 'toes_r', 'toes_l']

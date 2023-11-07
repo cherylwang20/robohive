@@ -155,7 +155,7 @@ class ReachEnvV0(BaseV0):
             ('metabolicCost',       -1.*metabolicCost),
             ('highError',           -1.*(positionError>farThresh)),
             ('centerOfMass',        1.*(com_bos)),
-            ('areaOfbase',           1*(areaofbase) ),
+            #('areaOfbase',           1*(areaofbase) ),
             # Must keys
             ('sparse',              -1.*positionError),
             ('solved',              1.*positionError<nearThresh),  # standing task succesful
