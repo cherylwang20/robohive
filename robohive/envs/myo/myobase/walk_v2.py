@@ -59,6 +59,7 @@ class ReachEnvV0(BaseV0):
         self.init_qpos = self.sim.model.key_qpos[0]
     
     def step(self, a):
+        #print('time', self.time)
         if self.perturbation_time <= self.time < self.perturbation_time + self.perturbation_duration*self.dt : 
             self.sim.data.xfrc_applied[self.sim.model.body_name2id('pelvis'), :] = self.perturbation_magnitude
         else: self.sim.data.xfrc_applied[self.sim.model.body_name2id('pelvis'), :] = np.zeros((1, 6))
@@ -77,7 +78,6 @@ class ReachEnvV0(BaseV0):
         self.obs_dict['qvel'] = self.sim.data.qvel[:].copy()*self.dt
         if self.sim.model.na>0:
             self.obs_dict['act'] = self.sim.data.act[:].copy()
-        print(self.obs_dict['act'])
         # reach error
         self.obs_dict['tip_pos'] = np.array([])
         self.obs_dict['target_pos'] = np.array([])
@@ -125,6 +125,7 @@ class ReachEnvV0(BaseV0):
             obs_dict['tip_pos'] = np.append(obs_dict['tip_pos'], sim.data.site_xpos[self.tip_sids[isite]].copy())
             obs_dict['target_pos'] = np.append(obs_dict['target_pos'], sim.data.site_xpos[self.target_sids[isite]].copy())
         obs_dict['reach_err'] = np.array(obs_dict['target_pos'])-np.array(obs_dict['tip_pos'])
+        obs_dict['feet_heights'] = self._get_feet_heights().copy()
         
         # center of mass and base of support
         x, y = np.array([]), np.array([])
@@ -155,6 +156,7 @@ class ReachEnvV0(BaseV0):
         bos = mplPath.Path(baseSupport.T)
         within = bos.contains_point(centerMass)
         areaofbase = Polygon(zip(baseSupport[0], baseSupport[1])).area
+        feet_height = np.linalg.norm(obs_dict['feet_heights'])
 
         com_bos = 1 if within else -1 # Reward is 100 if com is in bos.
         farThresh = self.far_th*len(self.tip_sids) if np.squeeze(obs_dict['time'])>2*self.dt else np.inf # farThresh = 0.5
@@ -169,7 +171,8 @@ class ReachEnvV0(BaseV0):
             ('metabolicCost',       -1.*metabolicCost),
             ('highError',           -1.*(positionError>farThresh)),
             ('centerOfMass',        1.*(com_bos)),
-            ('areaOfbase',           1*(areaofbase) ),
+            ('feet_height',         -1*(feet_height)),
+            #('areaOfbase',           1*(areaofbase) ),
             # Must keys
             ('sparse',              -1.*positionError),
             ('solved',              1.*positionError<nearThresh),  # standing task succesful
@@ -178,16 +181,24 @@ class ReachEnvV0(BaseV0):
 
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         return rwd_dict
-
+    
+    def _get_feet_heights(self):
+        """
+        Get the height of both feet.
+        """
+        foot_id_l = self.sim.model.body_name2id('talus_l')
+        foot_id_r = self.sim.model.body_name2id('talus_r')
+        return np.array([self.sim.data.body_xpos[foot_id_l][2], self.sim.data.body_xpos[foot_id_r][2]])
+    
     # generate a perturbation
     def generate_perturbation(self):
         M = self.sim.model.body_mass.sum()
         g = np.abs(self.sim.model.opt.gravity.sum())
-        self.perturbation_time = np.random.uniform(self.time*(0.1*self.horizon), self.time*(0.2*self.horizon)) # between 10 and 20 percent
+        self.perturbation_time = np.random.uniform(self.dt*(0.1*self.horizon), self.dt*(0.2*self.horizon)) # between 10 and 20 percent
         # perturbation_magnitude = np.random.uniform(0.08*M*g, 0.14*M*g)
-        perturbation_magnitude = np.random.uniform(1, 20)
+        perturbation_magnitude = np.random.uniform(1, 50)
         self.perturbation_magnitude = [0, perturbation_magnitude, 0, 0, 0, 0] # front and back
-        self.perturbation_duration = 10 #20 # steps
+        self.perturbation_duration = 20 #20 # steps
         return
     
     def reset(self):

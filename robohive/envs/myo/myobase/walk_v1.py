@@ -151,7 +151,7 @@ class ReachEnvV0(BaseV0):
             # Optional Keys
             ('positionError',       -1.*positionError ),#-10.*vel_dist
             ('smallErrorBonus',     1.*(positionError<2*nearThresh) + 1.*(positionError<nearThresh)),
-            #('timeStanding',        1.*timeStanding), 
+            ('timeStanding',        1.*timeStanding), 
             ('metabolicCost',       -1.*metabolicCost),
             ('highError',           -1.*(positionError>farThresh)),
             ('centerOfMass',        1.*(com_bos)),

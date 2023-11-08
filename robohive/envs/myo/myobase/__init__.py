@@ -437,7 +437,7 @@ register_env_with_variants(id='myoLegReachFixed-v0',
 register_env_with_variants(id='myoLegReachFixed-v1',
         entry_point='robohive.envs.myo.myobase.walk_v1:ReachEnvV0',
         # max_episode_steps=500,
-        max_episode_steps=200,
+        max_episode_steps=500,
         kwargs={
             'model_path': curr_dir + leg_model,
             'target_reach_range': {
@@ -449,12 +449,12 @@ register_env_with_variants(id='myoLegReachFixed-v1',
             'normalize_act': True,
             'far_th': 0.5,
             'weighted_reward_keys':{
-                                "positionError":        1,
-                                "smallErrorBonus":      0,
-                                #"timeStanding":        0,
+                                "positionError":        2,
+                                "smallErrorBonus":      1,
+                                "timeStanding":         1,
                                 "metabolicCost":        1,
-                                "highError":            0,
-                                "centerOfMass":         1
+                                "highError":            1,
+                                "centerOfMass":         2
                                 #"areaOfbase":          1
                 }        
             }
@@ -462,7 +462,7 @@ register_env_with_variants(id='myoLegReachFixed-v1',
 register_env_with_variants(id='myoLegReachFixed-v2',
         entry_point='robohive.envs.myo.myobase.walk_v2:ReachEnvV0',
         # max_episode_steps=500,
-        max_episode_steps=200,
+        max_episode_steps=500,
         kwargs={
             'model_path': curr_dir + leg_model,
             'target_reach_range': {
@@ -474,13 +474,14 @@ register_env_with_variants(id='myoLegReachFixed-v2',
             'normalize_act': True,
             'far_th': 0.5,
             'weighted_reward_keys':{
-                                "positionError":        1,
+                                "positionError":        2,
                                 "smallErrorBonus":      1,
                                 #"timeStanding":        2,
-                                "metabolicCost":        2,
+                                "metabolicCost":        1,
                                 "highError":            1,
-                                "centerOfMass":         2,
-                                "areaOfbase":           1
+                                "centerOfMass":         1,
+                                'feet_height':          1
+                                #"areaOfbase":           1
                 }         
             }
     )
