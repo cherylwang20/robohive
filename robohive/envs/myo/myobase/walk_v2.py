@@ -146,7 +146,7 @@ class ReachEnvV0(BaseV0):
     def get_reward_dict(self, obs_dict):
         positionError = np.linalg.norm(obs_dict['reach_err'], axis=-1) # error x y and z
         # positionError = np.linalg.norm(obs_dict['reach_err'][0][0][:2], axis=-1) # error x and y
-        # timeStanding = np.linalg.norm(obs_dict['time'], axis=-1)
+        timeStanding = np.linalg.norm(obs_dict['time'], axis=-1)
         # vel_dist = np.linalg.norm(obs_dict['qvel'], axis=-1)
         metabolicCost = np.sum(np.square(obs_dict['act']))/self.sim.model.na
         # act_mag = np.linalg.norm(self.obs_dict['act'], axis=-1)/self.sim.model.na if self.sim.model.na !=0 else 0
@@ -163,6 +163,7 @@ class ReachEnvV0(BaseV0):
         nearThresh = len(self.tip_sids)*.050 # nearThresh = 0.05
         # Rewards are defined ni the dictionary with the appropiate sign
         positionError = positionError[0][0]
+        timeStanding = timeStanding[0][0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys
             ('positionError',       -1.*positionError ),#-10.*vel_dist
@@ -172,7 +173,7 @@ class ReachEnvV0(BaseV0):
             ('highError',           -1.*(positionError>farThresh)),
             ('centerOfMass',        1.*(com_bos)),
             ('feet_height',         -1*(feet_height)),
-            #('areaOfbase',           1*(areaofbase) ),
+            ('areaOfbase',           1*(areaofbase) ),
             # Must keys
             ('sparse',              -1.*positionError),
             ('solved',              1.*positionError<nearThresh),  # standing task succesful
@@ -196,7 +197,7 @@ class ReachEnvV0(BaseV0):
         g = np.abs(self.sim.model.opt.gravity.sum())
         self.perturbation_time = np.random.uniform(self.dt*(0.1*self.horizon), self.dt*(0.2*self.horizon)) # between 10 and 20 percent
         # perturbation_magnitude = np.random.uniform(0.08*M*g, 0.14*M*g)
-        perturbation_magnitude = np.random.uniform(1, 50)
+        perturbation_magnitude = np.random.uniform(1, 25)
         self.perturbation_magnitude = [0, perturbation_magnitude, 0, 0, 0, 0] # front and back
         self.perturbation_duration = 20 #20 # steps
         return
