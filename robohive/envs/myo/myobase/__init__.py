@@ -459,7 +459,38 @@ register_env_with_variants(id='myoLegReachFixed-v1',
                 }        
             }
     )
+
+
 register_env_with_variants(id='myoLegReachFixed-v2',
+        entry_point='robohive.envs.myo.myobase.walk_v2:ReachEnvV0',
+        # max_episode_steps=500,
+        max_episode_steps=500,
+        kwargs={
+            'model_path': curr_dir + leg_model,
+            'target_reach_range': {
+                #'pelvis': ((-0.0, -0.0, .90), (0.0, 0.0, .90)),
+                'pelvis': ((-.005, -.005, .9), (0.005, 0.005, .9)),
+                # 'pelvis': ((-0.05, -0.05, -0.75), (0.05, 0.05, 0.95)),
+                # 'pelvis': ((-.005, -.005, .75), (0.005, 0.005, .9)),
+                },
+            'normalize_act': True,
+            'far_th': 0.5,
+            'weighted_reward_keys':{
+                                "positionError":        3,
+                                "smallErrorBonus":      1,
+                                #"timeStanding":        2,
+                                "metabolicCost":        0.1,
+                                "highError":            2,
+                                "centerOfMass":         1,
+                                'feet_height':          2,
+                                "areaOfbase":           3
+                }         
+            }
+    )
+
+
+# we want this condition to be sarcopenia
+register_env_with_variants(id='myoLegReachFixed-v3',
         entry_point='robohive.envs.myo.myobase.walk_v2:ReachEnvV0',
         # max_episode_steps=500,
         max_episode_steps=500,
