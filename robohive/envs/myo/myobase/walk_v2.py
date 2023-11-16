@@ -197,8 +197,8 @@ class ReachEnvV0(BaseV0):
         g = np.abs(self.sim.model.opt.gravity.sum())
         self.perturbation_time = np.random.uniform(self.dt*(0.1*self.horizon), self.dt*(0.2*self.horizon)) # between 10 and 20 percent
         # perturbation_magnitude = np.random.uniform(0.08*M*g, 0.14*M*g)
-        perturbation_magnitude = np.random.uniform(1, 25)
-        self.perturbation_magnitude = [0, perturbation_magnitude, 0, 0, 0, 0] # front and back
+        perturbation_magnitude = np.random.uniform(1, 50)
+        self.perturbation_magnitude = [0, perturbation_magnitude*10, perturbation_magnitude, 0, 0, 0] # front and back
         self.perturbation_duration = 20 #20 # steps
         return
     
