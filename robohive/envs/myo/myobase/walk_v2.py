@@ -59,7 +59,6 @@ class ReachEnvV0(BaseV0):
         self.init_qpos = self.sim.model.key_qpos[0]
     
     def step(self, a):
-        #print('time', self.time)
         if self.perturbation_time <= self.time < self.perturbation_time + self.perturbation_duration*self.dt : 
             self.sim.data.xfrc_applied[self.sim.model.body_name2id('pelvis'), :] = self.perturbation_magnitude
         else: self.sim.data.xfrc_applied[self.sim.model.body_name2id('pelvis'), :] = np.zeros((1, 6))
@@ -142,8 +141,7 @@ class ReachEnvV0(BaseV0):
         obs_dict['com'] = com[:2]
 
         return obs_dict
-    def PolyArea(x,y):
-        return 0.5*np.abs(np.dot(x,np.roll(y,1))-np.dot(y,np.roll(x,1)))
+
 
     def get_reward_dict(self, obs_dict):
         positionError = np.linalg.norm(obs_dict['reach_err'], axis=-1) # error x y and z
@@ -159,7 +157,6 @@ class ReachEnvV0(BaseV0):
         within = bos.contains_point(centerMass)
         areaofbase = Polygon(zip(baseSupport[0], baseSupport[1])).area
         feet_height = np.linalg.norm(obs_dict['feet_heights'])
-        print(areaofbase)
 
         com_bos = 1 if within else -1 # Reward is 100 if com is in bos.
         farThresh = self.far_th*len(self.tip_sids) if np.squeeze(obs_dict['time'])>2*self.dt else np.inf # farThresh = 0.5
@@ -175,7 +172,7 @@ class ReachEnvV0(BaseV0):
             ('metabolicCost',       -1.*metabolicCost),
             ('highError',           -1.*(positionError>farThresh)),
             ('centerOfMass',        1.*(com_bos)),
-            ('feet_height',         -1*(feet_height)),
+            #('feet_height',         -1*(feet_height)),
             ('areaOfbase',           1*(areaofbase) ),
             # Must keys
             ('sparse',              -1.*positionError),
@@ -200,8 +197,8 @@ class ReachEnvV0(BaseV0):
         g = np.abs(self.sim.model.opt.gravity.sum())
         self.perturbation_time = np.random.uniform(self.dt*(0.1*self.horizon), self.dt*(0.2*self.horizon)) # between 10 and 20 percent
         # perturbation_magnitude = np.random.uniform(0.08*M*g, 0.14*M*g)
-        perturbation_magnitude = np.random.uniform(1, 50)
-        self.perturbation_magnitude = [0, perturbation_magnitude, 0, 0, 0, 0] # front and back
+        perturbation_magnitude = np.random.uniform(15, 50)
+        self.perturbation_magnitude = [0,0,0, 5*perturbation_magnitude, 0, 0] # front and back
         self.perturbation_duration = 20 #20 # steps
         return
     
