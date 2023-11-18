@@ -481,9 +481,9 @@ register_env_with_variants(id='myoLegReachFixed-v2',
                                 #"timeStanding":        1,
                                 "metabolicCost":        1,
                                 "highError":            1,
-                                "centerOfMass":         1,
-                                'feet_height':          1,
-                                "areaOfbase":           3
+                                "centerOfMass":         2,
+                                #'feet_height':          1,
+                                "areaOfbase":           4
                 }         
             }
     )

@@ -159,7 +159,6 @@ class ReachEnvV0(BaseV0):
         within = bos.contains_point(centerMass)
         areaofbase = Polygon(zip(baseSupport[0], baseSupport[1])).area
         feet_height = np.linalg.norm(obs_dict['feet_heights'])
-        print(areaofbase)
 
         com_bos = 1 if within else -1 # Reward is 100 if com is in bos.
         farThresh = self.far_th*len(self.tip_sids) if np.squeeze(obs_dict['time'])>2*self.dt else np.inf # farThresh = 0.5
