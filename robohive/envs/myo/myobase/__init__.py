@@ -469,21 +469,39 @@ register_env_with_variants(id='myoLegReachFixed-v2',
             'model_path': curr_dir + leg_model,
             'target_reach_range': {
                 #'pelvis': ((-0.0, -0.0, .90), (0.0, 0.0, .90)),
+<<<<<<< HEAD
                 #'pelvis': ((-.3, -.3, .60), (0.3, 0.3, .8)),
                 'pelvis': ((-0.05, -0.05, 0.9), (0.05, 0.05, 0.95)),
                 # 'pelvis': ((-.005, -.005, .75), (0.005, 0.005, .9)),
+=======
+                # 'pelvis': ((-.050, -.050, -.050), (0.05, 0.05, .05)),
+                #'pelvis': ((-.5, -.5, .7), (0.5, 0.5, .9)),
+                'pelvis': ((-.005, -.005, .75), (0.005, 0.005, .9)),
+>>>>>>> a3452bce6765e6e4360b50a68e7b573f153e9d36
                 },
             'normalize_act': True,
             'far_th': 0.5,
             'weighted_reward_keys':{
+<<<<<<< HEAD
                                 "positionError":        0.5,
                                 #"smallErrorBonus":      1,
                                 #"timeStanding":        2,
                                 "metabolicCost":        0.2,
+=======
+                                "positionError":        1,
+                                #"smallErrorBonus":      1,
+                                #"timeStanding":        2,
+                                "metabolicCost":        1,
+>>>>>>> a3452bce6765e6e4360b50a68e7b573f153e9d36
                                 #"highError":            1,
-                                "centerOfMass":         2,
+                                "centerOfMass":         1,
+                                "com_error":            1,
                                 #'feet_height':         1,
+<<<<<<< HEAD
                                 "areaOfbase":           50, 
+=======
+                                "areaOfbase":           5, 
+>>>>>>> a3452bce6765e6e4360b50a68e7b573f153e9d36
                                 "done":                 -100
                 }         
             }
