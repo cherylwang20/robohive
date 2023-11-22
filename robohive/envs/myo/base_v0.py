@@ -35,6 +35,7 @@ class BaseV0(env_base.MujocoEnv):
         self.target_sids = []
         if sites:
             for site in sites:
+                #print('target',self.sim.model.site_name2id(site+'_target'))
                 self.tip_sids.append(self.sim.model.site_name2id(site))
                 self.target_sids.append(self.sim.model.site_name2id(site+'_target'))
 

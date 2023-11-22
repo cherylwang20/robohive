@@ -84,7 +84,6 @@ class ReachEnvV0(BaseV0):
             self.obs_dict['tip_pos'] = np.append(self.obs_dict['tip_pos'], self.sim.data.site_xpos[self.tip_sids[isite]].copy())
             self.obs_dict['target_pos'] = np.append(self.obs_dict['target_pos'], self.sim.data.site_xpos[self.target_sids[isite]].copy())
         self.obs_dict['reach_err'] = np.array(self.obs_dict['target_pos'])-np.array(self.obs_dict['tip_pos'])
-        
         # center of mass and base of support
         xpos = {}
         #print(self.sim.model.body())
@@ -139,12 +138,16 @@ class ReachEnvV0(BaseV0):
         mass = sim.model.body_mass
         com = np.sum(pos * mass.reshape((-1, 1)), axis=0) / np.sum(mass)
         obs_dict['com'] = com[:2]
-
+        baseSupport = obs_dict['base_support'].reshape(2,4)
+        areaofbase = Polygon(zip(baseSupport[0], baseSupport[1])).area
+        obs_dict['centroid'] = np.array(Polygon(zip(baseSupport[0], baseSupport[1])).centroid.coords)
+        obs_dict['err_com'] = np.array(obs_dict['centroid']- obs_dict['com'])
         return obs_dict
 
 
     def get_reward_dict(self, obs_dict):
         positionError = np.linalg.norm(obs_dict['reach_err'], axis=-1) # error x y and z
+        comError = np.linalg.norm(obs_dict['err_com'], axis=-1)
         # positionError = np.linalg.norm(obs_dict['reach_err'][0][0][:2], axis=-1) # error x and y
         timeStanding = np.linalg.norm(obs_dict['time'], axis=-1)
         # vel_dist = np.linalg.norm(obs_dict['qvel'], axis=-1)
@@ -162,6 +165,7 @@ class ReachEnvV0(BaseV0):
         farThresh = self.far_th*len(self.tip_sids) if np.squeeze(obs_dict['time'])>2*self.dt else np.inf # farThresh = 0.5
         nearThresh = len(self.tip_sids)*.050 # nearThresh = 0.05
         # Rewards are defined ni the dictionary with the appropiate sign
+        comError = comError[0][0][0]
         positionError = positionError[0][0]
         timeStanding = timeStanding[0][0]
         rwd_dict = collections.OrderedDict((
@@ -172,6 +176,7 @@ class ReachEnvV0(BaseV0):
             ('metabolicCost',       -1.*metabolicCost),
             ('highError',           -1.*(positionError>farThresh)),
             ('centerOfMass',        1.*(com_bos)),
+            ('com_error',             -1.*(comError)),
             #('feet_height',         -1*(feet_height)),
             ('areaOfbase',           1*(areaofbase) ),
             # Must keys
@@ -179,7 +184,6 @@ class ReachEnvV0(BaseV0):
             ('solved',              1.*positionError<nearThresh),  # standing task succesful
             ('done',                1.*positionError > farThresh), # model has failed to complete the task 
         ))
-
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         return rwd_dict
     
@@ -191,17 +195,33 @@ class ReachEnvV0(BaseV0):
         foot_id_r = self.sim.model.body_name2id('calcn_r')
         return np.array([self.sim.data.body_xpos[foot_id_l][2], self.sim.data.body_xpos[foot_id_r][2]])
     
+    def allocate_randomly(self, perturbation_magnitude): #allocate the perturbation randomly in one of the six directions
+        array = np.zeros(6)
+        random_index = np.random.randint(0, len(array))
+        array[random_index] = perturbation_magnitude
+        return array
     # generate a perturbation
+    
     def generate_perturbation(self):
         M = self.sim.model.body_mass.sum()
         g = np.abs(self.sim.model.opt.gravity.sum())
         self.perturbation_time = np.random.uniform(self.dt*(0.1*self.horizon), self.dt*(0.2*self.horizon)) # between 10 and 20 percent
         # perturbation_magnitude = np.random.uniform(0.08*M*g, 0.14*M*g)
         perturbation_magnitude = np.random.uniform(15, 50)
-        self.perturbation_magnitude = [0,0,0, 2*perturbation_magnitude, 0, 0] # front and back
+        self.perturbation_magnitude = self.allocate_randomly(perturbation_magnitude)#[0,0,0, perturbation_magnitude, 0, 0] # front and back
         self.perturbation_duration = 20 #20 # steps
         return
+        # generate a valid target
+
     
+
+    def generate_targets(self):
+        for site, span in self.target_reach_range.items():
+            sid = self.sim.model.site_name2id(site)
+            sid_target = self.sim.model.site_name2id(site+'_target')
+            self.sim.model.site_pos[sid] = self.sim.data.site_xpos[sid].copy() + self.np_random.uniform(low=span[0], high=span[1])
+        self.sim.forward()
+
     def reset(self):
         self.generate_perturbation()
         self.robot.sync_sims(self.sim, self.sim_obsd)
