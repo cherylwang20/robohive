@@ -469,21 +469,22 @@ register_env_with_variants(id='myoLegReachFixed-v2',
             'model_path': curr_dir + leg_model,
             'target_reach_range': {
                 #'pelvis': ((-0.0, -0.0, .90), (0.0, 0.0, .90)),
-                'pelvis': ((-.5, -.5, .70), (0.5, 0.5, .9)),
-                # 'pelvis': ((-0.05, -0.05, -0.75), (0.05, 0.05, 0.95)),
+                #'pelvis': ((-.3, -.3, .60), (0.3, 0.3, .8)),
+                'pelvis': ((-0.05, -0.05, 0.9), (0.05, 0.05, 0.95)),
                 # 'pelvis': ((-.005, -.005, .75), (0.005, 0.005, .9)),
                 },
             'normalize_act': True,
             'far_th': 0.5,
             'weighted_reward_keys':{
-                                "positionError":        0.1,
-                                "smallErrorBonus":      1,
-                                #"timeStanding":        1,
-                                "metabolicCost":        1,
-                                "highError":            1,
+                                "positionError":        0.5,
+                                #"smallErrorBonus":      1,
+                                #"timeStanding":        2,
+                                "metabolicCost":        0.2,
+                                #"highError":            1,
                                 "centerOfMass":         2,
-                                #'feet_height':          1,
-                                "areaOfbase":           4
+                                #'feet_height':         1,
+                                "areaOfbase":           50, 
+                                "done":                 -100
                 }         
             }
     )
