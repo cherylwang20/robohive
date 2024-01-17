@@ -36,8 +36,8 @@ class BaseV0(env_base.MujocoEnv):
         if sites:
             for site in sites:
                 #print('target',self.sim.model.site_name2id(site+'_target'))
-                self.tip_sids.append(self.sim.model.site_name2id(site))
-                self.target_sids.append(self.sim.model.site_name2id(site+'_target'))
+                self.tip_sids.append(self.sim.model.site_name2id(site)) #1
+                self.target_sids.append(self.sim.model.site_name2id(site+'_target')) #0
 
         self.muscle_condition = muscle_condition
         self.initializeConditions()

@@ -335,6 +335,23 @@ register_env_with_variants(id='myoLegReachRandom-v0',
     )
 """
 
+register_env_with_variants(id='myoLegStep-v0',
+        entry_point='robohive.envs.myo.myobase.walk_v3:WalkEnvV0',
+        max_episode_steps=1000,
+        kwargs={
+            'model_path': curr_dir + leg_model,
+            'normalize_act': True,
+            'min_height':0.35,    # minimum center of mass height before reset
+            'max_rot':0.8,       # maximum rotation before reset
+            'hip_period':100,    # desired periodic hip angle movement
+            'reset_type':'init', # none, init, random
+            'target_x_vel':0.0,  # desired x velocity in m/s
+            'target_y_vel':1.0,  # desired y velocity in m/s
+            'target_rot': None   # if None then the initial root pos will be taken, otherwise provide quat
+        }
+    )
+
+
 # Gait Torso Walking ==============================
 register_env_with_variants(id='myoLegWalk-v0',
         entry_point='robohive.envs.myo.myobase.walk_v0:WalkEnvV0',
@@ -464,7 +481,7 @@ register_env_with_variants(id='myoLegReachFixed-v1',
 register_env_with_variants(id='myoLegReachFixed-v2',
         entry_point='robohive.envs.myo.myobase.walk_v2:ReachEnvV0',
         # max_episode_steps=500,
-        max_episode_steps=700,
+        max_episode_steps=1000,
         kwargs={
             'model_path': curr_dir + leg_model,
             'target_reach_range': {
@@ -472,20 +489,27 @@ register_env_with_variants(id='myoLegReachFixed-v2',
                 # 'pelvis': ((-.050, -.050, -.050), (0.05, 0.05, .05)),
                 #'pelvis': ((-.5, -.5, .7), (0.5, 0.5, .9)),
                 'pelvis': ((-.005, -.005, .75), (0.005, 0.005, .9)),
+                #'calcn_l':((-.005, -.005, .75), (0.005, 0.005, .9)),
                 },
             'normalize_act': True,
-            'far_th': 0.5,
+            'far_th': 1,
             'weighted_reward_keys':{
                                 "positionError":        1,
                                 #"smallErrorBonus":      1,
-                                #"timeStanding":        2,
-                                "metabolicCost":        1,
-                                #"highError":            1,
-                                "centerOfMass":         1,
-                                "com_error":            1,
-                                #'feet_height':         1,
-                                "areaOfbase":           5, 
-                                "done":                 -100
+                                #"timeStanding":          3,
+                                "metabolicCost":         1,
+                                #"highError":            5,
+                                #"centerOfMass":         1,
+                                #'verticalStep':          1, 
+                                "com_error":             2,
+                                #"l_foot_error":          2,
+                                #"r_foot_error":          2,
+                                "pelvis_rot_err":        1,
+                                'feet_height':           1,
+                                "com_v":                 2,
+                                #'cal_err':               5,
+                                "feet_width":            1, 
+                                "done":                 -10
                 }         
             }
     )
@@ -507,17 +531,51 @@ register_env_with_variants(id='myoLegReachFixed-v3',
             'normalize_act': True,
             'far_th': 0.5,
             'weighted_reward_keys':{
-                                "positionError":        2,
-                                "smallErrorBonus":      1,
-                                #"timeStanding":        2,
+                                 #"positionError":        1,
+                                #"smallErrorBonus":      1,
+                                "timeStanding":        2,
                                 "metabolicCost":        0.5,
-                                "highError":            1,
+                                #"highError":            5,
                                 "centerOfMass":         1,
-                                'feet_height':          1,
-                                "areaOfbase":           3
+                                'verticalStep':         2, 
+                                "com_error":            2,
+                                #'feet_height':          5,
+                                "feet_width":            4, 
+                                "done":                 -10
                 }         
             }
     )
+
+# we want this condition to be SAR enabled
+register_env_with_variants(id='myoLegReachFixed-v4',
+        entry_point='robohive.envs.myo.myobase.walk_v4:ReachEnvV0',
+        # max_episode_steps=500,
+        max_episode_steps=700,
+        kwargs={
+            'model_path': curr_dir + leg_model,
+            'target_reach_range': {
+                #'pelvis': ((-0.0, -0.0, .90), (0.0, 0.0, .90)),
+                'pelvis': ((-.005, -.005, .82), (0.005, 0.005, .9)),
+                # 'pelvis': ((-0.05, -0.05, -0.75), (0.05, 0.05, 0.95)),
+                # 'pelvis': ((-.005, -.005, .75), (0.005, 0.005, .9)),
+                },
+            'normalize_act': True,
+            'far_th': 0.5,
+            'weighted_reward_keys':{
+                                #"positionError":        2,
+                                "timeStanding":        2,
+                                "metabolicCost":        1,
+                                #"highError":            5,
+                                "centerOfMass":         1,
+                                'verticalStep':         4, 
+                                "com_error":            5,
+                                #'feet_height':          5,
+                                "feet_width":            4, 
+                                "done":                 -50
+                }         
+            }
+    )
+
 
 # Hand-Joint Reaching ==============================
 register_env_with_variants(id='myoHandReachFixed-v0',
