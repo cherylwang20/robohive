@@ -166,7 +166,7 @@ class ReachEnvV0(BaseV0):
         # CoM is considered to be the center of mass of the pelvis (for now) 
         pos = sim.data.xipos.copy()
         vel = sim.data.cvel.copy()
-        obs_dict['feet_v'] = sim.data.cvel[sim.model.body_name2id('calcn_r')].copy() + sim.data.cvel[sim.model.body_name2id('toes_r')].copy() 
+        obs_dict['feet_v'] = sim.data.cvel[sim.model.body_name2id('patella_r')].copy()
         #3*sim.data.cvel[sim.model.body_name2id('pelvis')].copy() - sim.data.cvel[sim.model.body_name2id('toes_r')].copy()
         mass = sim.model.body_mass
         com = np.sum(pos * mass.reshape((-1, 1)), axis=0) / np.sum(mass)
@@ -242,7 +242,7 @@ class ReachEnvV0(BaseV0):
         #cal_err = cal_err.reshape(-1)[0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys
-            ('positionError',        np.exp(-0.5*positionError) ),#-10.*vel_dist
+            ('positionError',        np.exp(-1*positionError) ),#-10.*vel_dist
             #('smallErrorBonus',     1.*(positionError<2*nearThresh) + 1.*(positionError<nearThresh)),
             #('timeStanding',        1.*timeStanding), 
             ('metabolicCost',       -1.*metabolicCost),
@@ -252,7 +252,7 @@ class ReachEnvV0(BaseV0):
             ('com_error',             np.exp(-5.*(comError))),
             #('l_foot_error',            np.exp(-5*lfootError)),
             #('r_foot_error',            np.exp(-5*rfootError)),
-            ('feet_height',         -5*(feet_height)),
+            ('feet_height',         -1*(feet_height)),
             ('feet_width',            20*np.clip(feet_width, 0.3, 0.5)),
             ('pelvis_rot_err',        -1 * pelvis_rot_err),
             ('com_v',                 3*(com_bos - np.tanh(feet_v))**2), #penalize when COM_v is high
