@@ -113,6 +113,7 @@ class ReachEnvV0(BaseV0):
         #self.obs_dict['ver_sep'] = np.array(max(y), min(y))
         # print('Ordered keys: {}'.format(self.obs_keys))
         self.obs_dict['err_cal'] = np.array(0.31 - self.obs_dict['cal_l'] )
+        self.obs_dict['knee_angle'] = np.array(np.mean(self.sim.data.qpos[self.sim.model.joint_name2id('knee_angle_l')].copy() + self.sim.data.qpos[self.sim.model.joint_name2id('knee_angle_r')].copy()))
         t, obs = self.obsdict2obsvec(self.obs_dict, self.obs_keys)
         return obs
 
@@ -153,7 +154,8 @@ class ReachEnvV0(BaseV0):
         obs_dict['r_foot_err'] = np.array(obs_dict['target_feet'][-2:])-np.array(obs_dict['body_pos'][-2:])
         '''
         obs_dict['feet_heights'] = self._get_feet_heights().copy()
-        
+        a = np.mean(self.sim.data.qpos[self.sim.model.joint_name2id('knee_angle_l')].copy() + self.sim.data.qpos[self.sim.model.joint_name2id('knee_angle_r')].copy())
+        obs_dict['knee_angle'] = np.asarray([a])
         # center of mass and base of support
         x, y = np.array([]), np.array([])
         for label in ['calcn_r', 'calcn_l', 'toes_l', 'toes_r']:
@@ -194,12 +196,16 @@ class ReachEnvV0(BaseV0):
         plt.show()
         '''
 
+
+
         obs_dict['err_com'] = np.array(obs_dict['centroid']- obs_dict['com'])
         #obs_dict['err_com'] = np.array(obs_dict['centroid']- obs_dict['pelvis_com']) #change since 2023/12/08/ 15:52
         return obs_dict
 
 
     def get_reward_dict(self, obs_dict):
+        knee_angle = self.obs_dict['knee_angle']
+        #print('knee angle', knee_angle)
         self.obs_dict['pelvis_target_rot'] = [np.pi/2, -np.pi/2 , 0]
         self.obs_dict['pelvis_rot'] = mat2euler(np.reshape(self.sim.data.xmat[self.sim.model.body_name2id('pelvis')], (3, 3)))
         #print(self.obs_dict['pelvis_rot'])
@@ -208,7 +214,8 @@ class ReachEnvV0(BaseV0):
         #lfootError = np.linalg.norm(obs_dict['l_foot_err'], axis=-1) # error x y and z
         #rfootError = np.linalg.norm(obs_dict['r_foot_err'], axis=-1)
         #cal_err = np.abs(obs_dict['cal_l'][0][0][1]-0.31)
-        feet_v = np.linalg.norm(obs_dict['feet_v'][-3:], axis = -1) #np.linalg.norm(obs_dict['com_v'], axis = -1) # want to minimize rotational and translational velocity
+        feet_v = np.linalg.norm(obs_dict['feet_v'][-3:], axis = -1) 
+        com_vel = np.linalg.norm(obs_dict['com_v'], axis = -1) # want to minimize rotational and translational velocity
         comError = np.linalg.norm(obs_dict['err_com'], axis=-1)
         # positionError = np.linalg.norm(obs_dict['reach_err'][0][0][:2], axis=-1) # error x and y
         timeStanding = np.linalg.norm(obs_dict['time'], axis=-1)
@@ -237,6 +244,8 @@ class ReachEnvV0(BaseV0):
         feet_v = feet_v.reshape(-1)[0]
         timeStanding = timeStanding.reshape(-1)[0]
         com_height = com_height.reshape(-1)[0]
+        knee_angle = knee_angle.reshape(-1)[0]
+        com_vel = com_vel.reshape(-1)[0]
         #lfootError = lfootError.reshape(-1)[0]
         #rfootError = rfootError.reshape(-1)[0]
         #cal_err = cal_err.reshape(-1)[0]
@@ -255,7 +264,8 @@ class ReachEnvV0(BaseV0):
             ('feet_height',         -1*(feet_height)),
             ('feet_width',            20*np.clip(feet_width, 0.3, 0.5)),
             ('pelvis_rot_err',        -1 * pelvis_rot_err),
-            ('com_v',                 3*(com_bos - np.tanh(feet_v))**2), #penalize when COM_v is high
+            ('com_v',                  np.exp(-1*com_vel)), #3*(com_bos - np.tanh(feet_v))**2), #penalize when COM_v is high
+            ('knee_angle',             20*np.clip(knee_angle, -1, -1.3)),
             #('cal_err',               np.exp(-5 * cal_err)),
             # Must keys
             ('sparse',              -1.*positionError),
@@ -308,13 +318,6 @@ class ReachEnvV0(BaseV0):
         width = np.abs((x[0]-x[1])**2)
         #width = np.sqrt((np.mean([x[0], x[3]])+np.mean([x[1], x[2]]))**2 +(np.mean([y[0], y[3]])+np.mean([y[1], y[2]]))**2)#np.abs(np.mean([x[0], x[3]]) - np.mean([x[1], x[2]]))
         step = np.abs(np.mean([y[0], y[3]]) - np.mean([y[1], y[2]]))
-        '''
-        r_orien = np.arctan(np.abs(y[3] - y[0])/np.abs(x[3] - x[0]))
-        width_orien  = np.arctan(np.abs(y[0] - y[1])/np.abs(x[0] - x[1]))
-        length = np.sqrt((x[0] - x[1])**2 + (y[0] - y[1])**2)
-        width = length*np.cos((np.pi/2 - r_orien) + width_orien)
-        step = length*np.sin((np.pi/2 - r_orien) + width_orien)
-        '''
         return width, step
 
     def reset(self):

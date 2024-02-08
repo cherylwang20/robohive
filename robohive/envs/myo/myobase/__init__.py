@@ -506,10 +506,11 @@ register_env_with_variants(id='myoLegReachFixed-v2',
                                 #"r_foot_error":          2,
                                 "pelvis_rot_err":        .1,
                                 'feet_height':           .1,
-                                #"com_v":                 2,
+                                "com_v":                 .2,
                                 #'cal_err':               5,
                                 "feet_width":            .3, 
-                                "done":                 -10
+                                "knee_angle":            .5,
+                                "done":                 -10.
                 }         
             }
     )
