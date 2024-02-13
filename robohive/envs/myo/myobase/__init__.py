@@ -543,7 +543,7 @@ register_env_with_variants(id='myoLegReachFixed-v3',
             }
     )
 
-# we want this condition to be SAR enabled
+# fatigue model
 register_env_with_variants(id='myoLegReachFixed-v4',
         entry_point='robohive.envs.myo.myobase.walk_v4:ReachEnvV0',
         # max_episode_steps=500,
@@ -557,19 +557,23 @@ register_env_with_variants(id='myoLegReachFixed-v4',
                 # 'pelvis': ((-.005, -.005, .75), (0.005, 0.005, .9)),
                 },
             'normalize_act': True,
-            'far_th': 0.5,
+            'far_th': 1,
             'weighted_reward_keys':{
-                                #"positionError":        2,
-                                "timeStanding":        2,
-                                "metabolicCost":        1,
+                                "positionError":        .1,
+                                #"smallErrorBonus":      1,
+                                #"timeStanding":          3,
+                                "metabolicCost":         .1,
                                 #"highError":            5,
-                                "centerOfMass":         1,
-                                'verticalStep':         4, 
-                                "com_error":            5,
-                                #'feet_height':          5,
-                                "feet_width":            4, 
-                                "done":                 -50
-                }         
+                                #"centerOfMass":         1,
+                                #'verticalStep':          1, 
+                                "com_error":             .4,
+                                "pelvis_rot_err":        .1,
+                                'feet_height':           .1,
+                                "com_v":                 .2,
+                                "feet_width":            .3, 
+                                #"hip_add":            .5,
+                                "done":                 -10.
+                }     
             }
     )
 
