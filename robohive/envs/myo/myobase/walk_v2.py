@@ -244,7 +244,7 @@ class ReachEnvV0(BaseV0):
             ('feet_width',            5*np.clip(feet_width, 0.3, 0.5)),
             ('pelvis_rot_err',        -1 * pelvis_rot_err),
             ('com_v',                  np.exp(-1*com_vel)), #3*(com_bos - np.tanh(feet_v))**2), #penalize when COM_v is high
-            ('hip_add',             5*np.clip(hip_add, -0.3, -0.2)),
+            ('hip_add',             10*np.clip(hip_add, -0.3, -0.2)),
             # Must keys
             ('sparse',              -1.*positionError),
             ('solved',              1.*positionError<nearThresh),  # standing task succesful
