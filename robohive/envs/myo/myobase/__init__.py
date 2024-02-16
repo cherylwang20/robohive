@@ -506,8 +506,9 @@ register_env_with_variants(id='myoLegReachFixed-v2',
                                 #"com_v":                 .2,
                                 #"feet_width":            .3, 
                                 "hip_add":               .5,
+                                "hip_flex":               0.5,
                                 "com_height_error":      0.5, 
-                                #"knee_angle":            .5,
+                                "knee_angle":            .5,
                                 "done":                 -10.
                 }         
             }
