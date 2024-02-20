@@ -42,7 +42,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [10, 60]
+        self.force_range = [70, 90]
         self._setup(**kwargs)
 
     def _setup(self,
@@ -104,6 +104,7 @@ class ReachEnvV0(BaseV0):
         mass = self.sim.model.body_mass
         com_v = np.sum(vel *  mass.reshape((-1, 1)), axis=0) / np.sum(mass)
         self.obs_dict['com_v'] = com_v
+        print(com_v)
         com = np.sum(pos * mass.reshape((-1, 1)), axis=0) / np.sum(mass)
         self.obs_dict['com'] = com[:2]
         self.obs_dict['com_height'] = com[-1:]
