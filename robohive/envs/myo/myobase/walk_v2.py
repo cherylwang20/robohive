@@ -42,7 +42,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [10, 40]
+        self.force_range = [10, 60]
         self._setup(**kwargs)
 
     def _setup(self,
@@ -154,7 +154,7 @@ class ReachEnvV0(BaseV0):
         b = (self.sim.data.joint('knee_angle_r').qpos.copy()+self.sim.data.joint('knee_angle_l').qpos.copy())/2
         obs_dict['knee_angle'] = np.asarray([b])
         c = (self.sim.data.joint('hip_flexion_r').qpos.copy()+self.sim.data.joint('hip_flexion_l').qpos.copy())/2
-        obs_dict['hip_flexion'] = np.asarray([c])
+        obs_dict['hip_flex'] = np.asarray([c])
         # center of mass and base of support
         x, y = np.array([]), np.array([])
         for label in ['calcn_r', 'calcn_l', 'toes_l', 'toes_r']:
@@ -202,7 +202,7 @@ class ReachEnvV0(BaseV0):
 
     def get_reward_dict(self, obs_dict):
         #print('hip flexion',self.sim.data.joint('hip_flexion_r').qpos.copy())
-        hip_fle = self.obs_dict['hip_add']
+        hip_fle = self.obs_dict['hip_flex']
         hip_add = self.obs_dict['hip_add']
         knee_angle = self.obs_dict['knee_angle']
         self.obs_dict['pelvis_target_rot'] = [np.pi/2, -np.pi/2 , 0]
@@ -226,7 +226,7 @@ class ReachEnvV0(BaseV0):
         feet_width, vertical_sep = self.feet_width()
         feet_height = np.linalg.norm(obs_dict['feet_heights'])
         com_height = obs_dict['com_height'][0]
-        com_height_error = np.linalg.norm(obs_dict['com_height'][0]-0.5)
+        com_height_error = np.linalg.norm(obs_dict['com_height'][0]-0.55)
         com_bos = 1 if within else -1 # Reward is 100 if com is in bos.
         farThresh = self.far_th*len(self.tip_sids) if np.squeeze(obs_dict['time'])>2*self.dt else np.inf # farThresh = 0.5
         nearThresh = len(self.tip_sids)*.050 # nearThresh = 0.05
@@ -250,14 +250,14 @@ class ReachEnvV0(BaseV0):
             #('highError',           -1.*(positionError>farThresh)),
             ('centerOfMass',        1.*(com_bos)),
             ('com_error',             np.exp(-2.*(comError))),
-            ('com_height_error',           np.exp(-1*np.abs(com_height_error))),
+            ('com_height_error',     np.exp(-5*np.abs(com_height_error))),
             ('feet_height',         -1*(feet_height)),
             ('feet_width',            5*np.clip(feet_width, 0.3, 0.5)),
             ('pelvis_rot_err',        -1 * pelvis_rot_err),
             ('com_v',                  np.exp(-1*com_vel)), #3*(com_bos - np.tanh(feet_v))**2), #penalize when COM_v is high
-            ('hip_add',               5*np.clip(hip_add, -0.3, -0.2)),
-            ('knee_angle',             5*np.clip(knee_angle, 1, 1.2)),
-            ('hip_flex',             5*np.clip(knee_angle, 0.4, 0.6)),
+            ('hip_add',               2*np.clip(hip_add, -0.3, -0.2)),
+            ('knee_angle',             10*np.clip(knee_angle, 1, 1.2)),
+            ('hip_flex',              10*np.clip(hip_fle, 0.4, 0.7)),
             # Must keys
             ('sparse',              -1.*positionError),
             ('solved',              1.*positionError<nearThresh),  # standing task succesful

@@ -507,9 +507,9 @@ register_env_with_variants(id='myoLegReachFixed-v2',
                                 #"feet_width":            .3, 
                                 "hip_add":               .5,
                                 "hip_flex":               0.5,
-                                "com_height_error":      0.5, 
+                                "com_height_error":      1, 
                                 "knee_angle":            .5,
-                                "done":                 -10.
+                                "done":                 -100.
                 }         
             }
     )
@@ -555,9 +555,9 @@ register_env_with_variants(id='myoLegReachFixed-v4',
             'model_path': curr_dir + leg_model,
             'target_reach_range': {
                 #'pelvis': ((-0.0, -0.0, .90), (0.0, 0.0, .90)),
-                'pelvis': ((-.005, -.005, .82), (0.005, 0.005, .9)),
-                # 'pelvis': ((-0.05, -0.05, -0.75), (0.05, 0.05, 0.95)),
-                # 'pelvis': ((-.005, -.005, .75), (0.005, 0.005, .9)),
+                # 'pelvis': ((-.050, -.050, -.050), (0.05, 0.05, .05)),
+                #'pelvis': ((-.5, -.5, .7), (0.5, 0.5, .9)),
+                'pelvis': ((-.005, -.005, .90), (0.005, 0.005, .92)),
                 },
             'normalize_act': True,
             'far_th': 1,
@@ -567,16 +567,19 @@ register_env_with_variants(id='myoLegReachFixed-v4',
                                 #"timeStanding":          3,
                                 "metabolicCost":         .1,
                                 #"highError":            5,
-                                #"centerOfMass":         1,
+                                "centerOfMass":         0.5,
                                 #'verticalStep':          1, 
-                                "com_error":             .4,
-                                "pelvis_rot_err":        .1,
+                                #"com_error":             .4,
+                                #"pelvis_rot_err":        .1,
                                 'feet_height':           .1,
-                                "com_v":                 .2,
-                                "feet_width":            .3, 
-                                #"hip_add":            .5,
-                                "done":                 -10.
-                }     
+                                #"com_v":                 .2,
+                                #"feet_width":            .3, 
+                                "hip_add":               .5,
+                                "hip_flex":               0.5,
+                                "com_height_error":      1, 
+                                "knee_angle":            .5,
+                                "done":                 -100.
+                }         
             }
     )
 
