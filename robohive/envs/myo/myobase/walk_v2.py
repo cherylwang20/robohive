@@ -42,7 +42,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [70, 90]
+        self.force_range = [60, 90]
         self._setup(**kwargs)
 
     def _setup(self,
@@ -103,8 +103,7 @@ class ReachEnvV0(BaseV0):
         vel = self.sim.data.cvel.copy()
         mass = self.sim.model.body_mass
         com_v = np.sum(vel *  mass.reshape((-1, 1)), axis=0) / np.sum(mass)
-        self.obs_dict['com_v'] = com_v
-        print(com_v)
+        self.obs_dict['com_v'] = com_v[-3:]
         com = np.sum(pos * mass.reshape((-1, 1)), axis=0) / np.sum(mass)
         self.obs_dict['com'] = com[:2]
         self.obs_dict['com_height'] = com[-1:]
@@ -174,6 +173,7 @@ class ReachEnvV0(BaseV0):
         com = np.sum(pos * mass.reshape((-1, 1)), axis=0) / np.sum(mass)
         com_v = np.sum(vel *  mass.reshape((-1, 1)), axis=0) / np.sum(mass)
         obs_dict['com_v'] = com_v[-3:]
+        print(obs_dict['com_v'])
         obs_dict['com'] = com[:2]
         obs_dict['com_height'] = com[-1:]# self.sim.data.body('pelvis').xipos.copy()
         baseSupport = obs_dict['base_support'].reshape(2,4)
