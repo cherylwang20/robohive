@@ -506,7 +506,8 @@ register_env_with_variants(id='myoLegReachFixed-v2',
                                 #"com_v":                 .2,
                                 #"feet_width":            .3, 
                                 "hip_add":               .5,
-                                "hip_flex":               0.5,
+                                #"hip_flex":               0.5,
+                                "hip_flex_r":            .5,
                                 "com_height_error":      1, 
                                 "knee_angle":            .5,
                                 "done":                 -100.
@@ -517,7 +518,7 @@ register_env_with_variants(id='myoLegReachFixed-v2',
 
 # we want this condition to be sarcopenia
 register_env_with_variants(id='myoLegReachFixed-v3',
-        entry_point='robohive.envs.myo.myobase.walk_v2:ReachEnvV0',
+        entry_point='robohive.envs.myo.myobase.walk_v3:ReachEnvV0',
         # max_episode_steps=500,
         max_episode_steps=700,
         kwargs={
@@ -575,14 +576,52 @@ register_env_with_variants(id='myoLegReachFixed-v4',
                                 #"com_v":                 .2,
                                 #"feet_width":            .3, 
                                 "hip_add":               .5,
-                                "hip_flex":               0.5,
-                                "com_height_error":      1, 
+                                #"hip_flex":               0.5,
+                                "hip_flex_r":            .5,
+                                "com_height_error":      .1, 
                                 "knee_angle":            .5,
                                 "done":                 -100.
                 }         
             }
     )
 
+#this is for stepping responses
+register_env_with_variants(id='myoLegReachFixed-v5',
+        entry_point='robohive.envs.myo.myobase.walk_v5:ReachEnvV0',
+        # max_episode_steps=500,
+        max_episode_steps=800,
+        kwargs={
+            'model_path': curr_dir + leg_model,
+            'target_reach_range': {
+                #'pelvis': ((-0.0, -0.0, .90), (0.0, 0.0, .90)),
+                # 'pelvis': ((-.050, -.050, -.050), (0.05, 0.05, .05)),
+                #'pelvis': ((-.5, -.5, .7), (0.5, 0.5, .9)),
+                'pelvis': ((-.005, -.005, .90), (0.005, 0.005, .92)),
+                },
+            'normalize_act': True,
+            'far_th': 1,
+            'weighted_reward_keys':{
+                                "positionError":        .1,
+                                #"smallErrorBonus":      1,
+                                #"timeStanding":          3,
+                                "metabolicCost":         .1,
+                                #"highError":            5,
+                                "centerOfMass":         0.5,
+                                #'verticalStep':          1, 
+                                #"com_error":             .4,
+                                #"pelvis_rot_err":        .1,
+                                'feet_height':           .1,
+                                #"com_v":                 .2,
+                                #"feet_width":            .3, 
+                                "hip_add":               .5,
+                                #"hip_flex":               0.5,
+                                "hip_flex_r":            .5,
+                                "com_height_error":      1, 
+                                "knee_angle":            .5,
+                                "done":                 -100.
+                }         
+            }
+    )
 
 # Hand-Joint Reaching ==============================
 register_env_with_variants(id='myoHandReachFixed-v0',
