@@ -48,11 +48,14 @@ class ReachEnvV0(BaseV0):
     def _setup(self,
             target_reach_range:dict,
             far_th = .35,
+            hip_period = 100,
             obs_keys:list = DEFAULT_OBS_KEYS,
             weighted_reward_keys:dict = DEFAULT_RWD_KEYS_AND_WEIGHTS,
             **kwargs,
         ):
         self.far_th = far_th
+        self.hip_period = hip_period
+        self.steps = 0
         self.target_reach_range = target_reach_range
         super()._setup(obs_keys=obs_keys,
                 weighted_reward_keys=weighted_reward_keys,
@@ -116,6 +119,7 @@ class ReachEnvV0(BaseV0):
         self.obs_dict['err_cal'] = np.array(0.31 - self.obs_dict['cal_l'] )
         self.obs_dict['knee_angle'] = np.array(np.mean(self.sim.data.qpos[self.sim.model.joint_name2id('knee_angle_l')].copy() + self.sim.data.qpos[self.sim.model.joint_name2id('knee_angle_r')].copy()))
         t, obs = self.obsdict2obsvec(self.obs_dict, self.obs_keys)
+        self.obs_dict['phase_var'] = np.array([(self.steps/self.hip_period) % 1]).copy()
         return obs
 
     def get_obs_dict(self, sim):
@@ -174,7 +178,8 @@ class ReachEnvV0(BaseV0):
         mass = sim.model.body_mass
         com = np.sum(pos * mass.reshape((-1, 1)), axis=0) / np.sum(mass)
         com_v = np.sum(vel *  mass.reshape((-1, 1)), axis=0) / np.sum(mass)
-        obs_dict['com_v'] = com_v[-3:]
+        #obs_dict['com_v'] = com_v[-3:]
+        obs_dict['com_v'] = np.array([self._get_com_velocity().copy()])
         obs_dict['com'] = com[:2]
         obs_dict['com_height'] = com[-1:]# self.sim.data.body('pelvis').xipos.copy()
         baseSupport = obs_dict['base_support'].reshape(2,4)
@@ -183,11 +188,12 @@ class ReachEnvV0(BaseV0):
         pelvis_com = np.array(sim.data.xipos[sim.model.body_name2id('pelvis')].copy())
         obs_dict['pelvis_com'] = pelvis_com[:2]
         obs_dict['err_com'] = np.array(obs_dict['centroid']- obs_dict['com'])
-        #obs_dict['err_com'] = np.array(obs_dict['centroid']- obs_dict['pelvis_com']) #change since 2023/12/08/ 15:52
+        obs_dict['phase_var'] = np.array([(self.steps/self.hip_period) % 1]).copy()
         return obs_dict
 
 
     def get_reward_dict(self, obs_dict):
+        cyclic_hip = self._get_cyclic_rew()
         #print('hip flexion',self.sim.data.joint('hip_flexion_r').qpos.copy())
         hip_fle = self.obs_dict['hip_flex']
         hip_flex_r = self.obs_dict['hip_flex_r'].reshape(-1)[0]
@@ -210,6 +216,8 @@ class ReachEnvV0(BaseV0):
         centerMass = np.squeeze(obs_dict['com']) #.reshape(1,2)
         bos = mplPath.Path(baseSupport.T)
         within = bos.contains_point(centerMass)
+        joint_angle_rew = self._get_joint_angle_rew(['hip_adduction_l', 'hip_adduction_r', 'hip_rotation_l',
+                                                       'hip_rotation_r'])
         
         feet_width, vertical_sep = self.feet_width()
         feet_height = np.linalg.norm(obs_dict['feet_heights'])
@@ -231,20 +239,22 @@ class ReachEnvV0(BaseV0):
         com_vel = com_vel.reshape(-1)[0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys
-            ('positionError',        np.exp(-.1*positionError) ),#-10.*vel_dist
+            ('positionError',        np.exp(-.01*positionError) ),#-10.*vel_dist
             #('smallErrorBonus',     1.*(positionError<2*nearThresh) + 1.*(positionError<nearThresh)),
+            ('cyclic_hip',           cyclic_hip), #np.exp(-5.*cyclic_hip)),
             #('timeStanding',        1.*timeStanding), 
-            ('metabolicCost',       -1.*metabolicCost),
+            ('metabolicCost',        1.*metabolicCost),
             #('highError',           -1.*(positionError>farThresh)),
             ('centerOfMass',        1.*(com_bos)),
             ('com_error',             np.exp(-2.*(comError))),
             ('com_height_error',     np.exp(-5*np.abs(com_height_error))),
             ('feet_height',         -1*(feet_height)),
             ('feet_width',            5*np.clip(feet_width, 0.3, 0.5)),
+            ('joint_angle_rew',         joint_angle_rew)
             ('pelvis_rot_err',        -1 * pelvis_rot_err),
             ('com_v',                  3*np.exp(-5*np.abs(com_vel))), #3*(com_bos - np.tanh(feet_v))**2), #penalize when COM_v is high
             ('hip_add',               2*np.clip(hip_add, -0.3, -0.2)),
-            ('knee_angle',             10*np.clip(knee_angle, 1, 1.2)),
+            #('knee_angle',             10*np.clip(knee_angle, 1, 1.2)),
             #('hip_flex',              10*np.clip(hip_fle, 0.4, 0.7)),
             ('hip_flex_r',             5*np.exp(-5*np.abs(hip_flex_r - 1))),
             # Must keys
@@ -262,6 +272,15 @@ class ReachEnvV0(BaseV0):
         foot_id_l = self.sim.model.body_name2id('calcn_l')
         foot_id_r = self.sim.model.body_name2id('calcn_r')
         return np.array([self.sim.data.body_xpos[foot_id_l][2], self.sim.data.body_xpos[foot_id_r][2]])
+    
+    def _get_cyclic_rew(self):
+        """
+        Cyclic extension of hip angles is rewarded to incentivize a walking gait.
+        """
+        phase_var = (self.steps/self.hip_period) % 1
+        des_angles = np.array([0.8 * np.cos(phase_var * 2 * np.pi + np.pi), 0.8 * np.cos(phase_var * 2 * np.pi)], dtype=np.float32)
+        angles = self._get_angle(['hip_flexion_l', 'hip_flexion_r'])
+        return np.linalg.norm(des_angles - np.abs(angles))
     
     def allocate_randomly(self, perturbation_magnitude): #allocate the perturbation randomly in one of the six directions
         array = np.zeros(6)
@@ -302,7 +321,36 @@ class ReachEnvV0(BaseV0):
         return width, step
 
     def reset(self):
+        self.steps = 0
         self.generate_perturbation()
         self.robot.sync_sims(self.sim, self.sim_obsd)
         obs = super().reset()
         return obs
+    
+    def step(self, *args, **kwargs):
+        obs, reward, done, info = super().step(*args, **kwargs)
+        self.steps += 1
+        return obs, reward, done, info
+    
+    def _get_angle(self, names):
+        """
+        Get the angles of a list of named joints.
+        """
+        return np.array([self.sim.data.qpos[self.sim.model.jnt_qposadr[self.sim.model.joint_name2id(name)]] for name in names])
+    
+    def _get_com_velocity(self):
+        """
+        Compute the center of mass velocity of the model.
+        """
+        mass = np.expand_dims(self.sim.model.body_mass, -1)
+        cvel = - self.sim.data.cvel
+        return (np.sum(mass * cvel, 0) / np.sum(mass))[3:5]
+    
+    def _get_joint_angle_rew(self, joint_names):
+        """
+        Get a reward proportional to the specified joint angles.
+        """
+        mag = 0
+        joint_angles = self._get_angle(joint_names)
+        mag = np.mean(np.abs(joint_angles))
+        return np.exp(-5 * mag)
