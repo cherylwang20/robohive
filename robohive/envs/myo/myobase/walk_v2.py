@@ -42,7 +42,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [10, 60]
+        self.force_range = [10, 45]
         self._setup(**kwargs)
 
     def _setup(self,
@@ -62,7 +62,7 @@ class ReachEnvV0(BaseV0):
         self.init_qpos = self.sim.model.key_qpos[0]
     
     def step(self, a):
-        if self.perturbation_time <= self.time < self.perturbation_time + self.perturbation_duration*self.dt : 
+        if self.perturbation_time <= self.time < self.perturbation_time + self.perturbation_duration*self.dt  : 
             self.sim.data.xfrc_applied[self.sim.model.body_name2id('pelvis'), :] = self.perturbation_magnitude
         else: self.sim.data.xfrc_applied[self.sim.model.body_name2id('pelvis'), :] = np.zeros((1, 6))
         # rest of the code for performing a regular environment step
@@ -177,6 +177,7 @@ class ReachEnvV0(BaseV0):
         obs_dict['com_v'] = com_v[-3:]
         obs_dict['com'] = com[:2]
         obs_dict['com_height'] = com[-1:]# self.sim.data.body('pelvis').xipos.copy()
+        #print(obs_dict['com_height'])
         baseSupport = obs_dict['base_support'].reshape(2,4)
         #areaofbase = Polygon(zip(baseSupport[0], baseSupport[1])).area
         obs_dict['centroid'] = np.array(Polygon(zip(baseSupport[0], baseSupport[1])).centroid.coords)
@@ -214,7 +215,7 @@ class ReachEnvV0(BaseV0):
         feet_width, vertical_sep = self.feet_width()
         feet_height = np.linalg.norm(obs_dict['feet_heights'])
         com_height = obs_dict['com_height'][0]
-        com_height_error = np.linalg.norm(obs_dict['com_height'][0]-0.55)
+        com_height_error = np.linalg.norm(obs_dict['com_height'][0]-1.0)
         com_bos = 1 if within else -1 # Reward is 100 if com is in bos.
         farThresh = self.far_th*len(self.tip_sids) if np.squeeze(obs_dict['time'])>2*self.dt else np.inf # farThresh = 0.5
         nearThresh = len(self.tip_sids)*.050 # nearThresh = 0.05
@@ -246,10 +247,10 @@ class ReachEnvV0(BaseV0):
             ('hip_add',               2*np.clip(hip_add, -0.3, -0.2)),
             ('knee_angle',             10*np.clip(knee_angle, 1, 1.2)),
             #('hip_flex',              10*np.clip(hip_fle, 0.4, 0.7)),
-            ('hip_flex_r',             5*np.exp(-5*np.abs(hip_flex_r - 1))),
+            ('hip_flex_r',             5*np.exp(-.5*np.abs(hip_flex_r - 1))),
             # Must keys
             ('sparse',              -1.*positionError),
-            ('solved',              1.*positionError<nearThresh),  # standing task succesful
+            ('solved',              1.*hip_flex_r>1),  # standing task succesful
             ('done',                1.*com_height < 0.3), # model has failed to complete the task 
         ))
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
