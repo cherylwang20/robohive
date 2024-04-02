@@ -42,7 +42,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [10, 45]
+        self.force_range = [10, 85]
         self._setup(**kwargs)
 
     def _setup(self,
@@ -215,12 +215,12 @@ class ReachEnvV0(BaseV0):
         feet_width, vertical_sep = self.feet_width()
         feet_height = np.linalg.norm(obs_dict['feet_heights'])
         com_height = obs_dict['com_height'][0]
-        com_height_error = np.linalg.norm(obs_dict['com_height'][0]-1.0)
+        com_height_error = np.linalg.norm(obs_dict['com_height'][0]-0.55)
         com_bos = 1 if within else -1 # Reward is 100 if com is in bos.
         farThresh = self.far_th*len(self.tip_sids) if np.squeeze(obs_dict['time'])>2*self.dt else np.inf # farThresh = 0.5
         nearThresh = len(self.tip_sids)*.050 # nearThresh = 0.05
         # Rewards are defined ni the dictionary with the appropiate sign
-        #comError = comError.reshape(-1)[0]
+        comError = comError.reshape(-1)[0]
         positionError = positionError.reshape(-1)[0]
         com_height_error = com_height_error.reshape(-1)[0]
         feet_v = feet_v.reshape(-1)[0]
@@ -238,7 +238,7 @@ class ReachEnvV0(BaseV0):
             ('metabolicCost',       -1.*metabolicCost),
             #('highError',           -1.*(positionError>farThresh)),
             ('centerOfMass',        1.*(com_bos)),
-            ('com_error',             np.exp(-2.*(comError))),
+            ('com_error',             np.exp(-2.*np.abs(comError))),
             ('com_height_error',     np.exp(-5*np.abs(com_height_error))),
             ('feet_height',         -1*(feet_height)),
             ('feet_width',            5*np.clip(feet_width, 0.3, 0.5)),
@@ -246,7 +246,7 @@ class ReachEnvV0(BaseV0):
             ('com_v',                  3*np.exp(-5*np.abs(com_vel))), #3*(com_bos - np.tanh(feet_v))**2), #penalize when COM_v is high
             ('hip_add',               2*np.clip(hip_add, -0.3, -0.2)),
             ('knee_angle',             10*np.clip(knee_angle, 1, 1.2)),
-            #('hip_flex',              10*np.clip(hip_fle, 0.4, 0.7)),
+            ('hip_flex',              10*np.clip(hip_fle, 0.4, 0.7)),
             ('hip_flex_r',             5*np.exp(-.5*np.abs(hip_flex_r - 1))),
             # Must keys
             ('sparse',              -1.*positionError),

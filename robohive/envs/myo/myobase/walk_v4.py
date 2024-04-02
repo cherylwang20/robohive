@@ -42,7 +42,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [50, 55]
+        self.force_range = [10, 85]
         self._setup(**kwargs)
 
     def _setup(self,
@@ -61,18 +61,21 @@ class ReachEnvV0(BaseV0):
                 )        
         self.init_qpos = self.sim.model.key_qpos[0]
     
-    def step(self, a):
-        if self.perturbation_time + 25  <= self.time < self.perturbation_time + self.perturbation_duration*self.dt + 25: 
+    def step(self, a, **kwargs):
+        if self.perturbation_time   <= self.time < self.perturbation_time + self.perturbation_duration*self.dt : 
             self.sim.data.xfrc_applied[self.sim.model.body_name2id('pelvis'), :] = self.perturbation_magnitude
         else: self.sim.data.xfrc_applied[self.sim.model.body_name2id('pelvis'), :] = np.zeros((1, 6))
         # rest of the code for performing a regular environment step
+
+        
         a = np.clip(a, self.action_space.low, self.action_space.high)
+        
         self.last_ctrl = self.robot.step(ctrl_desired=a,
                                           ctrl_normalized=self.normalize_act,
                                           step_duration=self.dt,
                                           realTimeSim=self.mujoco_render_frames,
                                           render_cbk=self.mj_render if self.mujoco_render_frames else None)
-        return super().forward()
+        return super().step(a)
 
     def get_obs_vec(self):
         self.obs_dict['time'] = np.array([self.sim.data.time])
