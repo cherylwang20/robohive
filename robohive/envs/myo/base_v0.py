@@ -65,7 +65,7 @@ class BaseV0(env_base.MujocoEnv):
             self.MVC_rest = {}
             for mus_idx in range(self.sim.model.actuator_gainprm.shape[0]):
                 self.f_load[mus_idx] = []
-                self.MVC_rest[mus_idx] = 1/2*self.sim.model.actuator_gainprm[mus_idx,2].copy()
+                self.MVC_rest[mus_idx] = self.sim.model.actuator_gainprm[mus_idx,2].copy()
                 #print(self.sim.data.actuator_moment[mus_idx].copy())
 
         # Tendon transfer to redirect EIP --> EPL
