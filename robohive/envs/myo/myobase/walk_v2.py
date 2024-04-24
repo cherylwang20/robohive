@@ -42,7 +42,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [10, 85]
+        self.force_range = [30, 60]
         self._setup(**kwargs)
 
     def _setup(self,
@@ -274,7 +274,7 @@ class ReachEnvV0(BaseV0):
     def generate_perturbation(self):
         M = self.sim.model.body_mass.sum()
         g = np.abs(self.sim.model.opt.gravity.sum())
-        self.perturbation_time = np.random.uniform(self.dt*(0.1*self.horizon), self.dt*(0.2*self.horizon)) # between 10 and 20 percent
+        self.perturbation_time = np.random.uniform(self.dt*(0.01*self.horizon), self.dt*(0.05*self.horizon)) # between 10 and 20 percent
         # perturbation_magnitude = np.random.uniform(0.08*M*g, 0.14*M*g)
         ran = self.force_range
         if np.random.choice([True, False]):
