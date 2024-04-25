@@ -1,0 +1,87 @@
+<mujoco model="ur10e scene">
+  
+  <size njmax='1000' nconmax='1000'/>
+
+  <include file="ur10e_assets.xml"/>
+  <include file="../../../simhive/scene_sim/topfloor_scene.xml"/>
+  <include file="../../../simhive/furniture_sim/simpleTable/simpleTable_asset.xml"/>
+  <include file="../../../simhive/furniture_sim/ventionTable/ventionTable_asset.xml"/>
+  <include file="../../../simhive/furniture_sim/bin/bin_asset.xml"/>
+  
+  <statistic center="0.4 0 0.4" extent="1"/>
+
+  <compiler autolimits="true" inertiafromgeom="auto" inertiagrouprange="3 4" angle="radian" meshdir="assets"/>
+
+
+  <visual>
+    
+    <rgba haze="0.15 0.25 0.35 1"/>
+    <global azimuth="120" elevation="-20"/>
+  </visual>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
+      markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
+
+    <body pos='0 -.15 .823' euler='0 0 1.57'>
+        <include file="ur10e_include.xml"/>
+    </body>
+
+    <!-- Tables -->
+    <body name="ventiontable" pos='0 -.3 0'>
+        <include file="../../../simhive/furniture_sim/ventionTable/ventionTable_body.xml"/>
+    </body>
+    <body name="scenetable" pos='0 0.49 0.065'>
+        <include file="../../../simhive/furniture_sim/simpleTable/simpleMarbleTable_body.xml"/>
+    </body>
+
+
+      <!-- tasks details added here via include-->
+    <body name="busbin1" pos='0.235 0.5 0.825'>
+        <include file="../../../simhive/furniture_sim/bin/busbin1_body.xml"/>
+    </body>
+    <body name="busbin2" pos='-.235 0.5 0.825'>
+        <include file="../../../simhive/furniture_sim/bin/busbin2_body.xml"/>
+    </body>
+
+    <site name='pick_target' type='sphere' size='.088' pos='0 0.5 1.25' group='1' rgba='.1 .8 .2 .4'/>
+    <site name='drop_target' type='cylinder' size='.088 0.021' pos='-.235 0.5 .85' group='1' rgba='.1 .8 .2 .4'/>
+
+    <body name="obj0" pos="0.235 0.5 1">
+        <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
+        <geom type="capsule" size="0.02 0.04" pos="0.01 0.02 0.005" euler=".52 .6 .8" group="1" rgba=".55 .28 .04 1" mass=".040"/>
+        <geom type="box" size="0.023 0.02 0.041" pos="0.03 0.012 .01" euler=".6 .8 1" group="1" rgba=".3 .7 .8 1" mass=".100"/>
+        <geom type="sphere" size="0.02 0.012 0.014" pos="0.02 0.023 .005" euler=".3 .5 .2" group="1" rgba=".3 .2 .2 1" mass=".010"/>
+        <site name="obj0" size="0.01" pos="0 0 0"/>
+        <freejoint/>
+    </body>
+
+    <body name="obj1" pos="0.253 0.275 1">
+        <inertial pos="0 0 0" mass="0.055" diaginertia="0.0001 0.0001 0.0001" />
+        <geom type="sphere" size="0.03" pos="0.06 0.05 0.005" euler="1.2 .5 .9" group="1" rgba=".31 .37 .7 1" mass=".045"/>
+        <geom type="cylinder" size="0.026 0.06" pos="0.03 0.012 .01" euler=".1 .6 .2" group="1" rgba=".6 .3 .8 1" mass=".010"/>
+        <geom type="box" size="0.045 0.023 0.032" pos="0.02 0.012 .02" euler=".4 .5 .4" group="1" rgba=".12 .5 .2 1" mass=".004"/>
+        <site name="obj1" size="0.01" pos="0 0 0"/>
+        <freejoint/>
+    </body>
+
+    <body name="obj2" pos="0.23 0.675 1">
+        <inertial pos="0 0 0" mass="0.076" diaginertia="0.0001 0.0001 0.0001" />
+        <geom type="box" size="0.02 .04 .07" pos="0.03 0.034 0.063" euler=".86 .52 .8" group="1" rgba=".72 .72 .12 1" mass=".052"/>
+        <geom type="box" size="0.05 .02 .06" pos="0.082 0.023 .035" euler=".6 .3 .8" group="1" rgba=".33 .52 .73 1" mass=".024"/>
+        <site name="obj2" size="0.01" pos="0 0 0"/>
+        <freejoint/>
+    </body>
+  </worldbody>
+
+  <keyframe>
+      <key qpos="-3.2 -1.6 0.031 -0.13 4.8 -0.88 0.23 0.45 0.83 0.73 0.64 -0.23 0.0034 0.17 0.068 0.87 -0.71 -0.38 -0.19 -0.57 0.39 0.59 0.81 -0.72 -0.58 0.12 -0.37"/>
+  </keyframe>
+
+</mujoco>

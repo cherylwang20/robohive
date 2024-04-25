@@ -14,7 +14,7 @@ if sys.version_info.major != 3:
           "Python {}. The installation will likely fail.".format(sys.version_info.major))
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    return open(os.path.join(os.path.dirname(__file__), fname), encoding='utf-8').read()
 
 def package_files(directory):
     paths = []
