@@ -160,7 +160,7 @@ class ReachEnvV0(BaseV0):
         obs_dict['knee_angle'] = np.asarray([b])
         c = (self.sim.data.joint('hip_flexion_r').qpos.copy()+self.sim.data.joint('hip_flexion_l').qpos.copy())/2
         obs_dict['hip_flex'] = np.asarray([c])
-        obs_dict['hip_flex_r'] = np.asarray(self.sim.data.joint('hip_flexion_r').qpos.copy())
+        obs_dict['hip_flex_r'] = np.asarray(self.sim.data.joint('hip_flexion_l').qpos.copy())
         # center of mass and base of support
         x, y = np.array([]), np.array([])
         for label in ['calcn_r', 'calcn_l', 'toes_l', 'toes_r']:
@@ -235,6 +235,7 @@ class ReachEnvV0(BaseV0):
         hip_fle = hip_fle.reshape(-1)[0]
         knee_angle = knee_angle.reshape(-1)[0]
         com_vel = com_vel.reshape(-1)[0]
+        #print('hip flex reward', 5*np.exp(-0.1*(hip_flex_r - 0.6)**2) - 5, hip_flex_r)
         rwd_dict = collections.OrderedDict((
             # Optional Keys
             ('positionError',        np.exp(-.1*positionError) ),#-10.*vel_dist
@@ -253,7 +254,7 @@ class ReachEnvV0(BaseV0):
             ('hip_add',                5*np.exp(-10*(hip_add + 0.1)**2) - 5),
             ('knee_angle',             10*np.clip(knee_angle, 1, 1.2)),
             #('hip_flex',              10*np.clip(hip_fle, 0.4, 0.7)),
-            ('hip_flex_r',             5*np.exp(-0.1*(hip_flex_r - 1)**2) - 5),
+            ('hip_flex_r',             5*np.exp(-0.1*(hip_flex_r - 0.6)**2) - 5),
             # Must keys
             ('sparse',              -1.*positionError),
             ('solved',              1.*hip_flex_r>1),  # standing task succesful
