@@ -86,6 +86,8 @@ class PickPlaceV0(env_base.MujocoEnv):
         obs_dict['qp_object'] = sim.data.qpos[self.robot_ndof:].copy()
         obs_dict['qv_object'] = sim.data.qvel[self.robot_ndof:].copy()
         obs_dict['object_err'] = sim.data.site_xpos[self.object_sid]-sim.data.site_xpos[self.grasp_sid]
+        print(sim.data.site_xpos[self.object_sid], sim.data.site_xpos[self.grasp_sid])
+        print(np.linalg.norm(obs_dict['object_err'], axis=-1))
         obs_dict['target_err'] = sim.data.site_xpos[self.target_sid]-sim.data.site_xpos[self.object_sid]
         return obs_dict
 
@@ -93,7 +95,7 @@ class PickPlaceV0(env_base.MujocoEnv):
     def get_reward_dict(self, obs_dict):
         object_dist = np.linalg.norm(obs_dict['object_err'], axis=-1)
         target_dist = np.linalg.norm(obs_dict['target_err'], axis=-1)
-        far_th = 1.25
+        far_th = 2.25
 
         rwd_dict = collections.OrderedDict((
             # Optional Keys

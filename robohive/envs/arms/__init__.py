@@ -30,6 +30,22 @@ register(
     }
 )
 
+#UR10e
+
+register(
+    id='UR10eReachFixed-v0',
+    entry_point='robohive.envs.arms.reach_base_v1:ReachBaseV0',
+    max_episode_steps=50, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene.xml',
+        #'config_path': curr_dir+'/franka/assets/franka_busbin_v0.config',
+        'robot_site_name': "attachment_site",
+        'target_site_name': "pick_target",
+        'target_xyz_range': {'high':[0, 0.5, 1.25], 'low':[0, 0.5, 1.25]}
+    }
+)
+
+
 # Reach to random target
 register_env_variant(
     env_id='FrankaReachFixed-v0',
@@ -166,7 +182,7 @@ register_env_variant(
 
 register(
     id='UR10ePickPlaceFixed-v0',
-    entry_point='robohive.envs.arms.pick_place_v0:PickPlaceV0',
+    entry_point='robohive.envs.arms.pick_place_v1:PickPlaceV0',
     max_episode_steps=50, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene.xml',
