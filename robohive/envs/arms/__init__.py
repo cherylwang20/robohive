@@ -15,6 +15,7 @@ print("RoboHive:> Registering Arms Envs")
 # FRANKA REACH =======================================================================
 from robohive.envs.arms.reach_base_v0 import ReachBaseV0
 
+
 # Reach to fixed target
 register(
     id='FrankaReachFixed-v0',
@@ -159,6 +160,67 @@ register_env_variant(
         },
     silent=True
 )
+
+
+#Register env for UR10e
+
+register(
+    id='UR10ePickPlaceFixed-v0',
+    entry_point='robohive.envs.arms.pick_place_v0:PickPlaceV0',
+    max_episode_steps=50, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene.xml',
+        #'config_path': curr_dir+'/franka/assets/franka_busbin_v0.config',
+        'robot_ndof': 6,
+        'robot_site_name': "attachment_site",
+        'object_site_name': "obj0",
+        'target_site_name': "drop_target",
+        'target_xyz_range': {'high':[-.235, 0.5, 0.85], 'low':[-.235, 0.5, 0.85]},
+    }
+)
+
+
+# Random Targets
+register(
+    id='UR10ePickPlaceRandom-v0',
+    entry_point='robohive.envs.arms.pick_place_v0:PickPlaceV0',
+    max_episode_steps=50,
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene.xml',
+        #'config_path': curr_dir+'/franka/assets/franka_busbin_v0.config',
+        'robot_ndof': 6,
+        'robot_site_name': "attachment_site",
+        'object_site_name': "obj0",
+        'target_site_name': "drop_target",
+        'randomize': True,
+        'target_xyz_range': {'high':[-.135, 0.6, 0.85], 'low':[-.335, 0.4, 0.85]},
+        'geom_sizes': {'high':[.03, .03, .03], 'low':[.02, 0.02, 0.02]},
+    }
+)
+
+register(
+    id='UR10ePickPlaceRandom_v2d-v0',
+    entry_point='robohive.envs.arms.pick_place_v0:PickPlaceV0',
+    max_episode_steps=50,
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene.xml',
+        #'config_path': curr_dir+'/franka/assets/franka_busbin_v0.config',
+        'robot_ndof': 6,
+        'robot_site_name': "attachment_site",
+        'object_site_name': "obj0",
+        'target_site_name': "drop_target",
+        'randomize': True,
+        'target_xyz_range': {'high':[-.135, 0.6, 0.85], 'low':[-.335, 0.4, 0.85]},
+        'geom_sizes': {'high':[.03, .03, .03], 'low':[.02, 0.02, 0.02]},
+        "obs_keys": ['time', 'time'],    # supress state obs
+        'visual_keys':[                     # exteroception
+        "rgb:left_cam:224x224:2d",
+        "rgb:right_cam:224x224:2d",
+        "rgb:top_cam:224x224:2d"],
+    }
+)
+
+
 
 # FETCH =======================================================================
 from robohive.envs.arms.reach_base_v0 import ReachBaseV0
