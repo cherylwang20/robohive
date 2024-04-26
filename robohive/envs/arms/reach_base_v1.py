@@ -69,6 +69,7 @@ class ReachBaseV0(env_base.MujocoEnv):
                        reward_mode=reward_mode,
                        frame_skip=frame_skip,
                        **kwargs)
+        self.init_qpos = self.sim.model.key_qpos[0]
 
 
     def get_obs_dict(self, sim):
@@ -91,7 +92,7 @@ class ReachBaseV0(env_base.MujocoEnv):
             ('penalty', (reach_dist>far_th)),
             # Must keys
             ('sparse',  -1.0*reach_dist),
-            ('solved',  reach_dist<.050),
+            ('solved',  reach_dist<.150),
             ('done',    reach_dist > far_th),
         ))
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)

@@ -41,7 +41,7 @@ register(
         #'config_path': curr_dir+'/franka/assets/franka_busbin_v0.config',
         'robot_site_name': "attachment_site",
         'target_site_name': "pick_target",
-        'target_xyz_range': {'high':[0, 0.5, 1.25], 'low':[0, 0.5, 1.25]}
+        'target_xyz_range': {'high':[0, 0.5, 1.1], 'low':[0, 0.5, 1.1]}
     }
 )
 
