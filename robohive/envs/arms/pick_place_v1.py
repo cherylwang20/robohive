@@ -76,6 +76,7 @@ class PickPlaceV0(env_base.MujocoEnv):
                        frame_skip=frame_skip,
                        **kwargs)
         self.viewer_setup(distance=1.25, azimuth=-90, elevation=-20)
+        self.init_qpos = self.sim.model.key_qpos[0]
 
 
     def get_obs_dict(self, sim):
@@ -86,8 +87,6 @@ class PickPlaceV0(env_base.MujocoEnv):
         obs_dict['qp_object'] = sim.data.qpos[self.robot_ndof:].copy()
         obs_dict['qv_object'] = sim.data.qvel[self.robot_ndof:].copy()
         obs_dict['object_err'] = sim.data.site_xpos[self.object_sid]-sim.data.site_xpos[self.grasp_sid]
-        print(sim.data.site_xpos[self.object_sid], sim.data.site_xpos[self.grasp_sid])
-        print(np.linalg.norm(obs_dict['object_err'], axis=-1))
         obs_dict['target_err'] = sim.data.site_xpos[self.target_sid]-sim.data.site_xpos[self.object_sid]
         return obs_dict
 
@@ -106,7 +105,7 @@ class PickPlaceV0(env_base.MujocoEnv):
             # Must keys
             ('sparse',  -1.0*target_dist),
             ('solved',  target_dist<.050),
-            ('done',    object_dist > far_th),
+            ('done',    target_dist<.050), #object_dist > far_th
         ))
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         return rwd_dict
