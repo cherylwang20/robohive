@@ -22,7 +22,7 @@ class PickPlaceV0(env_base.MujocoEnv):
     ]
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "object_dist": -1.0,
-        "target_dist": -1.0,
+        #"target_dist": -1.0,
         "bonus": 4.0,
         "penalty": -50,
     }
@@ -76,7 +76,7 @@ class PickPlaceV0(env_base.MujocoEnv):
                        frame_skip=frame_skip,
                        **kwargs)
         self.viewer_setup(distance=1.25, azimuth=-90, elevation=-20)
-        self.init_qpos = self.sim.model.key_qpos[0]
+        #self.init_qpos = self.sim.model.key_qpos[0]
 
 
     def get_obs_dict(self, sim):
@@ -105,7 +105,7 @@ class PickPlaceV0(env_base.MujocoEnv):
             # Must keys
             ('sparse',  -1.0*target_dist),
             ('solved',  target_dist<.050),
-            ('done',    target_dist<.050), #object_dist > far_th
+            ('done',    object_dist<.050), #object_dist > far_th
         ))
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         return rwd_dict

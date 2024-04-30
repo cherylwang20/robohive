@@ -1,7 +1,10 @@
 <mujocoinclude>
 
     <!--<compiler angle="radian" meshdir="assets" autolimits="true"/>-->
-    
+    <compiler angle="radian"/>
+    <option timestep="0.002"/>
+    <size nuser_actuator="5"/>
+
     <asset>
         <material class="ur10e" name="black" rgba="0.033 0.033 0.033 1"/>
         <material class="ur10e" name="jointgray" rgba="0.278 0.278 0.278 1"/>
@@ -33,7 +36,7 @@
     <default>
         <default class="ur10e">
         <material specular="0.5" shininess="0.25"/>
-        <joint axis="0 1 0" range="-6.28319 6.28319" armature="0.1"/>
+        <joint axis="0 1 0" limited = 'true' range="-6.28319 6.28319" armature="0.1"/>
         <position ctrlrange="-6.2831 6.2831"/>
         <general biastype="affine" ctrlrange="-6.2831 6.2831" gainprm="5000" biasprm="0 -5000 -500"/>
         <default class="size4">

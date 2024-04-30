@@ -37,11 +37,11 @@ register(
     entry_point='robohive.envs.arms.reach_base_v1:ReachBaseV0',
     max_episode_steps=300, #50steps*40Skip*2ms = 4s
     kwargs={
-        'model_path': curr_dir+'/ur10e/scene.xml',
+        'model_path': curr_dir+'/ur10e/scene_gripper.xml',
         'config_path': curr_dir+'/ur10e/ur10e_v0.config',
         'robot_site_name': "attachment_site",
-        'target_site_name': "pick_target",
-        'target_xyz_range': {'high':[0, 0.5, 1.1], 'low':[0, 0.5, 1.1]}
+        'target_site_name': "obj0",
+        'target_xyz_range': {'high':[-.235, 0.5, 0.85], 'low':[-.235, 0.5, 0.85]}
     }
 )
 
@@ -183,13 +183,13 @@ register_env_variant(
 register(
     id='UR10ePickPlaceFixed-v0',
     entry_point='robohive.envs.arms.pick_place_v1:PickPlaceV0',
-    max_episode_steps=2000, #50steps*40Skip*2ms = 4s
+    max_episode_steps=500, #50steps*40Skip*2ms = 4s
     kwargs={
-        'model_path': curr_dir+'/ur10e/scene_gripper.xml',
-        'config_path': curr_dir+'/ur10e/ur10e_v0.config',
-        'robot_ndof': 17,
-        'robot_site_name': "attachment_site",
-        'object_site_name': "obj0",
+        'model_path': curr_dir+'/UR10e-v2/RobotSim.xml',
+        'config_path': curr_dir+'/UR10e-v2/ur10e_v0.config',
+        'robot_ndof': 14,
+        'robot_site_name': "end_effector",
+        'object_site_name': "obj1",
         'target_site_name': "drop_target",
         'target_xyz_range': {'high':[-.235, 0.5, 0.85], 'low':[-.235, 0.5, 0.85]},
     }
