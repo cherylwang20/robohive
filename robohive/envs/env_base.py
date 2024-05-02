@@ -88,12 +88,14 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
         self.robot = Robot(mj_sim=self.sim,
                            random_generator=self.np_random,
                            **kwargs)
-
+        print('low', self.sim.model.actuator_ctrlrange[:,0].copy())
         #resolve action space
         self.frame_skip = frame_skip
         self.normalize_act = normalize_act
         act_low = -np.ones(self.sim.model.nu) if self.normalize_act else self.sim.model.actuator_ctrlrange[:,0].copy()
+        print(act_low)
         act_high = np.ones(self.sim.model.nu) if self.normalize_act else self.sim.model.actuator_ctrlrange[:,1].copy()
+        print(act_high)
         self.action_space = gym.spaces.Box(act_low, act_high, dtype=np.float32)
 
         # resolve initial state

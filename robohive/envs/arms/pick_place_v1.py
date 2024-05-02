@@ -10,7 +10,7 @@ import gym
 import numpy as np
 
 from robohive.envs import env_base
-from robohive.utils.quat_math import euler2quat
+from robohive.utils.quat_math import euler2quat, mat2euler
 
 class PickPlaceV0(env_base.MujocoEnv):
 
@@ -76,7 +76,7 @@ class PickPlaceV0(env_base.MujocoEnv):
                        frame_skip=frame_skip,
                        **kwargs)
         self.viewer_setup(distance=1.25, azimuth=-90, elevation=-20)
-        #self.init_qpos = self.sim.model.key_qpos[0]
+        self.init_qpos = self.sim.model.key_qpos[0]
 
 
     def get_obs_dict(self, sim):
@@ -86,6 +86,9 @@ class PickPlaceV0(env_base.MujocoEnv):
         obs_dict['qv_robot'] = sim.data.qvel[:self.robot_ndof].copy()
         obs_dict['qp_object'] = sim.data.qpos[self.robot_ndof:].copy()
         obs_dict['qv_object'] = sim.data.qvel[self.robot_ndof:].copy()
+        obs_dict['xmat_pinch'] = mat2euler(np.reshape(self.sim.data.site_xmat[self.grasp_sid], (3, 3)))
+        obs_dict['claw_ori_err'] = obs_dict['xmat_pinch'] - np.array([np.pi, 0, -np.pi/2])
+        obs_dict['obj_ori_err'] = mat2euler(np.reshape(self.sim.data.site_xmat[self.target_sid], (3, 3)))- np.array([0, 0, -0])
         obs_dict['object_err'] = sim.data.site_xpos[self.object_sid]-sim.data.site_xpos[self.grasp_sid]
         obs_dict['target_err'] = sim.data.site_xpos[self.target_sid]-sim.data.site_xpos[self.object_sid]
         return obs_dict
@@ -94,18 +97,22 @@ class PickPlaceV0(env_base.MujocoEnv):
     def get_reward_dict(self, obs_dict):
         object_dist = np.linalg.norm(obs_dict['object_err'], axis=-1)
         target_dist = np.linalg.norm(obs_dict['target_err'], axis=-1)
+        claw_rot_err = np.linalg.norm(obs_dict['claw_ori_err'], axis=-1)[0]
+        obj_rot_err = np.linalg.norm(obs_dict['obj_ori_err'], axis=-1)[0]
         far_th = 2.25
 
         rwd_dict = collections.OrderedDict((
             # Optional Keys
             ('object_dist',   object_dist),
             ('target_dist',   target_dist),
+            ('claw_ori',  -4.*(claw_rot_err[0])**2),
+            ('obj_ori',   -(obj_rot_err[0])**2), 
             ('bonus',   (object_dist<.1) + (target_dist<.1) + (target_dist<.05)),
             ('penalty', (object_dist>far_th)),
             # Must keys
             ('sparse',  -1.0*target_dist),
-            ('solved',  target_dist<.050),
-            ('done',    object_dist<.050), #object_dist > far_th
+            ('solved',  target_dist<.025),
+            ('done',    target_dist<.025), #object_dist > far_th
         ))
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         return rwd_dict

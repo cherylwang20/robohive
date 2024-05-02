@@ -15,7 +15,7 @@
   <visual>
     
     <rgba haze="0.15 0.25 0.35 1"/>
-    <global offwidth="640" offheight="480" azimuth="120" elevation="-20"/>
+    <global offwidth="1920" offheight="1080" azimuth="120" elevation="-20"/>
   </visual>
 
   <asset>
@@ -26,7 +26,7 @@
   </asset>
 
   <worldbody>
-    <camera name='left_cam' pos='-2.2 -1.5 2.3' quat='0.78 0.49 -0.22 -0.32'/>
+    <camera name='front_cam' pos="-0.022 4.996 1.471" xyaxes="-1.000 -0.013 0.000 0.002 -0.155 0.988"/>
     <camera name='right_cam' pos="-3.415 2.732 2.719" xyaxes="-0.655 -0.756 0.000 0.321 -0.278 0.905"/>
     <camera name='top_cam' pos='0 0.5 2.2' euler='0 0 0'/>
     <light pos="0 0 1.5" dir="0 0 -1" directional="true"/>
@@ -52,14 +52,12 @@
         <include file="../../../simhive/furniture_sim/bin/busbin2_body.xml"/>
     </body>-->
 
-    <!--site name='pick_target' type='sphere' size='.08' pos='0 0.5 1.1' group='1' rgba='.1 .8 .2 1'/>-->
-    <site name='drop_target' type='cylinder' size='.088 0.021' pos='-.235 0.5 .85' group='1' rgba='.1 .8 .2 0.2'/>
+    <site name='pick_target' type='sphere' size='.08' pos='0 0.5 1.1' group='1' rgba='.1 .8 .2 0.2'/>
+    <!--site name='drop_target' type='cylinder' size='.088 0.021' pos='-.235 0.5 .85' group='1' rgba='.1 .8 .2 0.2'/>-->
 
-    <body name="obj0" pos="0.235 0.5 1">
+    <body name="obj0" pos="0.235 0.5 0.83">
         <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
-        <geom type="capsule" size="0.02 0.04" pos="0.01 0.02 0.005" euler=".52 .6 .8" group="1" rgba=".55 .28 .04 1" mass=".040"/>
-        <geom type="box" size="0.023 0.02 0.041" pos="0.03 0.012 .01" euler=".6 .8 1" group="1" rgba=".3 .7 .8 1" mass=".100"/>
-        <geom type="sphere" size="0.02 0.012 0.014" pos="0.02 0.023 .005" euler=".3 .5 .2" group="1" rgba=".3 .2 .2 1" mass=".010"/>
+        <geom type="box" size="0.025 0.025 0.025" group="1" rgba=".3 .7 .8 1"/>
         <site name="obj0" size="0.01" pos="0 0 0"/>
         <freejoint/>
     </body>
@@ -83,6 +81,7 @@
   </worldbody>
 
   <keyframe>
-    <key qpos="1.7 -1.9 -0.41 4.1 1.6 3 0.0026 0.00015 0.0028 -0.0031 0.0026 0.00015 0.0028 -0.0031 0.23 0.46 0.82 0.74 0.64 -0.1 0.18"/>
+    <key qpos='1.50792 -1.69641 -0.40846 -2.63886 1.57075 0 0 0 0 0 0 0 0 0 0.235 0.5 0.9 1 0 0 0'/> 
+    <key qpos='1.50792 -1.94773 -2.23082 -0.37698 1.57075 -0.00204359 0.00380752 0.000206628 0.00416611 -0.00450986 0.00381342 0.00021804 0.00418016 -0.00445403 0.235 0.5 0.843749 1 0 0 0'/> 
   </keyframe>
 </mujoco>
