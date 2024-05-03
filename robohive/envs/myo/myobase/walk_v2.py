@@ -5,6 +5,7 @@ SCRIPT CREATED TO TRY DIFFERENT REWARDS ON THE WALK_V0 ENVIRONMENT.
 ================================================= """
 
 import collections
+import random
 import gym
 import numpy as np
 from robohive.envs.myo.base_v0 import BaseV0
@@ -42,7 +43,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [30, 60]
+        self.force_range = [60, 90]
         self._setup(**kwargs)
 
     def _setup(self,
@@ -58,7 +59,7 @@ class ReachEnvV0(BaseV0):
                 weighted_reward_keys=weighted_reward_keys,
                 sites=self.target_reach_range.keys(),
                 **kwargs,
-                )        
+                )     
         self.init_qpos = self.sim.model.key_qpos[0]
     
     def step(self, a):
@@ -251,7 +252,7 @@ class ReachEnvV0(BaseV0):
             # Must keys
             ('sparse',              -1.*positionError),
             ('solved',              1.*hip_flex_r>1),  # standing task succesful
-            ('done',                1.*com_height < 0.3), # model has failed to complete the task 
+            ('done',                1.*com_height < 0.2), # model has failed to complete the task 
         ))
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         return rwd_dict
@@ -274,7 +275,7 @@ class ReachEnvV0(BaseV0):
     def generate_perturbation(self):
         M = self.sim.model.body_mass.sum()
         g = np.abs(self.sim.model.opt.gravity.sum())
-        self.perturbation_time = np.random.uniform(self.dt*(0.01*self.horizon), self.dt*(0.05*self.horizon)) # between 10 and 20 percent
+        self.perturbation_time = np.random.uniform(self.dt*(0.15*self.horizon), self.dt*(0.2*self.horizon)) # between 10 and 20 percent
         # perturbation_magnitude = np.random.uniform(0.08*M*g, 0.14*M*g)
         ran = self.force_range
         if np.random.choice([True, False]):

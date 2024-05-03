@@ -42,7 +42,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [50, 70]
+        self.force_range = [10, 80]
         self._setup(**kwargs)
 
     def _setup(self,
@@ -78,6 +78,7 @@ class ReachEnvV0(BaseV0):
         self.obs_dict['time'] = np.array([self.sim.data.time])
         self.obs_dict['qpos'] = self.sim.data.qpos[:].copy()
         self.obs_dict['qvel'] = self.sim.data.qvel[:].copy()*self.dt
+        self.obs_dict['pert_f'] = self.perturbation_magnitude
         if self.sim.model.na>0:
             self.obs_dict['act'] = self.sim.data.act[:].copy()
         # reach error
@@ -129,26 +130,15 @@ class ReachEnvV0(BaseV0):
         # reach error
         obs_dict['tip_pos'] = np.array([])
         obs_dict['target_pos'] = np.array([])
+        obs_dict['pert_f'] = np.array([])
 
         ### we append the target position of the two feet
-        
+        obs_dict['pert_f'] = self.sim.data.xfrc_applied[self.sim.model.body_name2id('pelvis'), :]
 
         for isite in range(len(self.tip_sids)):
             obs_dict['tip_pos'] = np.append(obs_dict['tip_pos'], sim.data.site_xpos[self.tip_sids[isite]].copy())
             obs_dict['target_pos'] = np.append(obs_dict['target_pos'], sim.data.site_xpos[self.target_sids[isite]].copy())
         obs_dict['reach_err'] = np.array(obs_dict['target_pos'])-np.array(obs_dict['tip_pos'])
-        
-
-        '''
-        obs_dict['body_pos'] = np.array([])
-        obs_dict['target_feet'] = np.array([])
-
-        target_foot_coordinates = [[-0.1048 , 0.2447, 0],[-0.0989, -0.1317, 0], [0.0845,  0.1449,0],  [0.0796, -0.0315,0]] 
-        foot_site = ['calcn_r', 'toes_r', 'calcn_l', 'toes_l', ]
-        for site in range(len(foot_site)):
-            obs_dict['body_pos'] = np.append(obs_dict['body_pos'], sim.data.xpos[self.sim.model.body_name2id(foot_site[site])])
-            obs_dict['target_feet'] = np.append(obs_dict['target_feet'], target_foot_coordinates[site].copy())
-        '''
         obs_dict['feet_heights'] = self._get_feet_heights().copy()
         a = (self.sim.data.joint('hip_adduction_r').qpos.copy()+self.sim.data.joint('hip_adduction_l').qpos.copy())/2
         obs_dict['hip_add'] = np.asarray([a])
@@ -184,6 +174,7 @@ class ReachEnvV0(BaseV0):
         pelvis_com = np.array(sim.data.xipos[sim.model.body_name2id('pelvis')].copy())
         obs_dict['pelvis_com'] = pelvis_com[:2]
         obs_dict['err_com'] = np.array(obs_dict['centroid']- obs_dict['com'])
+        #obs_dict['force'] = self.obs_dict['force']
         #obs_dict['err_com'] = np.array(obs_dict['centroid']- obs_dict['pelvis_com']) #change since 2023/12/08/ 15:52
         return obs_dict
 
@@ -211,7 +202,7 @@ class ReachEnvV0(BaseV0):
         centerMass = np.squeeze(obs_dict['com']) #.reshape(1,2)
         bos = mplPath.Path(baseSupport.T)
         within = bos.contains_point(centerMass)
-        
+
         feet_width, vertical_sep = self.feet_width()
         feet_height = np.linalg.norm(obs_dict['feet_heights'])
         com_height = obs_dict['com_height'][0]
@@ -274,7 +265,7 @@ class ReachEnvV0(BaseV0):
     def generate_perturbation(self):
         M = self.sim.model.body_mass.sum()
         g = np.abs(self.sim.model.opt.gravity.sum())
-        self.perturbation_time = np.random.uniform(self.dt*(0.1*self.horizon), self.dt*(0.2*self.horizon)) # between 10 and 20 percent
+        self.perturbation_time = np.random.uniform(self.dt*(0.14*self.horizon), self.dt*(0.25*self.horizon)) # between 10 and 20 percent
         # perturbation_magnitude = np.random.uniform(0.08*M*g, 0.14*M*g)
         ran = self.force_range
         if np.random.choice([True, False]):

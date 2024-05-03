@@ -5,6 +5,7 @@ SCRIPT CREATED TO TRY DIFFERENT REWARDS ON THE WALK_V0 ENVIRONMENT.
 ================================================= """
 
 import collections
+import random
 import gym
 import numpy as np
 from robohive.envs.myo.base_v0 import BaseV0
@@ -42,7 +43,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [10, 40]
+        self.force_range = [50, 80]
         self._setup(**kwargs)
 
     def _setup(self,
@@ -60,8 +61,9 @@ class ReachEnvV0(BaseV0):
                 weighted_reward_keys=weighted_reward_keys,
                 sites=self.target_reach_range.keys(),
                 **kwargs,
-                )        
-        self.init_qpos = self.sim.model.key_qpos[0]
+                )
+        #key_index = random.randint(0, 8)
+        self.init_qpos = self.sim.model.key_qpos[1]
         
 
     def step(self, a):
@@ -161,6 +163,7 @@ class ReachEnvV0(BaseV0):
         c = (self.sim.data.joint('hip_flexion_r').qpos.copy()+self.sim.data.joint('hip_flexion_l').qpos.copy())/2
         obs_dict['hip_flex'] = np.asarray([c])
         obs_dict['hip_flex_r'] = np.asarray(self.sim.data.joint('hip_flexion_l').qpos.copy())
+        obs_dict['hip_rot_r'] = np.asarray(self.sim.data.joint('hip_rotation_l').qpos.copy())
         # center of mass and base of support
         x, y = np.array([]), np.array([])
         for label in ['calcn_r', 'calcn_l', 'toes_l', 'toes_r']:
@@ -194,6 +197,7 @@ class ReachEnvV0(BaseV0):
     def get_reward_dict(self, obs_dict):
         #print('hip flexion',self.sim.data.joint('hip_flexion_r').qpos.copy())
         hip_fle = self.obs_dict['hip_flex']
+        hip_rot_r = np.linalg.norm(self.obs_dict['hip_rot_r'], axis = -1)
         hip_flex_r = self.obs_dict['hip_flex_r'].reshape(-1)[0]
         hip_add = self.obs_dict['hip_add']
         knee_angle = self.obs_dict['knee_angle']
@@ -229,6 +233,7 @@ class ReachEnvV0(BaseV0):
         feet_v = feet_v.reshape(-1)[0]
         feet_height = feet_height.reshape(-1)[0]
         feet_h_r = feet_h_r.reshape(-1)[0]
+        hip_r_r = hip_rot_r.reshape(-1)[0]
         timeStanding = timeStanding.reshape(-1)[0]
         com_height = com_height.reshape(-1)[0]
         hip_add = hip_add.reshape(-1)[0]
@@ -251,10 +256,11 @@ class ReachEnvV0(BaseV0):
             #('feet_width',            5*np.clip(feet_width, 0.3, 0.5)),
             ('pelvis_rot_err',        5* np.exp(-pelvis_rot_err)),
             ('com_v',                  3*np.exp(-5*np.abs(com_vel))), #3*(com_bos - np.tanh(feet_v))**2), #penalize when COM_v is high
-            ('hip_add',                5*np.exp(-10*(hip_add + 0.1)**2) - 5),
+            ('hip_add',                5*np.exp(-10*(hip_add + 0.25)**2) - 5),
+            ('hip_rot_r',              5*np.exp(-10*(hip_r_r)**2) - 5),
             ('knee_angle',             10*np.clip(knee_angle, 1, 1.2)),
             #('hip_flex',              10*np.clip(hip_fle, 0.4, 0.7)),
-            ('hip_flex_r',             5*np.exp(-0.1*(hip_flex_r - 0.6)**2) - 5),
+            ('hip_flex_r',             5*np.exp(-0.1*(hip_flex_r - 0.65)**2) - 5),
             # Must keys
             ('sparse',              -1.*positionError),
             ('solved',              1.*hip_flex_r>1),  # standing task succesful
@@ -281,7 +287,7 @@ class ReachEnvV0(BaseV0):
     def generate_perturbation(self):
         M = self.sim.model.body_mass.sum()
         g = np.abs(self.sim.model.opt.gravity.sum())
-        self.perturbation_time = np.random.uniform(self.dt*(0.001*self.horizon), self.dt*(0.005*self.horizon)) # between 10 and 20 percent
+        self.perturbation_time = np.random.uniform(self.dt*(0.001*self.horizon), self.dt*(0.01*self.horizon)) # between 10 and 20 percent
         # perturbation_magnitude = np.random.uniform(0.08*M*g, 0.14*M*g)
         ran = self.force_range
         if np.random.choice([True, False]):
@@ -302,8 +308,10 @@ class ReachEnvV0(BaseV0):
 
     def reset(self):
         self.generate_perturbation()
+        key_index = random.randint(0, 8)
+        qpos= self.sim.model.key_qpos[key_index]
         self.robot.sync_sims(self.sim, self.sim_obsd)
-        obs = super().reset()
+        obs = super().reset(reset_qpos=qpos)
         return obs
     
     def _get_ref_rotation_rew(self):
