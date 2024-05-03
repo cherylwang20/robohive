@@ -22,7 +22,7 @@ class PickPlaceV0(env_base.MujocoEnv):
     ]
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "object_dist": -1.0,
-        #"target_dist": -1.0,
+        "target_dist": -1.0,
         "bonus": 4.0,
         "penalty": -50,
     }
@@ -52,7 +52,7 @@ class PickPlaceV0(env_base.MujocoEnv):
                object_site_name,
                target_site_name,
                target_xyz_range,
-               frame_skip=40,
+               frame_skip=4 ,#40,
                reward_mode="dense",
                obs_keys=DEFAULT_OBS_KEYS,
                weighted_reward_keys=DEFAULT_RWD_KEYS_AND_WEIGHTS,
@@ -105,10 +105,10 @@ class PickPlaceV0(env_base.MujocoEnv):
             # Optional Keys
             ('object_dist',   object_dist),
             ('target_dist',   target_dist),
-            ('claw_ori',  -4.*(claw_rot_err[0])**2),
+            ('claw_ori',  2.*np.exp(-claw_rot_err[0])**2),
             ('obj_ori',   -(obj_rot_err[0])**2), 
-            ('bonus',   (object_dist<.1) + (target_dist<.1) + (target_dist<.05)),
-            ('penalty', (object_dist>far_th)),
+            ('bonus',   (object_dist<.026)+ (target_dist<.1) + (target_dist<.05)),
+            ('penalty', (target_dist>far_th)),
             # Must keys
             ('sparse',  -1.0*target_dist),
             ('solved',  target_dist<.025),

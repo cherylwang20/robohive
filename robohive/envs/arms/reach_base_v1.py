@@ -100,7 +100,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         rwd_dict = collections.OrderedDict((
             # Optional Keys
             ('reach',   reach_dist),
-            ('claw_ori',  -4.*(claw_rot_err[0])**2),
+            ('claw_ori',  2.*np.exp(-claw_rot_err[0])**2),
             ('obj_ori',   -(obj_rot_err[0])**2), 
             ('bonus',   (reach_dist<.026) + (reach_dist<.025)),
             ('penalty', (reach_dist>far_th)),
@@ -114,12 +114,15 @@ class ReachBaseV0(env_base.MujocoEnv):
 
     def reset(self, reset_qpos=None, reset_qvel=None, **kwargs):
         self.target_sid = self.sim.model.site_name2id(self.target_site_name)
-        if self.obj_xyz_range is not None:
-            self.sim.model.body_pos[self.object_bid] = self.np_random.uniform(**self.obj_xyz_range)
-            self.sim_obsd.model.body_pos[self.object_bid] = self.sim.model.body_pos[self.object_bid]
+        if self.obj_xyz_range is not None:        
+            reset_qpos = self.sim.model.key_qpos[0].copy()
+            reset_qpos[14:17] = self.np_random.uniform(**self.obj_xyz_range)
+            #self.sim.model.body_pos[self.object_bid] = self.np_random.uniform(**self.obj_xyz_range)
+            #self.sim_obsd.model.body_pos[self.object_bid] = self.sim.model.body_pos[self.object_bid]
+
 
         #self.sim.model.site_pos[self.target_sid] = self.np_random.uniform(high=self.target_xyz_range['high'], low=self.target_xyz_range['low'])
         #self.sim_obsd.model.site_pos[self.target_sid] = self.sim.model.site_pos[self.target_sid]
 
-        obs = super().reset(reset_qpos, reset_qvel, **kwargs)
+        obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         return obs

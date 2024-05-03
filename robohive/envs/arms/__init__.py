@@ -40,9 +40,9 @@ register(
         'model_path': curr_dir+'/ur10e/scene_gripper.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
         'robot_site_name': "pinch",
-        #'obj_xyz_range': {'high':[0.235, 0.5, 0.83], 'low':[-0.235, -.35, 0.83]},
+        'obj_xyz_range': {'high':[0.235, 0.5, 0.86], 'low':[-0.235, 0.4, 0.86]},
         'target_site_name': "obj0",
-        'target_xyz_range': {'high':[0.235, 0.5, 0.83], 'low':[-0.235, -.35, 0.83]}
+        'target_xyz_range': {'high':[0.435, 0.5, 0.86], 'low':[-0.435, 0.4, 0.86]}
     }
 )
 
@@ -184,7 +184,7 @@ register_env_variant(
 register(
     id='UR10ePickPlaceFixed-v0',
     entry_point='robohive.envs.arms.pick_place_v1:PickPlaceV0',
-    max_episode_steps=500, #50steps*40Skip*2ms = 4s
+    max_episode_steps=200, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_gripper.xml',
         'robot_ndof': 14,
