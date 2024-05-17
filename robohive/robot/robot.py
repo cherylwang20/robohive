@@ -681,6 +681,7 @@ class Robot():
         else:
             n_frames=int(step_duration/self.sim.step_duration)
             self.sim.data.ctrl[:] = ctrl_feasible
+            #print('ctrl', ctrl_feasible)
             self.sim.advance(substeps=n_frames, render=(render_cbk!=None))
 
         # update viz

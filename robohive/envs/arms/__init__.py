@@ -46,6 +46,20 @@ register(
     }
 )
 
+register(
+    id='UR10eReachFixed-v1',
+    entry_point='robohive.envs.arms.reach_base_v2:ReachBaseV0',
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene_gripper.xml',
+        #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
+        'robot_site_name': "pinch",
+        'target_site_name': "obj0",
+        'obj_xyz_range': {'high':[0.235, 0.5, 0.86], 'low':[-0.1, 0.4, 0.86]},
+        'goal_site_name': "pick_target",
+        'target_xyz_range': {'high':[0.435, 0.5, 0.86], 'low':[-0.435, 0.4, 0.86]}
+    }
+)
 
 # Reach to random target
 register_env_variant(
@@ -87,7 +101,17 @@ def register_visual_envs(encoder_type):
 for enc in ["r3m18", "r3m34", "r3m50", "rrl18", "rrl34", "rrl50"]:
     register_visual_envs(enc)
 
-
+register_env_variant(
+    env_id='UR10eReachFixed-v0',
+    variant_id='UR10eReachFixed_v2d-v0',
+    variants={
+            "obs_keys": ['time', 'time'],    # supress state obs
+            'visual_keys':[                     # exteroception
+                "rgb:right_cam:224x224:2d",
+                "rgb:front_cam:224x224:2d"],
+        },
+    silent=True
+)
 
 # FRANKA PUSH =======================================================================
 from robohive.envs.arms.push_base_v0 import PushBaseV0

@@ -38,6 +38,8 @@
         <mesh class="2f85" file="pad.stl"/>
         <mesh class="2f85" file="silicone_pad.stl"/>
         <mesh class="2f85" file="spring_link.stl"/>
+        <mesh file="beaker.stl"/>
+        <mesh file="mug.obj"/>
 
     </asset>
 
@@ -104,6 +106,15 @@
                 </default>
             </default>
         </default>
+        <default class="collision_c">
+            <geom type="box" group="3"/>
+            <default class="cup">
+                <geom size="0.0026 0.00704 0.033"/>
+            </default>
+            <default class="handle">
+                <geom size="0.0025 0.00328 0.0055"/>
+            </default>
+        </default>
     </default>
 
     <contact>
@@ -156,8 +167,6 @@
         <jointvel name="ur_arm_jv4" joint="wrist_1_joint"/>
         <jointvel name="ur_arm_jv5" joint="wrist_2_joint"/>
         <jointvel name="ur_arm_jv6" joint="wrist_3_joint"/>
-        <tendonpos name ='ur_gripper_tp' tendon = "split"/>
-        <tendonvel name = 'ur_gripper_tv' tendon = "split"/>
     </sensor>
 
 

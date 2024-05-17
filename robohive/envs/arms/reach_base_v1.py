@@ -92,7 +92,6 @@ class ReachBaseV0(env_base.MujocoEnv):
 
     def get_reward_dict(self, obs_dict):
         reach_dist = np.linalg.norm(obs_dict['reach_err'], axis=-1)
-        #print('reach', reach_dist)
         claw_rot_err = np.linalg.norm(obs_dict['claw_ori_err'], axis=-1)[0]
         obj_rot_err = np.linalg.norm(obs_dict['obj_ori_err'], axis=-1)[0]
         far_th = 2.0

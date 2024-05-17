@@ -54,16 +54,16 @@
                   <geom class="eef_collision" pos="0 0.097 0" quat="1 1 0 0" size="0.046 0.02"/>
                   <body name="attachment" pos="0 0.1 0"/>
                   <site name="attachment_site" quat="-1 1 0 0" rgba="1 0 0 1" size="0.01" group="1"/>
-                  <camera name="end_effector_cam" pos="0 0.12 0" quat="0.7071 0.7071 0 0" fovy="45"/>
                   <body name="base_mount" pos="0 0.12 0"  quat="-1 1 0 0" childclass="2f85">
                     <geom class="visual" mesh="base_mount" material="black"/>
                     <geom class="collision" mesh="base_mount"/>
                     <body name="base" pos="0 0 0.0038" quat="1 0 0 -1">
                       <inertial mass="0.777441" pos="0 -2.70394e-05 0.0354675" quat="1 -0.00152849 0 0"
                         diaginertia="0.000260285 0.000225381 0.000152708"/>
+                      <camera name="end_effector_cam" pos=".06 0.0 0.01" quat="0 -0.7071 0.7071 0" fovy="65"/>
                       <geom class="visual" mesh="base" material="black"/>
                       <geom class="collision" mesh="base"/>
-                      <site name="pinch" pos="0 0 0.145" type="sphere" group="5" rgba="0.9 0.9 0.9 1" size="0.005"/>
+                      <site name="pinch" pos="0 0 0.1" type="sphere" group="1" rgba=".9 0.9 0.9 1" size="0.001"/>
                       <!-- Right-hand side 4-bar linkage -->
                       <body name="right_driver" pos="0 0.0306011 0.054904">
                         <inertial mass="0.00899563" pos="2.96931e-12 0.0177547 0.00107314" quat="0.681301 0.732003 0 0"
@@ -98,6 +98,7 @@
                               diaginertia="4.73958e-07 3.64583e-07 1.23958e-07"/>
                             <geom class="visual" mesh="pad"/>
                             <body name="right_silicone_pad">
+                              <site name="right_silicone_pad" pos="0 -0.01 .01" type="sphere" group="1" rgba=".9 0.9 0.9 1" size="0.005"/>
                               <geom class="visual" mesh="silicone_pad" material="black"/>
                             </body>
                           </body>
@@ -137,6 +138,7 @@
                               diaginertia="4.73958e-07 3.64583e-07 1.23958e-07"/>
                             <geom class="visual" mesh="pad"/>
                             <body name="left_silicone_pad">
+                              <site name="left_silicone_pad" pos="0 -0.01 .01" type="sphere" group="1" rgba=".9 0.9 0.9 1" size="0.005"/>
                               <geom class="visual" mesh="silicone_pad" material="black"/>
                             </body>
                           </body>
