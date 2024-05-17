@@ -43,7 +43,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [60, 90]
+        self.force_range = [50, 80]
         self._setup(**kwargs)
 
     def _setup(self,
@@ -204,6 +204,7 @@ class ReachEnvV0(BaseV0):
         feet_v = np.linalg.norm(obs_dict['feet_v'][-3:], axis = -1) 
         com_vel = np.linalg.norm(obs_dict['com_v'], axis = -1) # want to minimize translational velocity
         comError = np.linalg.norm(obs_dict['err_com'], axis=-1)
+        self.com_err = comError
         timeStanding = np.linalg.norm(obs_dict['time'], axis=-1)
         metabolicCost = np.sum(np.square(obs_dict['act']))/self.sim.model.na
         # act_mag = np.linalg.norm(self.obs_dict['act'], axis=-1)/self.sim.model.na if self.sim.model.na !=0 else 0
@@ -267,7 +268,7 @@ class ReachEnvV0(BaseV0):
     
     def allocate_randomly(self, perturbation_magnitude): #allocate the perturbation randomly in one of the six directions
         array = np.zeros(6)
-        random_index = 1 #np.random.randint(0, 1) # 0: ML, 1: AP
+        random_index = 1 #np.random.randint(0, 1) # 0: ML, 1: AP fall back, 3: AP fall forward
         array[random_index] = perturbation_magnitude
         return array
     # generate a perturbation
@@ -275,7 +276,7 @@ class ReachEnvV0(BaseV0):
     def generate_perturbation(self):
         M = self.sim.model.body_mass.sum()
         g = np.abs(self.sim.model.opt.gravity.sum())
-        self.perturbation_time = np.random.uniform(self.dt*(0.15*self.horizon), self.dt*(0.2*self.horizon)) # between 10 and 20 percent
+        self.perturbation_time = np.random.uniform(self.dt*(0.15*self.horizon), self.dt*(0.20*self.horizon)) # between 10 and 20 percent
         # perturbation_magnitude = np.random.uniform(0.08*M*g, 0.14*M*g)
         ran = self.force_range
         if np.random.choice([True, False]):
