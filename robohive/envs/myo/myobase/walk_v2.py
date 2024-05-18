@@ -43,7 +43,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [50, 80]
+        self.force_range = [65, 80]
         self._setup(**kwargs)
 
     def _setup(self,

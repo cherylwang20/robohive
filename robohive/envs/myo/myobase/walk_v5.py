@@ -14,6 +14,7 @@ from shapely.geometry import Polygon
 import matplotlib.pyplot as plt
 import time
 from robohive.utils.quat_math import mat2euler, euler2quat
+import cv2
 
 class ReachEnvV0(BaseV0):
 
@@ -310,7 +311,7 @@ class ReachEnvV0(BaseV0):
             self.sim.model.site_pos[sid] = self.sim.data.site_xpos[sid].copy() + self.np_random.uniform(low=span[0], high=span[1])
         self.sim.forward()
 
-    def reset(self, policy_a = None, movie = False):
+    def reset(self, policy_a = None, movie = True):
         self.generate_perturbation()
         key_index = random.randint(3, 5)
         qpos= self.sim.model.key_qpos[0]
@@ -318,7 +319,7 @@ class ReachEnvV0(BaseV0):
         #print(key_index)
         self.robot.sync_sims(self.sim, self.sim_obsd)
         self.frames = []
-        s_env = gym.make(f'mj_envs.robohive.envs.myo:{"myoLegReachFixed-v2"}')
+        s_env = gym.make(f'mj_envs.robohive.envs.myo:{"myoSarcLegReachFixed-v2"}')
         s_env.reset()
         self.init_pert = s_env.perturbation_magnitude[1]
         self.init_pert_t = int(100*s_env.perturbation_time)
@@ -330,7 +331,14 @@ class ReachEnvV0(BaseV0):
                 geom_1_indices = np.where(s_env.sim.model.geom_group == 1)
                 s_env.sim.model.geom_rgba[geom_1_indices, 3] = 0
                 frame = s_env.sim.renderer.render_offscreen(width=640, height=480,camera_id=f'side_view')
-                frame = np.rot90(np.rot90(frame))
+                frame = (frame).astype(np.uint8)
+                pert_f = self.init_pert
+
+                # Overlay the qpos information on the image
+                text = f"Perturbation: {pert_f:.2f}N"
+                cv2.putText(frame, text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+                frame = np.flipud(frame)
+        # if slow see https://github.com/facebookresearch/myosuite/blob/main/setup/README.md
                 self.frames.append(frame[::-1,:,:])
         qpos = s_env.sim.data.qpos.copy()
         qvel = s_env.sim.data.qvel.copy()
