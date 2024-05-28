@@ -9,6 +9,7 @@
         <material name="metal" rgba="0.58 0.58 0.58 1"/>
         <material name="silicone" rgba="0.1882 0.1882 0.1882 1"/>
         <material name="gray" rgba="0.4627 0.4627 0.4627 1"/>
+        <material name="mug" specular="1" shininess="1"/>
 
         <mesh file="base_0.obj"/>
         <mesh file="base_1.obj"/>

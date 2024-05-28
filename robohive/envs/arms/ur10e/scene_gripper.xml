@@ -65,12 +65,53 @@
         <freejoint/>
     </body>
 
-    <body name="beaker" pos="-0.235 0.5 0.9">
+    <!--body name="beaker" pos="-0.235 0.5 0.9">
       <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
       <geom mesh="beaker" rgba="0.7 0.9 0.9 0.8" group="1" class="visual" contype="0" conaffinity="0"/>
       <geom class="collision_1" size="0.046 0.065" pos="0 0 0.05"/>
       <freejoint/>
+      </body>-->
+
+    <body name="mug" pos="-0.235 0.5 .9">
+      <freejoint/>
+      <geom type="mesh" mesh="mug" material="mug" euler="90 0 0" group="1" contype="0" conaffinity="0"/>
+      <geom class="cup" pos="0.0418 0 0.038" euler="0 0 0"/>
+      <geom class="cup" pos="0.0398 0.0129 0.038" euler="0 0 18"/>
+      <geom class="cup" pos="0.0339 0.0246 0.038" euler="0 0 36"/>
+      <geom class="cup" pos="0.0246 0.0339 0.038" euler="0 0 54"/>
+      <geom class="cup" pos="0.0129 0.0398 0.038" euler="0 0 72"/>
+      <geom class="cup" pos="0 0.0418 0.038" euler="0 0 90"/>
+      <geom class="cup" pos="-0.0129 0.0398 0.038" euler="0 0 108"/>
+      <geom class="cup" pos="-0.0246 0.0339 0.038" euler="0 0 126"/>
+      <geom class="cup" pos="-0.0339 0.0246 0.038" euler="0 0 144"/>
+      <geom class="cup" pos="-0.0398 0.0129 0.038" euler="0 0 162"/>
+      <geom class="cup" pos="-0.0418 0 0.038" euler="0 0 180"/>
+      <geom class="cup" pos="-0.0398 -0.0129 0.038" euler="0 0 198"/>
+      <geom class="cup" pos="-0.0339 -0.0246 0.038" euler="0 0 216"/>
+      <geom class="cup" pos="-0.0246 -0.0339 0.038" euler="0 0 234"/>
+      <geom class="cup" pos="-0.0129 -0.0398 0.038" euler="0 0 252"/>
+      <geom class="cup" pos="0 -0.0418 0.038" euler="0 0 270"/>
+      <geom class="cup" pos="0.0129 -0.0398 0.038" euler="0 0 288"/>
+      <geom class="cup" pos="0.0246 -0.0339 0.038" euler="0 0 306"/>
+      <geom class="cup" pos="0.0339 -0.0246 0.038" euler="0 0 324"/>
+      <geom class="cup" pos="0.0398 -0.0129 0.038" euler="0 0 342"/>
+      <geom class="cup" type="cylinder" size="0.045 0.0026" pos="0 0 0.0026"/>
+      <body name="handle" pos="0.056 0 0.0395" euler="90 0 0">
+        <geom class="handle" pos="0.0193 0 0" euler="0 0 0"/>
+        <geom class="handle" pos="0.0184 0.00568 0" euler="0 0 17.1"/>
+        <geom class="handle" pos="0.0159 0.0108 0" euler="0 0 34.3"/>
+        <geom class="handle" pos="0.012 0.0151 0" euler="0 0 51.4"/>
+        <geom class="handle" pos="0.00703 0.0179 0" euler="0 0 68.6"/>
+        <geom class="handle" pos="0.00144 0.0192 0" euler="0 0 85.7"/>
+        <geom class="handle" pos="0.00144 -0.0192 0" euler="0 0 274"/>
+        <geom class="handle" pos="0.00703 -0.0179 0" euler="0 0 291"/>
+        <geom class="handle" pos="0.012 -0.0151 0" euler="0 0 309"/>
+        <geom class="handle" pos="0.0159 -0.0108 0" euler="0 0 326"/>
+        <geom class="handle" pos="0.0184 -0.00568 0" euler="0 0 343"/>
+        <geom class="collision_c" size="0.007 0.0025 0.0055" pos="-0.007 -0.0195 0"/>
+        <geom class="collision_c" size="0.007 0.0025 0.0055" pos="-0.007 0.0195 0"/>
       </body>
+    </body>
 
     <!--<body name="obj1" pos="0.253 0.275 1">
         <inertial pos="0 0 0" mass="0.055" diaginertia="0.0001 0.0001 0.0001" />
