@@ -40,7 +40,7 @@
         <mesh class="2f85" file="silicone_pad.stl"/>
         <mesh class="2f85" file="spring_link.stl"/>
         <mesh file="beaker.stl"/>
-        <mesh file="mug.obj"/>
+        <mesh file="mug.obj" scale=".01 .01 .01"/>
 
     </asset>
 
