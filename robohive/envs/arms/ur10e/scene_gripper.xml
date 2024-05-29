@@ -71,10 +71,42 @@
       <geom class="collision_1" size="0.046 0.065" pos="0 0 0.05"/>
       <freejoint/>
       </body>-->
+    <body name="beaker" pos="0 0.5 .9">
+      <freejoint/>
+      <geom material="Material.001" mesh="beaker" euler="1.57 0 0" class="visual_b"/>
+      <geom mesh="beaker_collision_0" rgba="0.6472536329456102 0.4396942138391502 0.682030230767006 1" class="collision_b"/>
+      <geom mesh="beaker_collision_1" rgba="0.2611862365204677 0.3791444371428938 0.8935659687833938 1" class="collision_b"/>
+      <geom mesh="beaker_collision_2" rgba="0.9732076864445693 0.055109910266483264 0.39021817745264176 1" class="collision_b"/>
+      <geom mesh="beaker_collision_3" rgba="0.2315301336172102 0.5208944412234564 0.5312109964737274 1" class="collision_b"/>
+      <geom mesh="beaker_collision_4" rgba="0.26679956925324555 0.6388514513757515 0.5121388804409872 1" class="collision_b"/>
+      <geom mesh="beaker_collision_5" rgba="0.7627107212843193 0.9896380037621093 0.5587776773044645 1" class="collision_b"/>
+      <geom mesh="beaker_collision_6" rgba="0.06959080894425751 0.592944665464714 0.7840556037608998 1" class="collision_b"/>
+      <geom mesh="beaker_collision_7" rgba="0.9368659407794765 0.20301607994370252 0.11950765525972429 1" class="collision_b"/>
+      <geom mesh="beaker_collision_8" rgba="0.759661946797216 0.7276243312462397 0.41119352815226895 1" class="collision_b"/>
+      <geom mesh="beaker_collision_9" rgba="0.33367870001784317 0.3802188469478093 0.37663720300806114 1" class="collision_b"/>
+      <geom mesh="beaker_collision_10" rgba="0.36313845379228527 0.45809997474070163 0.06142801931406605 1" class="collision_b"/>
+      <geom mesh="beaker_collision_11" rgba="0.618192031065002 0.20340477733107976 0.7621231824149617 1" class="collision_b"/>
+      <geom mesh="beaker_collision_12" rgba="0.9354442154369634 0.6034613303024858 0.672662043192988 1" class="collision_b"/>
+      <geom mesh="beaker_collision_13" rgba="0.970946634295416 0.7488737351983674 0.7938928031209649 1" class="collision_b"/>
+      <geom mesh="beaker_collision_14" rgba="0.4192063400035614 0.5202501886769342 0.4638755599714147 1" class="collision_b"/>
+      <geom mesh="beaker_collision_15" rgba="0.18870037605319356 0.1074265196983244 0.7846376340506596 1" class="collision_b"/>
+      <geom mesh="beaker_collision_16" rgba="0.4227858830954989 0.9960803284375119 0.1733084476937159 1" class="collision_b"/>
+      <geom mesh="beaker_collision_17" rgba="0.7646174759918876 0.25573803147080953 0.5290326895588409 1" class="collision_b"/>
+      <geom mesh="beaker_collision_18" rgba="0.6080606688698498 0.13782465796064225 0.25697607257343225 1" class="collision_b"/>
+      <geom mesh="beaker_collision_19" rgba="0.05297321216594175 0.6634247647025419 0.8484929906537362 1" class="collision_b"/>
+      <geom mesh="beaker_collision_20" rgba="0.5475127873455184 0.6372215273181222 0.9398062206501112 1" class="collision_b"/>
+      <geom mesh="beaker_collision_21" rgba="0.3399191842555941 0.4720399542401287 0.3722680887762456 1" class="collision_b"/>
+      <geom mesh="beaker_collision_22" rgba="0.647997163828088 0.39154767651469513 0.6615446338587118 1" class="collision_b"/>
+      <geom mesh="beaker_collision_23" rgba="0.023462123262170564 0.5811272170692787 0.3888981488685024 1" class="collision_b"/>
+      <geom mesh="beaker_collision_24" rgba="0.14711579404335484 0.045579237521771954 0.7665415664266443 1" class="collision_b"/>
+      <geom mesh="beaker_collision_25" rgba="0.33769779692028723 0.7810643205742546 0.7986820853818708 1" class="collision_b"/>
+      <geom mesh="beaker_collision_26" rgba="0.532085162445755 0.1816830487545117 0.05479357931566764 1" class="collision_b"/>
+      <geom mesh="beaker_collision_27" rgba="0.7944370910403091 0.15141442589173182 0.7773945190976062 1" class="collision_b"/>
+    </body>
 
     <body name="mug" pos="-0.235 0.5 .9">
       <freejoint/>
-      <geom type="mesh" mesh="mug" material="mug" euler="0 0 0" group="1" contype="0" conaffinity="0"/>
+      <geom type="mesh" mesh="mug" material="mug" euler="1.57 0 0" group="1" contype="0" conaffinity="0"/>
       <geom class="cup" pos="0.0418 0 0.038" euler="0 0 0"/>
       <geom class="cup" pos="0.0398 0.0129 0.038" euler="0 0 0.314159"/>
       <geom class="cup" pos="0.0339 0.0246 0.038" euler="0 0 0.628319"/>
