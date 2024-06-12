@@ -315,11 +315,11 @@ class ReachEnvV0(BaseV0):
         self.generate_perturbation()
         key_index = random.randint(3, 5)
         qpos= self.sim.model.key_qpos[0]
-        qvel = self.sim.model.key_qvel[key_index]
+        #qvel = self.sim.model.key_qvel[key_index]
         #print(key_index)
         self.robot.sync_sims(self.sim, self.sim_obsd)
         self.frames = []
-        s_env = gym.make(f'mj_envs.robohive.envs.myo:{"myoSarcLegReachFixed-v2"}')
+        s_env = gym.make(f'mj_envs.robohive.envs.myo:{"myoLegReachFixed-v2"}')
         s_env.reset()
         self.init_pert = s_env.perturbation_magnitude[1]
         self.init_pert_t = int(100*s_env.perturbation_time)
@@ -330,7 +330,7 @@ class ReachEnvV0(BaseV0):
             if movie:
                 geom_1_indices = np.where(s_env.sim.model.geom_group == 1)
                 s_env.sim.model.geom_rgba[geom_1_indices, 3] = 0
-                frame = s_env.sim.renderer.render_offscreen(width=640, height=480,camera_id=f'side_view')
+                frame = s_env.sim.renderer.render_offscreen(width=680, height=480,camera_id=f'side_view')
                 frame = (frame).astype(np.uint8)
                 pert_f = self.init_pert
 

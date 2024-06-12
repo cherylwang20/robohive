@@ -5,6 +5,7 @@ SCRIPT CREATED TO TRY DIFFERENT REWARDS ON THE WALK_V0 ENVIRONMENT.
 ================================================= """
 
 import collections
+import random
 import gym
 import numpy as np
 from robohive.envs.myo.base_v0 import BaseV0
@@ -42,7 +43,7 @@ class ReachEnvV0(BaseV0):
         self.cpt = 0
         self.perturbation_time = -1
         self.perturbation_duration = 0
-        self.force_range = [10, 85]
+        self.force_range = [800, 1000]
         self._setup(**kwargs)
 
     def _setup(self,
@@ -58,13 +59,15 @@ class ReachEnvV0(BaseV0):
                 weighted_reward_keys=weighted_reward_keys,
                 sites=self.target_reach_range.keys(),
                 **kwargs,
-                )        
+                )     
         self.init_qpos = self.sim.model.key_qpos[0]
     
     def step(self, a):
-        if self.perturbation_time <= self.time < self.perturbation_time + self.perturbation_duration*self.dt : 
-            self.sim.data.xfrc_applied[self.sim.model.body_name2id('pelvis'), :] = self.perturbation_magnitude
-        else: self.sim.data.xfrc_applied[self.sim.model.body_name2id('pelvis'), :] = np.zeros((1, 6))
+        if self.perturbation_time <= self.time < self.perturbation_time + 1/2*self.perturbation_duration*self.dt  : 
+            self.sim.data.xfrc_applied[self.sim.model.body_name2id('plate'), :] = self.perturbation_magnitude
+        elif self.perturbation_time + 1/2*self.perturbation_duration*self.dt <= self.time < self.perturbation_time + self.perturbation_duration*self.dt  : 
+            self.sim.data.xfrc_applied[self.sim.model.body_name2id('plate'), :] = -self.perturbation_magnitude
+        else: self.sim.data.xfrc_applied[self.sim.model.body_name2id('plate'), :] = np.zeros((1, 6))
         # rest of the code for performing a regular environment step
         a = np.clip(a, self.action_space.low, self.action_space.high)
         self.last_ctrl = self.robot.step(ctrl_desired=a,
@@ -103,10 +106,11 @@ class ReachEnvV0(BaseV0):
         vel = self.sim.data.cvel.copy()
         mass = self.sim.model.body_mass
         com_v = np.sum(vel *  mass.reshape((-1, 1)), axis=0) / np.sum(mass)
-        self.obs_dict['com_v'] = com_v
+        self.obs_dict['com_v'] = com_v[-3:]
         com = np.sum(pos * mass.reshape((-1, 1)), axis=0) / np.sum(mass)
         self.obs_dict['com'] = com[:2]
         self.obs_dict['com_height'] = com[-1:]
+        self.obs_dict['hip_flex_r'] = np.asarray(self.sim.data.joint('hip_flexion_r').qpos.copy())
         self.obs_dict['cal_l'] = np.array(self.sim.data.xipos[self.sim.model.body_name2id('calcn_l')].copy()[1])
         # Storing base of support - x and y position of right and left calcaneus and toes
         self.obs_dict['base_support'] =  [x, y]
@@ -155,6 +159,7 @@ class ReachEnvV0(BaseV0):
         obs_dict['knee_angle'] = np.asarray([b])
         c = (self.sim.data.joint('hip_flexion_r').qpos.copy()+self.sim.data.joint('hip_flexion_l').qpos.copy())/2
         obs_dict['hip_flex'] = np.asarray([c])
+        obs_dict['hip_flex_r'] = np.asarray(self.sim.data.joint('hip_flexion_r').qpos.copy())
         # center of mass and base of support
         x, y = np.array([]), np.array([])
         for label in ['calcn_r', 'calcn_l', 'toes_l', 'toes_r']:
@@ -175,26 +180,12 @@ class ReachEnvV0(BaseV0):
         obs_dict['com_v'] = com_v[-3:]
         obs_dict['com'] = com[:2]
         obs_dict['com_height'] = com[-1:]# self.sim.data.body('pelvis').xipos.copy()
+        #print(obs_dict['com_height'])
         baseSupport = obs_dict['base_support'].reshape(2,4)
         #areaofbase = Polygon(zip(baseSupport[0], baseSupport[1])).area
         obs_dict['centroid'] = np.array(Polygon(zip(baseSupport[0], baseSupport[1])).centroid.coords)
         pelvis_com = np.array(sim.data.xipos[sim.model.body_name2id('pelvis')].copy())
         obs_dict['pelvis_com'] = pelvis_com[:2]
-        '''
-        pxy = [[-0.0848,  0.1447], [-0.0789, -0.0317 ], [0.0845,  0.1449],  [0.0796, -0.0315]]
-        fxy = [[-0.1048 , 0.2447],[-0.0989, 0.0683], [0.0845,  0.1449],  [0.0796, -0.0315]] 
-        for i in range(4):
-            plt.scatter(fxy[i][0], fxy[i][1], color = 'red')
-            plt.scatter(pxy[i][0], pxy[i][1], color = 'green')
-        #plt.plot(x, y)
-        plt.scatter(com[0], com[1] )
-        #plt.scatter(obs_dict['pelvis_com'][0], obs_dict['pelvis_com'][1])
-        plt.scatter(obs_dict['centroid'][0][0], obs_dict['centroid'][0][1])
-        plt.show()
-        '''
-
-
-
         obs_dict['err_com'] = np.array(obs_dict['centroid']- obs_dict['com'])
         #obs_dict['err_com'] = np.array(obs_dict['centroid']- obs_dict['pelvis_com']) #change since 2023/12/08/ 15:52
         return obs_dict
@@ -203,6 +194,7 @@ class ReachEnvV0(BaseV0):
     def get_reward_dict(self, obs_dict):
         #print('hip flexion',self.sim.data.joint('hip_flexion_r').qpos.copy())
         hip_fle = self.obs_dict['hip_flex']
+        hip_flex_r = self.obs_dict['hip_flex_r'].reshape(-1)[0]
         hip_add = self.obs_dict['hip_add']
         knee_angle = self.obs_dict['knee_angle']
         self.obs_dict['pelvis_target_rot'] = [np.pi/2, -np.pi/2 , 0]
@@ -212,8 +204,9 @@ class ReachEnvV0(BaseV0):
         #print(-self.obs_dict['pelvis_rot'][0]+self.sim.data.joint('hip_flexion_r').qpos.copy() )
         positionError = np.linalg.norm(obs_dict['reach_err'], axis=-1)
         feet_v = np.linalg.norm(obs_dict['feet_v'][-3:], axis = -1) 
-        com_vel = np.linalg.norm(obs_dict['com_v'], axis = -1) # want to minimize rotational and translational velocity
+        com_vel = np.linalg.norm(obs_dict['com_v'], axis = -1) # want to minimize translational velocity
         comError = np.linalg.norm(obs_dict['err_com'], axis=-1)
+        self.com_err = comError
         timeStanding = np.linalg.norm(obs_dict['time'], axis=-1)
         metabolicCost = np.sum(np.square(obs_dict['act']))/self.sim.model.na
         # act_mag = np.linalg.norm(self.obs_dict['act'], axis=-1)/self.sim.model.na if self.sim.model.na !=0 else 0
@@ -226,12 +219,12 @@ class ReachEnvV0(BaseV0):
         feet_width, vertical_sep = self.feet_width()
         feet_height = np.linalg.norm(obs_dict['feet_heights'])
         com_height = obs_dict['com_height'][0]
-        com_height_error = np.linalg.norm(obs_dict['com_height'][0]-0.55)
+        com_height_error = np.linalg.norm(obs_dict['com_height'][0]-0.85)
         com_bos = 1 if within else -1 # Reward is 100 if com is in bos.
         farThresh = self.far_th*len(self.tip_sids) if np.squeeze(obs_dict['time'])>2*self.dt else np.inf # farThresh = 0.5
         nearThresh = len(self.tip_sids)*.050 # nearThresh = 0.05
         # Rewards are defined ni the dictionary with the appropiate sign
-        #comError = comError.reshape(-1)[0]
+        comError = comError.reshape(-1)[0]
         positionError = positionError.reshape(-1)[0]
         com_height_error = com_height_error.reshape(-1)[0]
         feet_v = feet_v.reshape(-1)[0]
@@ -249,19 +242,20 @@ class ReachEnvV0(BaseV0):
             ('metabolicCost',       -1.*metabolicCost),
             #('highError',           -1.*(positionError>farThresh)),
             ('centerOfMass',        1.*(com_bos)),
-            ('com_error',             np.exp(-2.*(comError))),
+            ('com_error',             np.exp(-2.*np.abs(comError))),
             ('com_height_error',     np.exp(-5*np.abs(com_height_error))),
             ('feet_height',         -1*(feet_height)),
             ('feet_width',            5*np.clip(feet_width, 0.3, 0.5)),
             ('pelvis_rot_err',        -1 * pelvis_rot_err),
-            ('com_v',                  np.exp(-1*com_vel)), #3*(com_bos - np.tanh(feet_v))**2), #penalize when COM_v is high
+            ('com_v',                  3*np.exp(-5*np.abs(com_vel))), #3*(com_bos - np.tanh(feet_v))**2), #penalize when COM_v is high
             ('hip_add',               2*np.clip(hip_add, -0.3, -0.2)),
             ('knee_angle',             10*np.clip(knee_angle, 1, 1.2)),
             ('hip_flex',              10*np.clip(hip_fle, 0.4, 0.7)),
+            ('hip_flex_r',             5*np.exp(-.5*np.abs(hip_flex_r - 1))),
             # Must keys
             ('sparse',              -1.*positionError),
-            ('solved',              1.*positionError<nearThresh),  # standing task succesful
-            ('done',                1.*com_height < 0.3), # model has failed to complete the task 
+            ('solved',              1.*hip_flex_r>1),  # standing task succesful
+            ('done',                1.*com_height < 0.45), # model has failed to complete the task 
         ))
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         return rwd_dict
@@ -276,7 +270,7 @@ class ReachEnvV0(BaseV0):
     
     def allocate_randomly(self, perturbation_magnitude): #allocate the perturbation randomly in one of the six directions
         array = np.zeros(6)
-        random_index = 1 #np.random.randint(0, 1) # 0: ML, 1: AP
+        random_index = 1 #np.random.randint(0, 1) # 0: ML, 1: AP fall back, 3: AP fall forward
         array[random_index] = perturbation_magnitude
         return array
     # generate a perturbation
@@ -284,7 +278,7 @@ class ReachEnvV0(BaseV0):
     def generate_perturbation(self):
         M = self.sim.model.body_mass.sum()
         g = np.abs(self.sim.model.opt.gravity.sum())
-        self.perturbation_time = np.random.uniform(self.dt*(0.1*self.horizon), self.dt*(0.2*self.horizon)) # between 10 and 20 percent
+        self.perturbation_time = np.random.uniform(self.dt*(0.15*self.horizon), self.dt*(0.20*self.horizon)) # between 10 and 20 percent
         # perturbation_magnitude = np.random.uniform(0.08*M*g, 0.14*M*g)
         ran = self.force_range
         if np.random.choice([True, False]):
@@ -292,7 +286,7 @@ class ReachEnvV0(BaseV0):
         else:
             perturbation_magnitude = np.random.uniform(ran[0], ran[1])
         self.perturbation_magnitude = self.allocate_randomly(perturbation_magnitude)#[0,0,0, perturbation_magnitude, 0, 0] # front and back
-        self.perturbation_duration = 20  # steps
+        self.perturbation_duration = 40  # steps
         return
         # generate a valid target
 

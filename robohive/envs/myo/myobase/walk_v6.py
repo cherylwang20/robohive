@@ -63,7 +63,7 @@ class ReachEnvV0(BaseV0):
                 sites=self.target_reach_range.keys(),
                 **kwargs,
                 )
-        key_index = random.randint(6, 9)
+        key_index = random.randint(7, 11)
         self.init_qpos = self.sim.model.key_qpos[key_index]
         
 
@@ -313,7 +313,7 @@ class ReachEnvV0(BaseV0):
 
     def reset(self):
         self.generate_perturbation()
-        key_index = random.randint(6, 9)
+        key_index = random.randint(4, 7)
         qpos= self.sim.model.key_qpos[key_index]
         qvel = self.sim.model.key_qvel[key_index]
         self.robot.sync_sims(self.sim, self.sim_obsd)

@@ -293,6 +293,7 @@ elif sim_backend == SimBackend.MUJOCO:
     leg_model='/../../../simhive/myo_sim/leg/myolegs.xml' #myobody.xml'
     #leg_model='/../../../simhive/myo_sim/leg/myolegs_v0.56(mj237).mjb'
 
+leg_fp = '/../../../simhive/myo_sim/leg/myolegs_fp.xml'
 
 register_env_with_variants(id='myoLegStandRandom-v0',
         entry_point='robohive.envs.myo.myobase.walk_v0:ReachEnvV0',
@@ -516,13 +517,13 @@ register_env_with_variants(id='myoLegReachFixed-v2',
     )
 
 
-# we want this condition to be sarcopenia
+# we want this condition to be fp
 register_env_with_variants(id='myoLegReachFixed-v3',
         entry_point='robohive.envs.myo.myobase.walk_v3:ReachEnvV0',
         # max_episode_steps=500,
         max_episode_steps=700,
         kwargs={
-            'model_path': curr_dir + leg_model,
+            'model_path': curr_dir + leg_fp,
             'target_reach_range': {
                 #'pelvis': ((-0.0, -0.0, .90), (0.0, 0.0, .90)),
                 # 'pelvis': ((-.050, -.050, -.050), (0.05, 0.05, .05)),
@@ -532,23 +533,23 @@ register_env_with_variants(id='myoLegReachFixed-v3',
             'normalize_act': True,
             'far_th': 1,
             'weighted_reward_keys':{
-                                "positionError":        .1,
+                                "positionError":        2.,
                                 #"smallErrorBonus":      1,
                                 #"timeStanding":          3,
-                                "metabolicCost":         .1,
+                                "metabolicCost":         1,
                                 #"highError":            5,
-                                "centerOfMass":         0.5,
+                                #"centerOfMass":         2,
                                 #'verticalStep':          1, 
-                                #"com_error":             .4,
-                                #"pelvis_rot_err":        .1,
-                                'feet_height':           .1,
+                                "com_error":            1.,
+                                "pelvis_rot_err":        .1,
+                                #'feet_height':           .5,
                                 #"com_v":                 .2,
                                 #"feet_width":            .3, 
-                                "hip_add":               .5,
-                                #"hip_flex":               0.5,
+                                "hip_add":               2,
+                                "hip_flex":               0.5,
                                 #"hip_flex_r":            .5,
-                                "com_height_error":      .1, 
-                                "knee_angle":            .5,
+                                "com_height_error":      .5, 
+                                #"knee_angle":            .5,
                                 "done":                 -100.
                 }         
             }
@@ -596,7 +597,7 @@ register_env_with_variants(id='myoLegReachFixed-v4',
 register_env_with_variants(id='myoLegReachFixed-v5',
         entry_point='robohive.envs.myo.myobase.walk_v5:ReachEnvV0',
         # max_episode_steps=500,
-        max_episode_steps=550,
+        max_episode_steps=700,
         kwargs={
             'model_path': curr_dir + leg_model,
             'target_rot': None,
@@ -612,7 +613,7 @@ register_env_with_variants(id='myoLegReachFixed-v5',
                                 #"positionError":        .1,
                                 #"smallErrorBonus":      1,
                                 #"timeStanding":          3,
-                                "metabolicCost":         1,
+                                "metabolicCost":         1.5,
                                 #"highError":            5,
                                 "time":                  0.8,
                                 #"centerOfMass":         0.5,
