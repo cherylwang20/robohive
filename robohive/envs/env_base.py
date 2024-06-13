@@ -292,7 +292,7 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
         return obs, env_info['rwd_'+self.rwd_mode], bool(env_info['done']), env_info
 
 
-    def get_obs(self, update_proprioception=True, update_exteroception=False):
+    def get_obs(self, update_proprioception=False, update_exteroception=False):
         """
         Get state based observations from the environemnt.
         Uses robot to get sensors, reconstructs the sim and recovers the sensors.

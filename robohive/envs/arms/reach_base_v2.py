@@ -251,6 +251,8 @@ class ReachBaseV0(env_base.MujocoEnv):
                                         step_duration=self.dt,
                                         realTimeSim=self.mujoco_render_frames,
                                         render_cbk=self.mj_render if self.mujoco_render_frames else None)
+        
+        print('control', self.last_ctrl)
         return self.forward(**kwargs)
 
 

@@ -1,0 +1,222 @@
+<mujoco model="ur10e scene">
+  
+  <!--size njmax='1000' nconmax='1000'/>-->
+  <size nconmax="1000" njmax="1000" nkey="1" nuser_jnt="1"/>
+
+  <include file="ur10e_chem_assets.xml"/>
+  <include file="./simhive/scene_sim/topfloor_scene.xml"/>
+  <include file="./simhive/furniture_sim/simpleTable/simpleTable_asset.xml"/>
+  <include file="./simhive/furniture_sim/ventionTable/ventionTable_asset.xml"/>
+  <include file="./simhive/furniture_sim/bin/bin_asset.xml"/>
+  
+  <statistic center="0.4 0 0.4" extent="1"/>
+  <compiler autolimits = "true" inertiafromgeom="auto" inertiagrouprange="3 4" angle="radian" meshdir="assets"/>
+  <!--option timestep='0.001' viscosity="0.1"/-->
+
+  <option timestep="0.002" viscosity="0.00002" cone="elliptic" tolerance="1e-8" solver='PGS' iterations='300'>
+    <flag multiccd="enable"/>
+  </option>
+  
+  <visual>
+    <rgba haze="0.15 0.25 0.35 1.5"/>
+    <global offwidth="1080" offheight="880" azimuth="120" elevation="-20"/>
+  </visual>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
+      markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+  </asset>
+
+  <worldbody>
+    <camera name='front_cam' pos="-0.024 2.950 1.520" xyaxes="-1.000 -0.013 -0.000 0.003 -0.223 0.975"/>
+    <camera name='right_cam' pos="-3.415 2.732 2.719" xyaxes="-0.655 -0.756 0.000 0.321 -0.278 0.905"/>
+    <camera name='top_cam' pos='0 0.5 2.2' euler='0 0 0' fovy = '58'/>
+    <camera name = 'ft_cam' pos="-0.019 1.688 1.703" xyaxes="-1.000 -0.020 0.000 0.011 -0.543 0.840"/>
+    <light directional="false" diffuse="0.4 0.4 0.4" specular="0.1 0.1 0.1" pos="1 1 3" dir="-1 -1 -3"/>
+  
+
+    <body pos='0 -.15 .823' euler='0 0 1.57'>
+        <include file="ur10e_chem_include.xml"/>
+    </body>
+
+    <!-- Tables -->
+    <body name="ventiontable" pos='0 -.3 0'>
+        <include file="./simhive/furniture_sim/ventionTable/ventionTable_body.xml"/>
+    </body>
+    <body name="scenetable" pos='0 0.49 0.065'>
+        <include file="./simhive/furniture_sim/simpleTable/simpleMarbleTable_body.xml"/>
+    </body>
+
+
+      <!-- tasks details added here via include
+    <body name="busbin1" pos='0.235 0.5 0.825'>
+        <include file="../../../simhive/furniture_sim/bin/busbin1_body.xml"/>
+    </body>
+    <body name="busbin2" pos='-.235 0.5 0.825'>
+        <include file="../../../simhive/furniture_sim/bin/busbin2_body.xml"/>
+    </body>-->
+
+    <!--site name='pick_target' type='sphere' size='.08' pos='-0.3 0.5 1.1' group='1' rgba='.1 .1 1 0.2'/>
+    <site name='drop_target' type='cylinder' size='.088 0.021' pos='-.235 0.5 .85' group='1' rgba='.1 .8 .2 0.2'/>-->
+
+
+
+    <!--composite prefix = '1' type="particle" count="3 3 3" spacing="0.015" offset="0 .5 .95">
+        <geom type="sphere" size="0.009" group = '1' rgba=".8 .2 .1 1" solref=".005 1" solimp="0.9 0.9 0.01" />
+    </composite>-->
+
+    <body name="beaker" pos="0 0.5 .9" euler="1.57 0 0">
+      <freejoint/>
+      <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
+      <geom rgba="1 0 0 .9" mesh="beaker_thick_0" class="visual_b"/>
+      <geom rgba="1 1 1 .4" mesh="beaker_thick_1" class="visual_b"/>
+      <geom mesh="beaker_thick_collision_0" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_1" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_2" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_3" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_4" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_5" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_6" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_7" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_8" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_9" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_10" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_11" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_12" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_13" class="collision_b"/>
+      <geom mesh="beaker_thick_collision_14" class="collision_b"/>
+    </body>
+
+    <body name="tubes" pos="0.3 0.5 .85" euler="1.57 0 0">
+    <freejoint/>
+      <geom rgba="0 0.2 0.8 .9" mesh="tubes_0" class="visual_b"/>
+      <geom rgba="1 1 1 .4" mesh="tubes_1" class="visual_b"/>
+      <geom mesh="tubes_collision_0" class="collision_b"/>
+      <geom mesh="tubes_collision_1" class="collision_b"/>
+      <geom mesh="tubes_collision_2" class="collision_b"/>
+      <geom mesh="tubes_collision_3" class="collision_b"/>
+      <geom mesh="tubes_collision_4" class="collision_b"/>
+      <geom mesh="tubes_collision_5" class="collision_b"/>
+      <geom mesh="tubes_collision_6" class="collision_b"/>
+      <geom mesh="tubes_collision_7" class="collision_b"/>
+    </body>
+
+    <!--body name="rack" pos="0.3 0.2 1" euler="1.57 0 0">
+      <freejoint/>
+      <geom rgba="0.5 0.3 0 1" mesh="rack" class="visual_b"/>
+      <geom mesh="rack_collision_0" class="collision_b"/>
+      <geom mesh="rack_collision_1" class="collision_b"/>
+      <geom mesh="rack_collision_2" class="collision_b"/>
+      <geom mesh="rack_collision_3" class="collision_b"/>
+      <geom mesh="rack_collision_4" class="collision_b"/>
+      <geom mesh="rack_collision_5" class="collision_b"/>
+    </body>-->
+
+    <body name="tube_2" pos="0.35 0.5 .85" euler="1.57 0 0">
+      <freejoint/>
+      <geom rgba="0 0.1 0.9 .9" mesh="tubes_0" class="visual_b"/>
+      <geom rgba="1 1 1 .4" mesh="tubes_1" class="visual_b"/>
+      <geom mesh="tubes_collision_0" class="collision_b"/>
+      <geom mesh="tubes_collision_1" class="collision_b"/>
+      <geom mesh="tubes_collision_2" class="collision_b"/>
+      <geom mesh="tubes_collision_3" class="collision_b"/>
+      <geom mesh="tubes_collision_4" class="collision_b"/>
+      <geom mesh="tubes_collision_5" class="collision_b"/>
+      <geom mesh="tubes_collision_6" class="collision_b"/>
+      <geom mesh="tubes_collision_7" class="collision_b"/>
+    </body>
+
+    <body name="tube_3" pos="0.4 0.5 .85" euler="1.57 0 0">
+    <freejoint/>
+      <geom rgba="0 0.5 0.9 .9" mesh="tubes_0" class="visual_b"/>
+      <geom rgba="1 1 1 .4" mesh="tubes_1" class="visual_b"/>
+      <geom mesh="tubes_collision_0" class="collision_b"/>
+      <geom mesh="tubes_collision_1" class="collision_b"/>
+      <geom mesh="tubes_collision_2" class="collision_b"/>
+      <geom mesh="tubes_collision_3" class="collision_b"/>
+      <geom mesh="tubes_collision_4" class="collision_b"/>
+      <geom mesh="tubes_collision_5" class="collision_b"/>
+      <geom mesh="tubes_collision_6" class="collision_b"/>
+      <geom mesh="tubes_collision_7" class="collision_b"/>
+    </body>
+
+
+    <body name="rbf" pos="-0.3 0.5 0.95" euler="1.57 0 0">
+      <freejoint/>
+      <geom rgba="0 0.8 1 .9" mesh="rbf_0" class="visual_b"/>
+      <geom rgba="1 1 1 .4" mesh="rbf_1" class="visual_b"/>
+      <geom mesh="rbf_collision_0" class="collision_b"/>
+      <geom mesh="rbf_collision_1" class="collision_b"/>
+      <geom mesh="rbf_collision_2" class="collision_b"/>
+      <geom mesh="rbf_collision_3" class="collision_b"/>
+      <geom mesh="rbf_collision_4" class="collision_b"/>
+      <geom mesh="rbf_collision_5" class="collision_b"/>
+      <geom mesh="rbf_collision_6" class="collision_b"/>
+      <geom mesh="rbf_collision_7" class="collision_b"/>
+      <geom mesh="rbf_collision_8" class="collision_b"/>
+      <geom mesh="rbf_collision_9" class="collision_b"/>
+      <geom mesh="rbf_collision_10" class="collision_b"/>
+      <geom mesh="rbf_collision_11" class="collision_b"/>
+      <geom mesh="rbf_collision_12" class="collision_b"/>
+      <geom mesh="rbf_collision_13" class="collision_b"/>
+      <geom mesh="rbf_collision_14" class="collision_b"/>
+    </body>
+
+    <body name="base_rbf" pos="-0.3 0.5 .84" euler="1.57 0 0">
+      <freejoint/>
+      <geom rgba="0.4627 0.4627 0.4627 1" mesh="base_2" class="visual_b"/>
+      <geom mesh="base_2_collision_0" class="collision_b"/>
+      <geom mesh="base_2_collision_1" class="collision_b"/>
+      <geom mesh="base_2_collision_2" class="collision_b"/>
+      <geom mesh="base_2_collision_3" class="collision_b"/>
+      <geom mesh="base_2_collision_4" class="collision_b"/>
+      <geom mesh="base_2_collision_5" class="collision_b"/>
+      <geom mesh="base_2_collision_6" class="collision_b"/>
+      <geom mesh="base_2_collision_7" class="collision_b"/>
+      <geom mesh="base_2_collision_8" class="collision_b"/>
+      <geom mesh="base_2_collision_9" class="collision_b"/>
+      <geom mesh="base_2_collision_10" class="collision_b"/>
+      <geom mesh="base_2_collision_11" class="collision_b"/>
+      <geom mesh="base_2_collision_12" class="collision_b"/>
+      <geom mesh="base_2_collision_13" class="collision_b"/>
+      <geom mesh="base_2_collision_14" class="collision_b"/>
+    </body>
+
+    <body pos="0 0.5 0.95">
+      <freejoint/>
+      <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001"/>
+      <geom type="sphere" size=".01" group = '1' rgba=".8 .2 .1 1" solref=".005 1" solimp="0.9 0.9 0.01"/>
+    </body>
+
+    <body pos="-0.3 0.5 0.95">
+      <freejoint/>
+      <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001"/>
+      <geom type="sphere" size=".01" group = '1' rgba="0 0.8 1 1" solref=".005 1" solimp="0.9 0.9 0.01"/>
+    </body>
+
+    <!--<body name="obj1" pos="0.253 0.275 1">
+        <inertial pos="0 0 0" mass="0.055" diaginertia="0.0001 0.0001 0.0001" />
+        <geom type="sphere" size="0.03" pos="0.06 0.05 0.005" euler="1.2 .5 .9" group="1" rgba=".31 .37 .7 1" mass=".045"/>
+        <geom type="cylinder" size="0.026 0.06" pos="0.03 0.012 .01" euler=".1 .6 .2" group="1" rgba=".6 .3 .8 1" mass=".010"/>
+        <geom type="box" size="0.045 0.023 0.032" pos="0.02 0.012 .02" euler=".4 .5 .4" group="1" rgba=".12 .5 .2 1" mass=".004"/>
+        <site name="obj1" size="0.01" pos="0 0 0"/>
+        <freejoint/>
+    </body>
+
+    <body name="obj2" pos="0.23 0.675 1">
+        <inertial pos="0 0 0" mass="0.076" diaginertia="0.0001 0.0001 0.0001" />
+        <geom type="box" size="0.02 .04 .07" pos="0.03 0.034 0.063" euler=".86 .52 .8" group="1" rgba=".72 .72 .12 1" mass=".052"/>
+        <geom type="box" size="0.05 .02 .06" pos="0.082 0.023 .035" euler=".6 .3 .8" group="1" rgba=".33 .52 .73 1" mass=".024"/>
+        <site name="obj2" size="0.01" pos="0 0 0"/>
+        <freejoint/>
+    </body>-->
+  </worldbody>
+
+  <keyframe>
+    <key name='home' qpos='2.07337 -1.70738 -1.23373 -1.78121 1.56329 -0.0203094 0.00291973 0.000150904 0.0031729 -0.00339871 0.0029235 0.000160073 0.00318601 -0.00342582 -0.00227858 0.498067 0.895799 0.707497 0.706716 -0.000358991 -0.000357076 0.301609 0.491735 0.839966 0.010505 0.989629 -0.114668 0.0858802 0.355371 0.490977 0.840433 -0.013645 0.983789 -0.155878 -0.0876082 0.397922 0.49384 0.839983 0.0140087 0.98388 -0.156524 0.0853414 -0.283288 0.484868 0.954607 0.594636 0.788748 0.0687669 -0.13984 -0.300059 0.499934 0.843104 0.707087 0.707127 -0.000123097 -0.000149709 0.0023304 0.549842 0.880809 -0.817927 -0.548456 -0.153315 0.0817677 -0.265264 0.478662 0.885805 -0.66414 -0.175542 0.67437 0.270793'/>
+    <key name = 'beaker_home' qpos='1.69641 -1.7695 -2.08032 -1.07556 1.57049 -0.00132131 0.538214 8.47024e-05 0.537667 -0.516444 0.538215 4.68802e-05 0.537647 -0.516367 0.0309725 0.474064 0.895831 0.706781 0.706779 -0.0214909 -0.0214883 0.292497 0.484855 0.844485 0.0278307 0.744558 0.0316013 -0.666228 0.323344 0.61155 0.839955 -0.0449955 -0.854282 0.512628 -0.0734195 0.436039 0.479758 0.842981 -0.397675 0.535959 -0.6743 -0.316104 -0.363518 0.501969 0.95881 0.73796 0.645068 -0.121416 -0.156718 -0.369812 0.497404 0.843131 0.69055 0.690547 -0.152131 -0.152126 -0.000128024 0.5047987 0.880544 -0.829011 -0.546936 -0.116543 -0.00451072 -0.335096 0.478676 0.905924 -0.635637 -0.233888 0.672635 0.298034'/>
+    <key name = 'rbf_home' qpos='-4.02111 -1.7047 -2.17379 -2.83422 -1.57019 -0.00700466 0.00273989 0.00014926 0.00298673 -0.00321611 0.00274072 0.000151377 0.00299243 -0.00322526 -0.000746886 0.516433 0.895815 0.707566 0.706646 0.000622909 0.00062702 0.273683 0.509377 0.845526 0.157606 0.423674 -0.0752983 0.888814 0.32893 0.49341 0.842405 0.0993194 0.737978 -0.109603 0.658416 0.399612 0.493202 0.839971 0.0180184 0.976129 -0.199103 0.0848839 -0.299824 0.506838 0.959473 0.726808 0.68185 -0.0728328 -0.0390749 -0.300628 0.504671 0.84313 0.707016 0.70702 -0.0112042 -0.0112015 0.00115575 0.568845 0.880814 -0.837851 -0.542622 -0.0359309 0.0477095 -0.315096 0.478676 0.905924 -0.635637 -0.233888 0.672635 0.298034'/>  
+  </keyframe>
+</mujoco>
