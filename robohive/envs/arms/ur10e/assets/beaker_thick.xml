@@ -32,21 +32,21 @@
     <body name="beaker_thick">
       <geom mesh="beaker_thick_0" material="Material.003" class="visual"/>
       <geom mesh="beaker_thick_1" material="Material.001" class="visual"/>
-      <geom mesh="beaker_thick_collision_0" rgba="0.8089231935439344 0.6916704896118236 0.48909343264230576 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_1" rgba="0.5420456061462268 0.06408525095253936 0.8997054479499778 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_2" rgba="0.6477021751767689 0.7861022478761405 0.6056978378478907 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_3" rgba="0.8505511451969144 0.6544825233529531 0.06703842998512355 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_4" rgba="0.5703467524536416 0.48330721159499657 0.6695109607241276 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_5" rgba="0.7857145634493164 0.43733725269854196 0.2889223370144104 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_6" rgba="0.8894994837915412 0.797745006670721 0.09909446391803589 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_7" rgba="0.8269245677225776 0.8261403060106178 0.4108554101294327 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_8" rgba="0.5655801192459827 0.056354470601496565 0.7660360480838281 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_9" rgba="0.45460958010512964 0.6364560384660889 0.968278686944556 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_10" rgba="0.14197763290998244 0.17642883704583712 0.011252552398313576 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_11" rgba="0.8464041071877287 0.47866351762070236 0.9390101206144971 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_12" rgba="0.9667184118560372 0.497160573637779 0.6950846034367963 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_13" rgba="0.3128579932137666 0.10168165049353595 0.039947091466638995 1" class="collision"/>
-      <geom mesh="beaker_thick_collision_14" rgba="0.984500702171131 0.41692661964048117 0.9153940718345277 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_0" rgba="0.8856891389456848 0.4141859571261215 0.1641737120646669 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_1" rgba="0.9121586604633766 0.758589884462649 0.5696111266706781 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_2" rgba="0.982604887038461 0.6777214680027324 0.6190808030204883 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_3" rgba="0.24036087810150764 0.7947981883291583 0.319044614936164 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_4" rgba="0.5663392755574738 0.6232593795255309 0.05370565285168971 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_5" rgba="0.4068721910893017 0.7875559002397131 0.14960032025372305 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_6" rgba="0.7380140555388208 0.9854185562668778 0.19915459731721885 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_7" rgba="0.5620359855634456 0.7685316702856411 0.45470344444095545 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_8" rgba="0.6534931749572943 0.4943436546283009 0.7860142944755002 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_9" rgba="0.27931497551439166 0.6264530417970007 0.6605839912370502 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_10" rgba="0.8851276193766443 0.9747642206525687 0.6166930785864536 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_11" rgba="0.8283847866895123 0.3198071185786282 0.825619763903373 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_12" rgba="0.9342425752374436 0.1643220438761971 0.706266282028379 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_13" rgba="0.9446093727370926 0.34844457306510834 0.479029586965534 1" class="collision"/>
+      <geom mesh="beaker_thick_collision_14" rgba="0.6451257491595274 0.07265390416348083 0.7633155421588296 1" class="collision"/>
     </body>
   </worldbody>
 </mujoco>

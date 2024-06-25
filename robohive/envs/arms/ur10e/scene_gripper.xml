@@ -13,8 +13,7 @@
   <option timestep='0.001' viscosity="0.1"/>
 
   <visual>
-    
-    <rgba haze="0.15 0.25 0.35 1"/>
+    <rgba haze="0.55 0.55 0.55 1"/>
     <global offwidth="1920" offheight="1080" azimuth="120" elevation="-20"/>
   </visual>
 
@@ -30,7 +29,7 @@
     <camera name='right_cam' pos="-3.415 2.732 2.719" xyaxes="-0.655 -0.756 0.000 0.321 -0.278 0.905"/>
     <camera name='top_cam' pos='0 0.5 2.2' euler='0 0 0' fovy = '58'/>
     <camera name = 'ft_cam' pos="-0.019 1.688 1.703" xyaxes="-1.000 -0.020 0.000 0.011 -0.543 0.840"/>
-
+    <light name="light1" pos="0 0 3" dir="0 0 -1" diffuse="1 1 1" specular="0.1 0.1 0.1" ambient="0.5 0.5 0.5"/>
 
     <body pos='0 -.15 .823' euler='0 0 1.57'>
         <include file="ur10e_gripper_include.xml"/>
@@ -47,14 +46,17 @@
 
       <!-- tasks details added here via include
     <body name="busbin1" pos='0.235 0.5 0.825'>
-        <include file="../../../simhive/furniture_sim/bin/busbin1_body.xml"/>
+        <include file="../../../simhive/furniture    <geom name="boundary_geom" type="box" size="1.3 1 0.7" pos="0 0.3 1.53" contype="0" conaffinity="0" rgba="1 1 1 0.2"/>
+_sim/bin/busbin1_body.xml"/>
     </body>
     <body name="busbin2" pos='-.235 0.5 0.825'>
         <include file="../../../simhive/furniture_sim/bin/busbin2_body.xml"/>
     </body>-->
 
-    <site name='pick_target' type='sphere' size='.08' pos='-0.3 0.5 1.1' group='1' rgba='.1 .1 1 0.2'/>
+    <site name='pick_target' type='sphere' size='.08' pos='-0.3 0.5 1.1' group='1' rgba='.1 .1 1 0.0'/>
     <!--site name='drop_target' type='cylinder' size='.088 0.021' pos='-.235 0.5 .85' group='1' rgba='.1 .8 .2 0.2'/>-->
+    <geom name="boundary_geom" type="box" size="1.3 1 0.7" pos="0 0.3 1.53" contype="0" conaffinity="0" rgba="1 1 1 0.2"/>
+
 
     <body name="obj0" pos="0.235 0.5 0.86">
         <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
@@ -167,6 +169,6 @@
     <key qpos='1.50792 -1.69641 -0.40846 -2.63886 1.57075 0 0 0 0 0 0 0 0 0 0.235 0.5 0.854784 1 4.30147e-17 -2.03928e-18 4.82739e-19'/> 
     <key name = 'home' qpos='-4.77508 -1.94773 -2.16798 -0.6283 1.57075 -0.00240529 0.00373482 0.000173572 0.0040216 -0.00424626 0.00372943 0.00015399 0.00398125 -0.00418881 0.235 0.5 0.854784 1 4.30147e-17 -2.03928e-18 4.82739e-19'/>
     <key name = 'home_2' qpos='-4.08395 -1.75924 -2.23082 -0.69113 1.50792 -0.69113 0.00373482 0.000173572 0.0040216 -0.00424626 0.00372943 0.00015399 0.00398125 -0.00418881 0.235 0.5 0.854784 1 4.30147e-17 -2.03928e-18 4.82739e-19'/>
-    <key qpos='-4.77508 -1.94773 -2.10514 -0.75396 1.50792 -0.06283 0.00373482 0.000173572 0.0040216 -0.00424626 0.00372943 0.00015399 0.00398125 -0.00418881 0.235 0.5 0.854784 1 4.30147e-17 -2.03928e-18 4.82739e-19'/>  
+    <key name = 'home_3' qpos='-4.77508 -1.94773 -2.10514 -0.75396 1.50792 -0.06283 0.00373482 0.000173572 0.0040216 -0.00424626 0.00372943 0.00015399 0.00398125 -0.00418881 0.235 0.5 0.854784 1 4.30147e-17 -2.03928e-18 4.82739e-19'/>  
     </keyframe>
 </mujoco>

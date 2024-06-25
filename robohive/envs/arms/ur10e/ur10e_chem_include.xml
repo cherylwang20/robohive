@@ -98,7 +98,8 @@
                               diaginertia="4.73958e-07 3.64583e-07 1.23958e-07"/>
                             <geom class="visual" mesh="pad"/>
                             <body name="right_silicone_pad">
-                                <geom class="visual" mesh="silicone_pad" material="black"/>
+                              <site name="right_silicone_pad" pos="0 -0.01 .01" type="sphere" group="1" rgba=".9 0.9 0.9 1" size="0.005"/>
+                              <geom class="visual" mesh="silicone_pad" material="black"/>
                             </body>
                           </body>
                         </body>
@@ -137,7 +138,8 @@
                               diaginertia="4.73958e-07 3.64583e-07 1.23958e-07"/>
                             <geom class="visual" mesh="pad"/>
                             <body name="left_silicone_pad">
-                               <geom class="visual" mesh="silicone_pad" material="black"/>
+                              <site name="left_silicone_pad" pos="0 -0.01 .01" type="sphere" group="1" rgba=".9 0.9 0.9 1" size="0.005"/>
+                              <geom class="visual" mesh="silicone_pad" material="black"/>
                             </body>
                           </body>
                         </body>

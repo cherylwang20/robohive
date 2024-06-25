@@ -606,10 +606,6 @@ class Robot():
         processed_controls = controls.copy()
         act_id = -1
         for name, device in self.robot_config.items():
-            print('name', name)
-            print('device actuator', device['actuator'])
-            print('act mode',  self._act_mode)
-            print('actuator range', self.sim.model.actuator_ctrlrange)
             if name == "default_robot":
                 if self._act_mode == "pos":
                     if normalized:
@@ -710,7 +706,7 @@ class Robot():
             timing_SRV_t = time.time()
             timing_SRV.append(y_data=timing_SRV_t-timing_SRV_t0)
             timing_SRV_t0 = timing_SRV_t
-        print('final control', ctrl_desired, ctrl_feasible)
+        #print('final control', ctrl_desired, ctrl_feasible)
         return ctrl_feasible
 
 

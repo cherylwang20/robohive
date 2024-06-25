@@ -46,10 +46,11 @@ register(
     }
 )
 
+#reach and pick env for block object
 register(
     id='UR10eReachFixed-v1',
     entry_point='robohive.envs.arms.reach_base_v2:ReachBaseV0',
-    max_episode_steps=250, #50steps*40Skip*2ms = 4s
+    max_episode_steps=150, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_gripper.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -61,18 +62,20 @@ register(
     }
 )
 
+
+#env for chemical objects
 register(
     id='UR10eReachFixed-v2',
     entry_point='robohive.envs.arms.reach_base_v3:ReachBaseV0',
-    max_episode_steps=250, #50steps*40Skip*2ms = 4s
+    max_episode_steps=150, #50steps*40Skip*2ms = 4s
     kwargs={
-        'model_path': curr_dir+'/ur10e/scene_gripper.xml',
+        'model_path': curr_dir+'/ur10e/scene_chem.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
         'robot_site_name': "pinch",
-        'target_site_name': "obj0",
-        'obj_xyz_range': {'high':[0.235, 0.5, 0.86], 'low':[-0.1, 0.4, 0.86]},
+        'target_site_name': "beaker",
+        'obj_xyz_range': {'high':[0., 0.5, 0.895831], 'low':[-0., 0.5 ,0.895831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
         'goal_site_name': "pick_target",
-        'target_xyz_range': {'high':[0.435, 0.5, 0.86], 'low':[-0.435, 0.4, 0.86]}
+        'target_xyz_range': {'high':[0.435, 0.5, 0.9], 'low':[-0.435, 0.4, 0.9]}
     }
 )
 
@@ -118,7 +121,7 @@ for enc in ["r3m18", "r3m34", "r3m50", "rrl18", "rrl34", "rrl50"]:
     register_visual_envs(enc)
 
 register_env_variant(
-    env_id='UR10eReachFixed-v0',
+    env_id='UR10eReachFixed-v2',
     variant_id='UR10eReachFixed_v2d-v0',
     variants={
             "obs_keys": ['time', 'time'],    # supress state obs

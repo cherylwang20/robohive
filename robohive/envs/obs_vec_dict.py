@@ -52,6 +52,7 @@ class ObsVecDict():
         base_idx = 0
         assert 'time' in obs_dict.keys(), "obs_dict must have key 'time' with observation timestamp "
         self.ordered_obs_keys = ordered_obs_keys.copy()
+        print(obs_dict)
         for key in self.ordered_obs_keys:
             key_len = len(obs_dict[key])
             self.key_idx[key] = range(base_idx, base_idx+key_len)

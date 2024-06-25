@@ -20,6 +20,7 @@ import os
 import matplotlib.pyplot as plt
 import copy
 from robohive.physics.sim_scene import SimScene
+import dm_control.mujoco as dm_mujoco
 
 from robohive.envs import env_base
 from robohive.utils.quat_math import mat2euler, euler2quat
@@ -124,7 +125,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.reach_dist = obs_dict['reach_err']
         #only extract the pixel of the object every 20 timestepss
         self.current_observation = self.get_observation(show=True)
-        obs_dict["rgb"] = self.current_observation["rgb"]
+        #obs_dict["rgb"] = self.current_observation["rgb"]
 
         obj_l_pixel = np.clip(self.world_2_pixel( self.sim.data.site_xpos[self.sim.model.site_name2id('obj0_l')]), 0, self.IMAGE_HEIGHT +50)
         obj_r_pixel = np.clip(self.world_2_pixel( self.sim.data.site_xpos[self.sim.model.site_name2id('obj0_r')]), 0, self.IMAGE_HEIGHT +50)
@@ -143,11 +144,11 @@ class ReachBaseV0(env_base.MujocoEnv):
 
 
     def get_reward_dict(self, obs_dict):
-        reach_dist = np.linalg.norm(obs_dict['reach_err'], axis=-1)[0][0]
+        #reach_dist = np.linalg.norm(obs_dict['reach_err'], axis=-1)[0][0]
         target_dist = np.linalg.norm(obs_dict['target_err'], axis=-1)[0]
-        pix_dist = np.linalg.norm(obs_dict['pixel_err'], axis= -1)[0]
+        #pix_dist = np.linalg.norm(obs_dict['pixel_err'], axis= -1)[0]
         claw_rot_err = np.linalg.norm(obs_dict['claw_ori_err'], axis=-1)[0]
-        obj_rot_err = np.linalg.norm(obs_dict['obj_ori_err'], axis=-1)[0]
+        #obj_rot_err = np.linalg.norm(obs_dict['obj_ori_err'], axis=-1)[0]
         obj_height = np.array([self.sim.data.site_xpos[self.target_sid][-1]])
         #pad_dis = np.linalg.norm(obs_dict['pad_dist'], axis = -1)[0][0]
         pix_perc = np.array([self.pixel_perc])
@@ -221,6 +222,41 @@ class ReachBaseV0(env_base.MujocoEnv):
 
         return observation
 
+    #setting a boundary of virtual box such that the arm will not accidentally
+    def check_collision(self):
+        """ Check if any joint is out of the defined boundary """
+        x_min, x_max = -1.3, 1.3
+        y_min, y_max = -0.7, 1.3
+        z_min, z_max = 0.83, 2.23
+        for i in range(1, self.sim.model.njnt):
+            joint_frame_id = self.sim.model.jnt_bodyid[i]
+            joint_pos = self.sim.data.xpos[joint_frame_id]
+            if not (x_min <= joint_pos[0] <= x_max and 
+                    y_min <= joint_pos[1] <= y_max and 
+                    z_min <= joint_pos[2] <= z_max):
+                print(joint_pos)
+                print(f"Collision at joint {i}")
+                return True
+        return False
+    
+    def save_state(self):
+        """ Save the current simulation state """
+        self.previous_state = {
+            'qpos': np.copy(self.sim.data.qpos),
+            'qvel': np.copy(self.sim.data.qvel),
+            'actuator': np.copy(self.sim.data.ctrl) if hasattr(self.sim.data, 'ctrl') else None
+        }
+    
+    def restore_state(self, **kwargs):
+        """ Restore the simulation state from self.previous_state """
+        if self.previous_state:
+            self.sim.data.qpos[:] = self.previous_state['qpos']
+            self.sim.data.qvel[:] = self.previous_state['qvel']
+            if self.previous_state['actuator'] is not None:
+                self.sim.data.ctrl[:] = self.previous_state['actuator']
+            obs = super().reset(reset_qpos = self.previous_state['qpos'], reset_qvel = None, **kwargs)
+        return obs
+
     def step(self, a, **kwargs):
         """
         Step the simulation forward (t => t+1)
@@ -234,7 +270,6 @@ class ReachBaseV0(env_base.MujocoEnv):
                 self.grasping_steps_left = 50  # Reset the counter to 100 steps
                 self.fixed_positions = self.sim.data.qpos[:7].copy()
                 self.grasp_attempt += 1
-                print(self.pixel_perc)
                 print('grasp')
         if self.grasping_steps_left > 0:
             a[4] = np.pi/2
@@ -246,13 +281,17 @@ class ReachBaseV0(env_base.MujocoEnv):
             a = np.clip(a, self.action_space.low, self.action_space.high)
             self.fixed_positions = None
         
+        self.save_state()
         self.last_ctrl = self.robot.step(ctrl_desired=a,
                                         ctrl_normalized=self.normalize_act,
                                         step_duration=self.dt,
                                         realTimeSim=self.mujoco_render_frames,
                                         render_cbk=self.mj_render if self.mujoco_render_frames else None)
         
-        print('control', self.last_ctrl)
+        if self.check_collision():
+            print("Collision detected, reverting action")
+            self.restore_state()
+        
         return self.forward(**kwargs)
 
 
@@ -275,6 +314,8 @@ class ReachBaseV0(env_base.MujocoEnv):
         # construct a mask for the color "green", then perform
         # a series of dilations and erosions to remove any small
         # blobs left in the mask
+
+        # we might want to add a series of color to identify e.g., green, blue, red, yellow. 
         greenLower = (29, 86, 56)
         greenUpper = (64, 255, 255)
         mask = cv.inRange(hsv, greenLower, greenUpper)
