@@ -36,12 +36,12 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     ]
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "reach": -2.0,
-        "bonus": 2.0,
+        "bonus": 3.0,
         "penalty": -1.,
         "claw_ori": 0.5, 
         "target_dist": 0.0,
         'object_fall': -50,
-        'power_cost': -0.1,
+        'power_cost': -0.0001,
         'solved': 1000
     }
 
@@ -167,7 +167,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             new_pos = self.np_random.uniform(**self.obj_xyz_range)
             reset_qpos[14:17] = new_pos
             reset_qpos[56:59] = new_pos
-            reset_qpos[58] += 0.05
+            reset_qpos[58] += 0.01
             #self.sim.model.body_pos[self.object_bid] = self.np_random.uniform(**self.obj_xyz_range)
             #self.sim_obsd.model.body_pos[self.object_bid] = self.sim.model.body_pos[self.object_bid]
 
@@ -215,8 +215,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             if not (x_min <= joint_pos[0] <= x_max and 
                     y_min <= joint_pos[1] <= y_max and 
                     z_min <= joint_pos[2] <= z_max):
-                print(joint_pos)
-                print(f"Collision at joint {i}")
+                #print(joint_pos)
+                #print(f"Collision at joint {i}")
                 return True
         return False
     
