@@ -96,9 +96,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.fixed_positions = None
         self.cam_init = False
         self.color = 'red'
-        self.pixel_dis = np.array([200, 200])
         self._setup_camera()
-        self.current_image = np.zeros((1, image_width, image_height), dtype=np.uint8)
+        self.current_image = np.ones((image_width, image_height, 4), dtype=np.uint8)
         self.pixel_perc = 0
         self.total_pix = 0
         self.cx, self.cy = 0, 0
@@ -181,7 +180,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #self.sim_obsd.model.site_pos[self.target_sid] = self.sim.model.site_pos[self.target_sid]
 
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
-        self.current_image = np.ones((1,self.IMAGE_WIDTH, self.IMAGE_HEIGHT), dtype=np.uint8)
+        self.current_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 4), dtype=np.uint8)
         return {'image': self.current_image, 'vector': obs}
     
     def get_observation(self, show=True):
@@ -317,7 +316,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         mask = cv.inRange(hsv, Lower, Upper)
         mask = cv.erode(mask, None, iterations=2)
         mask = cv.dilate(mask, None, iterations=2)
-        self.current_image = mask
+        #print(mask.shape, rgb.shape)
+        self.current_image = np.concatenate((rgb, np.expand_dims(mask, axis=-1)), axis=2)
 
         ## find contour and define the centroid of this masked image
         '''
@@ -349,7 +349,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.total_pix = (np.sum(mask==255)/mask.size) * 100
         
         #print(f"Percentage of white pixels in the rectangle: {self.pixel_perc:.2f}%")
-        self.pixel_dis = np.array([self.cx, self.cy]) - np.array([105/200*self.IMAGE_HEIGHT, 34/200*self.IMAGE_WIDTH])
         if show:
             #cv.circle(rgb, (self.cx, self.cy), 5, (255, 0, 0), -1)
             #cv.circle(rgb, (105, 34, ), 5, (0, 255, 0), -1)
