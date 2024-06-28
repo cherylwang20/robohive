@@ -29,20 +29,21 @@ from robohive.utils.quat_math import mat2euler, euler2quat
 class ReachBaseV0(env_base_1.MujocoEnv):
 
     DEFAULT_OBS_KEYS = [
-        'qp_robot', 'qv_robot', 'reach_err', 'pixel'
+        'qp_robot', 'qv_robot', 'reach_err'
     ]
     DEFAULT_PROPRIO_KEYS = [
         'qp_robot', 'qv_robot'
     ]
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
-        "reach": -2.0,
-        "bonus": 3.0,
-        "penalty": -1.,
-        "claw_ori": 0.5, 
+        "reach": -0.1,
+        "bonus": 1.0,
+        "penalty": -0.5,
+        "claw_ori": 0, 
         "target_dist": 0.0,
         'object_fall': -50,
         'power_cost': -0.0001,
-        'solved': 1000
+        'sparse': 0.2,
+        'solved': 500
     }
 
 
@@ -99,6 +100,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self._setup_camera()
         self.current_image = np.zeros((1, image_width, image_height), dtype=np.uint8)
         self.pixel_perc = 0
+        self.total_pix = 0
         self.cx, self.cy = 0, 0
 
         super()._setup(obs_keys=obs_keys,
@@ -107,7 +109,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                        reward_mode=reward_mode,
                        frame_skip=frame_skip,
                        **kwargs)
-        self.init_qpos[:] = self.sim.model.key_qpos[0].copy()
+        self.init_qpos[:] = self.sim.model.key_qpos[1].copy()
 
 
     def get_obs_dict(self, sim):
@@ -116,38 +118,41 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         obs_dict['qp_robot'] = sim.data.qpos.copy()
         obs_dict['qv_robot'] = sim.data.qvel.copy()
         obs_dict['xmat_pinch'] = mat2euler(np.reshape(self.sim.data.site_xmat[self.grasp_sid], (3, 3)))
-        obs_dict['claw_ori_err'] = obs_dict['xmat_pinch'] - np.array([np.pi, 0, -np.pi/2])
-        obs_dict['reach_err'] = np.abs(self.pixel_dis) #sim.data.site_xpos[self.target_sid]-sim.data.site_xpos[self.grasp_sid]
+        obs_dict['claw_ori_err'] = obs_dict['xmat_pinch'] - np.array([-np.pi, 0, -np.pi/2])
+        obs_dict['reach_err'] = np.array([self.pixel_perc]) #np.abs(self.pixel_dis) #sim.data.site_xpos[self.target_sid]-sim.data.site_xpos[self.grasp_sid]
         self.current_observation = self.get_observation(show=True)
         obs_dict['target_err'] = sim.data.site_xpos[self.goal_sid]-sim.data.site_xpos[self.grasp_sid]
-        obs_dict['pixel'] = np.array([self.pixel_perc])
+        #obs_dict['pixel'] = np.array([self.pixel_perc])
         obs_dict['power_cost'] = sim.data.qvel.copy()*sim.data.qfrc_actuator.copy()
+        obs_dict['total_pix'] = np.array([self.total_pix - 0.9])
         return obs_dict
 
 
     def get_reward_dict(self, obs_dict):
         reach_dist = np.linalg.norm(obs_dict['reach_err'], axis=-1)[0]
+        total_pix = np.linalg.norm(obs_dict['total_pix'], axis=-1)[0]
         target_dist = np.linalg.norm(obs_dict['target_err'], axis=-1)[0]
         claw_rot_err = np.linalg.norm(obs_dict['claw_ori_err'], axis=-1)[0]
         obj_height = np.array([self.sim.data.site_xpos[self.target_sid][-1]])
-        pix_perc = np.array([self.pixel_perc])
+        pix_perc = np.array([self.pixel_perc - 2.4234])
+        #print(pix_perc)
         power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
-            ('reach',   reach_dist/self.IMAGE_HEIGHT),
+            ('reach',   np.array([15 - (self.pixel_perc - 2.4234)])),
             ('target_dist',   target_dist),
-            ('claw_ori',  2.*np.exp(-claw_rot_err)**2),
+            ('claw_ori',  2.*np.exp(-claw_rot_err**2)),
             #('obj_ori',   -(obj_rot_err[0])**2), 
-            ('bonus',   pix_perc/10),
+            ('bonus',   pix_perc > 10),
             ('penalty', np.array([1])),
             ('power_cost', power_cost),
             # Must keys
-            ('sparse',  -reach_dist/self.IMAGE_HEIGHT),
-            ('solved',  pix_perc > 50),
+            ('sparse',  total_pix),
+            ('solved',  pix_perc > 20),
             ('object_fall',  obj_height < 0.5),
-            ('done',    pix_perc > 50), #reach_dist > far_th
+            ('done',    pix_perc > 20), #reach_dist > far_th
         ))
-        #print([rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
+        #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
@@ -163,7 +168,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.grasping_steps_left = 0
         self.grasp_attempt = 0
         if self.obj_xyz_range is not None:        
-            reset_qpos = self.sim.model.key_qpos[0].copy()
+            reset_qpos = self.sim.model.key_qpos[1].copy()
             new_pos = self.np_random.uniform(**self.obj_xyz_range)
             reset_qpos[14:17] = new_pos
             reset_qpos[56:59] = new_pos
@@ -176,7 +181,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #self.sim_obsd.model.site_pos[self.target_sid] = self.sim.model.site_pos[self.target_sid]
 
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
-        self.current_image = np.zeros((1,self.IMAGE_WIDTH, self.IMAGE_HEIGHT), dtype=np.uint8)
+        self.current_image = np.ones((1,self.IMAGE_WIDTH, self.IMAGE_HEIGHT), dtype=np.uint8)
         return {'image': self.current_image, 'vector': obs}
     
     def get_observation(self, show=True):
@@ -268,11 +273,12 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                                         step_duration=self.dt,
                                         realTimeSim=self.mujoco_render_frames,
                                         render_cbk=self.mj_render if self.mujoco_render_frames else None)
-        
+        '''
         if self.check_collision():
             print("Collision detected, reverting action")
             self.restore_state()
-        
+        '''
+
         return self.forward(self.current_image, **kwargs)
 
     def set_color(self, color):
@@ -311,8 +317,10 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         mask = cv.inRange(hsv, Lower, Upper)
         mask = cv.erode(mask, None, iterations=2)
         mask = cv.dilate(mask, None, iterations=2)
+        self.current_image = mask
 
         ## find contour and define the centroid of this masked image
+        '''
         contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
 
@@ -323,9 +331,9 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             M = cv.moments(cnt)
             self.cx = int(M['m10']/M['m00'])
             self.cy = int(M['m01']/M['m00'])
-        else:
-            self.cx, self.cy = 0, 200
-        self.current_image = mask
+        #else:
+            #self.cx, self.cy = 0, 200
+        '''
 
         #define the grasping rectangle
         x1, y1 = int(53/200 * self.IMAGE_WIDTH), 0
@@ -338,12 +346,13 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         white_pixels = np.sum(roi == 255)
         total_pixels = roi.size
         self.pixel_perc = (white_pixels / total_pixels) * 100
+        self.total_pix = (np.sum(mask==255)/mask.size) * 100
         
         #print(f"Percentage of white pixels in the rectangle: {self.pixel_perc:.2f}%")
         self.pixel_dis = np.array([self.cx, self.cy]) - np.array([105/200*self.IMAGE_HEIGHT, 34/200*self.IMAGE_WIDTH])
         if show:
-            cv.circle(rgb, (self.cx, self.cy), 5, (255, 0, 0), -1)
-            cv.circle(rgb, (105, 34, ), 5, (0, 255, 0), -1)
+            #cv.circle(rgb, (self.cx, self.cy), 5, (255, 0, 0), -1)
+            #cv.circle(rgb, (105, 34, ), 5, (0, 255, 0), -1)
             cv.imshow("rbg", rgb)# cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
             cv.imshow("mask", mask)
             #cv.imshow('Inverted Colored Depth', depth_normalized)

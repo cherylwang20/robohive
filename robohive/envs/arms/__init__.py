@@ -73,7 +73,22 @@ register(
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
         'robot_site_name': "pinch",
         'target_site_name': "beaker",
-        'obj_xyz_range': {'high':[0., 0.5, 0.895831], 'low':[-0., 0.5 ,0.895831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
+        'obj_xyz_range': {'high':[0.05, 0.5, 0.895831], 'low':[-0., 0.5 ,0.895831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
+        'goal_site_name': "pick_target",
+        'target_xyz_range': {'high':[0.435, 0.5, 0.9], 'low':[-0.435, 0.4, 0.9]}
+    }
+)
+
+register(
+    id='UR10eReachFixed-v3',
+    entry_point='robohive.envs.arms.reach_base_v3:ReachBaseV0',
+    max_episode_steps=150, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene_chem_vel.xml',
+        #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
+        'robot_site_name': "pinch",
+        'target_site_name': "beaker",
+        'obj_xyz_range': {'high':[0.05, 0.5, 0.895831], 'low':[-0., 0.5 ,0.895831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
         'goal_site_name': "pick_target",
         'target_xyz_range': {'high':[0.435, 0.5, 0.9], 'low':[-0.435, 0.4, 0.9]}
     }

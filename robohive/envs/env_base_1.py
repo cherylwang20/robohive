@@ -138,7 +138,7 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
         assert not done, "Check initialization. Simulation starts in a done state."
         self.observation_space = gym.spaces.Dict({
             'image': gym.spaces.Box(low=0, high=255, shape=(1, 200, 200), dtype=np.float32),  # Use np.float32 here
-            'vector': gym.spaces.Box(obs_range[0]*np.ones(135), obs_range[1]*np.ones(135), dtype=np.float32)  # Ensure consistency in dtype usage
+            'vector': gym.spaces.Box(obs_range[0]*np.ones(133), obs_range[1]*np.ones(133), dtype=np.float32)  # Ensure consistency in dtype usage
         })
         #print(observation.size)
         #self.observation_space = gym.spaces.Box(obs_range[0]*np.ones(observation.size), obs_range[1]*np.ones(observation.size), dtype=np.float32)
@@ -300,7 +300,7 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
         return obs, env_info['rwd_'+self.rwd_mode], bool(env_info['done']), env_info
 
 
-    def get_obs(self, update_proprioception=False, update_exteroception=False):
+    def get_obs(self, image = None, update_proprioception=False, update_exteroception=False):
         """
         Get state based observations from the environemnt.
         Uses robot to get sensors, reconstructs the sim and recovers the sensors.

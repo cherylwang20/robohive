@@ -3,7 +3,7 @@
   <!--size njmax='1000' nconmax='1000'/>-->
   <size nconmax="1000" njmax="1000" nkey="1" nuser_jnt="1"/>
 
-  <include file="ur10e_chem_assets.xml"/>
+  <include file="ur10e_vel_assets.xml"/>
   <include file="../../../simhive/scene_sim/topfloor_scene.xml"/>
   <include file="../../../simhive/furniture_sim/simpleTable/simpleTable_asset.xml"/>
   <include file="../../../simhive/furniture_sim/ventionTable/ventionTable_asset.xml"/>
@@ -38,7 +38,7 @@
   
 
     <body pos='0 -.15 .823' euler='0 0 1.57'>
-        <include file="ur10e_chem_include.xml"/>
+        <include file="ur10e_vel_include.xml"/>
     </body>
 
     <!-- Tables -->
