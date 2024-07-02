@@ -12,6 +12,13 @@ import time
 import numpy as np
 from collections import deque
 import os
+from os import path
+
+from robohive.envs.arms.utils import (
+    get_config_root_node,
+    read_config_from_node,
+)
+
 np.set_printoptions(precision=4)
 
 
@@ -57,8 +64,15 @@ class Robot():
         self.name = robot_name+'(sim)' if is_hardware is None else robot_name+'(hdr)'
         self._act_mode = act_mode
         self.is_hardware = bool(is_hardware)
+        self.act_mid = np.zeros(7)
+        self.act_rng = np.ones(7) * 2
         self._sensor_cache_maxsize = sensor_cache_maxsize
         self._noise_scale = noise_scale
+        config_path = path.join(
+            path.dirname(__file__),
+            "../envs/arms/ur10e/ur10e_config.xml",
+        )
+        self._read_specs_from_config(config_path)
         if random_generator == None:
             self.np_random = np.random
         else:
@@ -304,6 +318,7 @@ class Robot():
         """
         Read the model xml and robot configs from provided files. Compile config with the model
         """
+        config_path = None
         if config_path is None:
             robot_config = {}
             robot_config['default_robot'] = {'sensor': ['qpos', 'qvel', 'act'], 'actuator': 'actuator'}
@@ -657,7 +672,7 @@ class Robot():
 
 
     # step the robot one step forward in time
-    def step(self, ctrl_desired, step_duration, ctrl_normalized=True, realTimeSim=False, render_cbk=None):
+    def step(self, ctrl_desired, last_qpos, dt, render_cbk=None):
         """
         Apply controls and step forward in time
         INPUTS:
@@ -667,49 +682,85 @@ class Robot():
             realTimeSim:        run simulate real world speed via sim
         """
 
-        # pick output space
-        robot_type = 'hdr' if self.is_hardware else 'sim'
+        control = (self.robot_vel_bound[:7, 1]+self.robot_vel_bound[:7, 0])/2.0 + \
+                                        ctrl_desired*(self.robot_vel_bound[:7, 1]-self.robot_vel_bound[:7, 0])/2.0
+        
+        control = last_qpos[:7] + control*dt
+        #print(control)
+        ctrl_feasible = np.clip(control, self.robot_pos_bound[:7, 0], self.robot_pos_bound[:7, 1])
+        #print(ctrl_feasible)
 
-        # enforce limits
-        ctrl_feasible = self.process_actuator(controls=ctrl_desired, step_duration=step_duration,\
-             normalized=ctrl_normalized, position_limits=True, velocity_limits=True, out_space=robot_type)
+        n_frames=int(dt/self.sim.step_duration)
+        self.sim.data.ctrl[:] = ctrl_feasible
+        #print('ctrl', ctrl_feasible)
+        self.sim.advance(substeps=n_frames, render=(render_cbk!=None))
 
-        # Send controls to the robot
-        if self.is_hardware:
-            self.hardware_apply_controls(ctrl_feasible)
-            if render_cbk:
-                render_cbk()
-        else:
-            n_frames=int(step_duration/self.sim.step_duration)
-            self.sim.data.ctrl[:] = ctrl_feasible
-            #print('ctrl', ctrl_feasible)
-            self.sim.advance(substeps=n_frames, render=(render_cbk!=None))
-
-        # update viz
-        if _ROBOT_VIZ:
-            for name, device in self.robot_config.items():
-                device['controls'] = []
-                for actuator in device['actuator']:
-                    device['controls'].append(ctrl_feasible[actuator['sim_id']])
-            self.update_robot_viz(update_sensor=True, update_control=True)
-
-        # synchronize time to maintain step_duration
-        if self.is_hardware or realTimeSim:
-            time_now = (time.time() - self.time_start)
-            time_left_in_step = step_duration - (time_now-self.time_wall)
-            if (time_left_in_step > 0.001):
-                time.sleep(time_left_in_step)
-            elif time_left_in_step < 0.0:
-                prompt("Step duration %0.4fs, Step took %0.4fs, Time left %0.4f"% (step_duration, (time_now-self.time_wall), time_left_in_step), type=Prompt.WARN)
-
-        if _ROBOT_VIZ:
-            global timing_SRV_t0
-            timing_SRV_t = time.time()
-            timing_SRV.append(y_data=timing_SRV_t-timing_SRV_t0)
-            timing_SRV_t0 = timing_SRV_t
-        #print('final control', ctrl_desired, ctrl_feasible)
         return ctrl_feasible
+    
+    def _ctrl_velocity_limits(self, ctrl_velocity: np.ndarray, last_robot_qpos, dt):
+        """Enforce velocity limits and estimate joint position control input (to achieve the desired joint velocity).
 
+        ALERT: This depends on previous observation. This is not ideal as it breaks MDP assumptions. This is the original
+        implementation from the D4RL environment: https://github.com/Farama-Foundation/D4RL/blob/71a9549f2091accff93eeff68f1f3ab2c0e0a288/d4rl/kitchen/adept_envs/franka/robot/franka_robot.py#L259.
+
+        Args:
+            ctrl_velocity (np.ndarray): environment action with space: Box(low=-1.0, high=1.0, shape=(9,))
+
+        Returns:
+            ctrl_position (np.ndarray): input joint position given to the MuJoCo simulation actuators.
+        """
+        ctrl_feasible_vel = np.clip(
+            ctrl_velocity, self.robot_vel_bound[:7, 0], self.robot_vel_bound[:7, 1]
+        )
+        ctrl_feasible_position = last_robot_qpos[:7] + ctrl_feasible_vel * dt
+        return ctrl_feasible_position
+
+    def _ctrl_position_limits(self, ctrl_position: np.ndarray):
+        """Enforce joint position limits.
+
+        Args:
+            ctrl_position (np.ndarray): unbounded joint position control input .
+
+        Returns:
+            ctrl_feasible_position (np.ndarray): clipped joint position control input.
+        """
+        ctrl_feasible_position = np.clip(
+            ctrl_position, self.robot_pos_bound[:7, 0], self.robot_pos_bound[:7, 1]
+        )
+        return ctrl_feasible_position
+
+    def _read_specs_from_config(self, robot_configs: str):
+        """Read the specs of the ur10e robot joints from the config xml file.
+            - pos_bound: position limits of each joint.
+            - vel_bound: velocity limits of each joint.
+            - pos_noise_amp: scaling factor of the random noise applied in each observation of the robot joint positions.
+            - vel_noise_amp: scaling factor of the random noise applied in each observation of the robot joint velocities.
+
+        Args:
+            robot_configs (str): path to 'ur10e_config.xml'
+        """
+        root, root_name = get_config_root_node(config_file_name=robot_configs)
+        self.robot_name = root_name[0]
+        self.robot_pos_bound = np.zeros([7, 2], dtype=float)
+        self.robot_vel_bound = np.zeros([7, 2], dtype=float)
+        self.robot_pos_noise_amp = np.zeros(7, dtype=float)
+        self.robot_vel_noise_amp = np.zeros(7, dtype=float)
+
+        #print(self.robot_pos_bound)
+        for i in range(7):
+            self.robot_pos_bound[i] = read_config_from_node(
+                root, "qpos" + str(i), "pos_bound", float
+            )
+            self.robot_vel_bound[i] = read_config_from_node(
+                root, "qpos" + str(i), "vel_bound", float
+            )
+            self.robot_pos_noise_amp[i] = read_config_from_node(
+                root, "qpos" + str(i), "pos_noise_amp", float
+            )[0]
+            self.robot_vel_noise_amp[i] = read_config_from_node(
+                root, "qpos" + str(i), "vel_noise_amp", float
+            )[0]
+    
 
     # Reset the robot
     def reset(self,

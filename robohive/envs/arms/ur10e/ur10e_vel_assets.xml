@@ -123,7 +123,7 @@
         <default class="ur10e">
         <material specular="0.5" shininess="0.25"/>
         <joint axis="0 1 0" range="-6.28319 6.28319" armature="0.1"/>
-        <velocity ctrlrange="-2.0944 2.0944"/>
+        <position ctrlrange="-2.0944 2.0944"/>
         <general biastype="affine" ctrlrange="-2.0944 2.0944" gainprm="5000" biasprm="0 -5000 -500"/>
         <default class="size4">
             <joint damping="10"/>
@@ -217,7 +217,7 @@
     </equality>
 
 
-    <actuator>
+    <!--actuator>
         <velocity class="size4" name="shoulder_pan" joint="shoulder_pan_joint" kv="100"/>
         <velocity class="size4" name="shoulder_lift" joint="shoulder_lift_joint" kv="100"/>
         <velocity class="size3_limited" name="elbow" joint="elbow_joint" kv="100"/>
@@ -225,6 +225,18 @@
         <velocity class="size2" name="wrist_1" joint="wrist_1_joint" kv="100"/>
         <velocity class="size2" name="wrist_2" joint="wrist_2_joint" kv="100"/>
         <velocity class="size2" name="wrist_3" joint="wrist_3_joint" kv="100"/>
+        <general class="2f85" name="fingers_actuator" tendon="split" forcerange="-5 5" ctrlrange="0 1"
+        gainprm="80 0 0" biasprm="0 -100 -10"/>
+
+    </actuator>-->
+    
+    <actuator>
+        <general class="size4" name="shoulder_pan" joint="shoulder_pan_joint"/>
+        <general class="size4" name="shoulder_lift" joint="shoulder_lift_joint"/>
+        <general class="size3_limited" name="elbow" joint="elbow_joint"/>
+        <general class="size2" name="wrist_1" joint="wrist_1_joint"/>
+        <general class="size2" name="wrist_2" joint="wrist_2_joint"/>
+        <general class="size2" name="wrist_3" joint="wrist_3_joint"/>
         <general class="2f85" name="fingers_actuator" tendon="split" forcerange="-5 5" ctrlrange="0 1"
         gainprm="80 0 0" biasprm="0 -100 -10"/>
 

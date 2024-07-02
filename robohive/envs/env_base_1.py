@@ -12,7 +12,7 @@ import time as timer
 
 from robohive.envs.obs_vec_dict import ObsVecDict
 from robohive.utils import tensor_utils
-from robohive.robot.robot import Robot
+from robohive.robot.robot1 import Robot
 from robohive.utils.prompt_utils import prompt, Prompt
 import skvideo.io
 from sys import platform
@@ -138,9 +138,9 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
         assert not done, "Check initialization. Simulation starts in a done state."
         self.observation_space = gym.spaces.Dict({
             'image': gym.spaces.Box(low=0, high=255, shape=(200, 200, 4), dtype=np.float32),  # Use np.float32 here
-            'vector': gym.spaces.Box(obs_range[0]*np.ones(133), obs_range[1]*np.ones(133), dtype=np.float32)  # Ensure consistency in dtype usage
+            'vector': gym.spaces.Box(obs_range[0]*np.ones(107), obs_range[1]*np.ones(107), dtype=np.float32)  # Ensure consistency in dtype usage
         })
-        #print(observation.size)
+        
         #self.observation_space = gym.spaces.Box(obs_range[0]*np.ones(observation.size), obs_range[1]*np.ones(observation.size), dtype=np.float32)
 
         return

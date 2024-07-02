@@ -5,40 +5,42 @@ import numpy as np
 from termcolor import colored
 import cv2 as cv
 import matplotlib.pyplot as plt
-import copy
+import xml.etree.ElementTree as ET
+
+
+def read_config_from_node(root_node, parent_name, child_name, dtype=int):
+    # find parent
+    parent_node = root_node.find(parent_name)
+    if parent_node is None:
+        quit("Parent %s not found" % parent_name)
+
+    # get child data
+    child_data = parent_node.get(child_name)
+    if child_data is None:
+        quit("Child %s not found" % child_name)
+
+    config_val = np.array(child_data.split(), dtype=dtype)
+    return config_val
+
+
+def get_config_root_node(config_file_name=None, config_file_data=None):
+    # get root
+    if config_file_data is None:
+        with open(config_file_name) as config_file_content:
+            config = ET.parse(config_file_content)
+        root_node = config.getroot()
+    else:
+        root_node = ET.fromstring(config_file_data)
+
+    # get root data
+    root_data = root_node.get("name")
+    assert isinstance(root_data, str)
+    root_name = np.array(root_data.split(), dtype=str)
+
+    return root_node, root_name
 
 
 
-def get_image_data(self, show=False, camera="top_down", width=200, height=200):
-        """
-        Returns the RGB and depth images of the provided camera.
-
-        Args:
-            show: If True displays the images for five seconds or until a key is pressed.
-            camera: String specifying the name of the camera to use.
-        """
-
-        rgb, depth = copy.deepcopy(
-            self.sim.render(width=width, height=height, camera_name=camera, depth=True)
-        )
-        if show:
-            cv.imshow("rbg", cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
-            # cv.imshow('depth', depth)
-            cv.waitKey(1)
-            # cv.waitKey(delay=5000)
-            # cv.destroyAllWindows()
-
-        return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
-
-def depth_2_meters(self, depth):
-    """
-    Converts the depth array delivered by MuJoCo (values between 0 and 1) into actual m values.
-
-    Args:
-        depth: The depth array to be converted.
-    """
-
-    extend = self.model.stat.extent
-    near = self.model.vis.map.znear * extend
-    far = self.model.vis.map.zfar * extend
-    return near / (1 - depth * (1 - near / far))
+def read_config_from_xml(config_file_name, parent_name, child_name, dtype=int):
+    root_node, _ = get_config_root_node(config_file_name=config_file_name)
+    return read_config_from_node(root_node, parent_name, child_name, dtype)
