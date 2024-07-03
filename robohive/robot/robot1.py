@@ -681,14 +681,10 @@ class Robot():
             ctrl_normalized:    is the ctrl normalized to [-1, 1]
             realTimeSim:        run simulate real world speed via sim
         """
-
         control = (self.robot_vel_bound[:7, 1]+self.robot_vel_bound[:7, 0])/2.0 + \
                                         ctrl_desired*(self.robot_vel_bound[:7, 1]-self.robot_vel_bound[:7, 0])/2.0
-        
         control = last_qpos[:7] + control*dt
-        #print(control)
         ctrl_feasible = np.clip(control, self.robot_pos_bound[:7, 0], self.robot_pos_bound[:7, 1])
-        #print(ctrl_feasible)
 
         n_frames=int(dt/self.sim.step_duration)
         self.sim.data.ctrl[:] = ctrl_feasible

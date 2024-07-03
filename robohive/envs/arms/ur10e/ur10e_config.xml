@@ -1,11 +1,11 @@
 <config name='ur10e'>
     <!--robot -->
-	<qpos0 name='q0' pos_bound='-6.28 6.28' vel_bound='-2.09 2.09' pos_noise_amp='0.1' vel_noise_amp='0.1' />
-	<qpos1 name='q1' pos_bound='-6.28 6.28' vel_bound='-2.09 2.09' pos_noise_amp='0.1' vel_noise_amp='0.1' />
-	<qpos2 name='q2' pos_bound='-6.28 6.28' vel_bound='-3.14 3.14' pos_noise_amp='0.1' vel_noise_amp='0.1' />
-	<qpos3 name='q3' pos_bound='-6.28 6.28' vel_bound='-3.14 3.14' pos_noise_amp='0.1' vel_noise_amp='0.1' />
-	<qpos4 name='q4' pos_bound='-6.28 6.28' vel_bound='-3.14 3.14' pos_noise_amp='0.1' vel_noise_amp='0.1' />
-	<qpos5 name='q5' pos_bound='-6.28 6.28' vel_bound='-3.14 3.14' pos_noise_amp='0.1' vel_noise_amp='0.1' />
+	<qpos0 name='q0' pos_bound='-6.28 6.28' vel_bound='-10.09 10.09' pos_noise_amp='0.1' vel_noise_amp='0.1' />
+	<qpos1 name='q1' pos_bound='-6.28 6.28' vel_bound='-10.09 10.09' pos_noise_amp='0.1' vel_noise_amp='0.1' />
+	<qpos2 name='q2' pos_bound='-6.28 6.28' vel_bound='-10.14 10.14' pos_noise_amp='0.1' vel_noise_amp='0.1' />
+	<qpos3 name='q3' pos_bound='-6.28 6.28' vel_bound='-20.14 20.14' pos_noise_amp='0.1' vel_noise_amp='0.1' />
+	<qpos4 name='q4' pos_bound='-6.28 6.28' vel_bound='-20.14 20.14' pos_noise_amp='0.1' vel_noise_amp='0.1' />
+	<qpos5 name='q5' pos_bound='-6.28 6.28' vel_bound='-20.14 20.14' pos_noise_amp='0.1' vel_noise_amp='0.1' />
 	<qpos6 name='q6' pos_bound='0 1' vel_bound='-10 20' pos_noise_amp='0.1' vel_noise_amp='0.1' />
 
 </config>

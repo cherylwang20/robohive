@@ -123,8 +123,8 @@
         <default class="ur10e">
         <material specular="0.5" shininess="0.25"/>
         <joint axis="0 1 0" range="-6.28319 6.28319" armature="0.1"/>
-        <position ctrlrange="-2.0944 2.0944"/>
-        <general biastype="affine" ctrlrange="-2.0944 2.0944" gainprm="5000" biasprm="0 -5000 -500"/>
+        <position ctrlrange="-6.2831 6.2831"/>
+        <general biastype="affine" ctrlrange="-6.2831 6.2831" gainprm="5000" biasprm="0 -5000 -500"/>
         <default class="size4">
             <joint damping="10"/>
             <general forcerange="-330 330"/>
@@ -134,7 +134,7 @@
             <general forcerange="-150 150"/>
             <default class="size3_limited">
             <joint range="-3.1415 3.1415"/>
-            <general ctrlrange="-2.0944 2.0944"/>
+            <general ctrlrange="-6.2831 6.2831"/>
             </default>
         </default>
         <default class="size2">

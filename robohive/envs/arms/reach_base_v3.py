@@ -36,14 +36,14 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         'qp_robot', 'qv_robot'
     ]
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
-        "reach": -1.,
+        "reach": 1.,
         "bonus": 1.0,
-        "penalty": -0.5,
+        #"contact": 10,
         #"claw_ori": 0, 
-        "target_dist": 0.0,
+        #"target_dist": 0.0,
         'object_fall': -50,
-        'power_cost': -0.0001,
-        'sparse': 0.5,
+        #'power_cost': -0.0001,
+        'sparse': 0,
         'solved': 500
     }
 
@@ -71,10 +71,10 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                target_site_name,
                goal_site_name,
                target_xyz_range,
-               image_width=200,
-               image_height=200,
+               image_width=224,
+               image_height=224,
                obj_xyz_range = None,
-               frame_skip = 12,#40,
+               frame_skip = 4,#40,
                reward_mode = "dense",
                obs_keys=DEFAULT_OBS_KEYS,
                proprio_keys=DEFAULT_PROPRIO_KEYS,
@@ -103,7 +103,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.total_pix = 0
         self.pixel_dis = 100
         self.cx, self.cy = 0, 0
-        self._last_robot_qpos = self.sim.data.qpos.copy()
+        
+        self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
 
         super()._setup(obs_keys=obs_keys,
                        proprio_keys=proprio_keys,
@@ -117,44 +118,45 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     def get_obs_dict(self, sim):
         obs_dict = {}
         obs_dict['time'] = np.array([self.sim.data.time])
-        obs_dict['qp_robot'] = sim.data.qpos.copy()
-        obs_dict['qv_robot'] = sim.data.qvel.copy()
+        obs_dict['qp_robot'] = sim.data.qpos[:7].copy()
+        obs_dict['qv_robot'] = sim.data.qvel[:7].copy()
         obs_dict['xmat_pinch'] = mat2euler(np.reshape(self.sim.data.site_xmat[self.grasp_sid], (3, 3)))
         obs_dict['claw_ori_err'] = obs_dict['xmat_pinch'] - np.array([-np.pi, 0, -np.pi/2])
         obs_dict['reach_err'] = np.abs(np.array([self.pixel_dis/100])) #sim.data.site_xpos[self.target_sid]-sim.data.site_xpos[self.grasp_sid]
         obs_dict['target_err'] = sim.data.site_xpos[self.goal_sid]-sim.data.site_xpos[self.grasp_sid]
         #obs_dict['pixel'] = np.array([self.pixel_perc])
         obs_dict['power_cost'] = sim.data.qvel.copy()*sim.data.qfrc_actuator.copy()
-        obs_dict['total_pix'] = np.array([self.total_pix - 0.9])
+        obs_dict['total_pix'] = np.array([self.total_pix*10]) #times 10 to incentivzie larger pixel
         self.current_observation = self.get_observation(show=True)
-        self._last_robot_qpos = sim.data.qpos.copy()
+        #self.check_contact()
         return obs_dict
 
 
     def get_reward_dict(self, obs_dict):
-        #print(self.color)
         reach_dist = np.linalg.norm(obs_dict['reach_err'], axis=-1)[0]
         total_pix = np.linalg.norm(obs_dict['total_pix'], axis=-1)[0]
         target_dist = np.linalg.norm(obs_dict['target_err'], axis=-1)[0]
         claw_rot_err = np.linalg.norm(obs_dict['claw_ori_err'], axis=-1)[0]
         obj_height = np.array([self.sim.data.site_xpos[self.target_sid][-1]])
         pix_perc = np.array([self.pixel_perc - 2.4234])
+        contact = np.array([self.check_contact()])
         #print(pix_perc)
         power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
+        #print(power_cost*0.0001)
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
-            ('reach',   reach_dist),
-            ('target_dist',   target_dist),
+            ('reach',   np.exp(-reach_dist)),
+            #('target_dist',   target_dist),
             #('claw_ori',  2.*np.exp(-claw_rot_err**2)),
             #('obj_ori',   -(obj_rot_err[0])**2), 
-            ('bonus',   pix_perc > 10),
-            ('penalty', np.array([1])),
-            ('power_cost', power_cost),
+            ('bonus',   total_pix > 10),
+            #('contact', contact),
+            #('power_cost', power_cost),
             # Must keys
-            ('sparse',  total_pix),
-            ('solved',  pix_perc > 40),
+            ('sparse',  np.array([0])),
+            ('solved',  contact),
             ('object_fall',  obj_height < 0.5),
-            ('done',    pix_perc > 40), #reach_dist > far_th
+            ('done',    contact), #reach_dist > far_th
         ))
         #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
@@ -184,12 +186,22 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         #self.sim.model.site_pos[self.target_sid] = self.np_random.uniform(high=self.target_xyz_range['high'], low=self.target_xyz_range['low'])
         #self.sim_obsd.model.site_pos[self.target_sid] = self.sim.model.site_pos[self.target_sid]
-        self._last_robot_qpos = self.sim.data.qpos.copy()
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
+        self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
         self.current_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 4), dtype=np.uint8)
-        self.color = np.random.choice(['red', 'blue'])
+        self.color = np.random.choice(['red'])
         return {'image': self.current_image, 'vector': obs}
     
+    def check_contact(self):
+        sensor_index = self.sim.model.sensor_name2id('beaker')
+        is_contact = self.sim.data.sensordata[sensor_index]
+        if is_contact > 0:
+            #print("Contact detected")
+            return True
+        else:
+            #print("No contact")
+            return False
+
     def get_observation(self, show=True):
         """
         Uses the controllers get_image_data method to return an top-down image (as a np-array).
@@ -208,7 +220,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         observation = {}
         observation["rgb"] = rgb
         #observation["depth"] =   np.array([depth[pixel_y][pixel_x]]) #np.array([ 2.701]) #
-        #print(np.array([depth[pixel_y][pixel_x]]), np.array([depth[pixel_y][200 - pixel_x]]))
+        #print(np.array([depth[pixel_y][pixel_x]]), np.array([depth[pixel_y][224 - pixel_x]]))
         observation["pixel_coords"] = [pixel_x, pixel_y]
         #print('pixel coords,', pixel_x, pixel_y)
 
@@ -217,9 +229,9 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     #setting a boundary of virtual box such that the arm will not accidentally
     def check_collision(self):
         """ Check if any joint is out of the defined boundary """
-        x_min, x_max = -1.3, 1.3
-        y_min, y_max = -0.7, 1.3
-        z_min, z_max = 0.88, 2.23
+        x_min, x_max = -1.5, 1.5
+        y_min, y_max = -1.7, 1.5
+        z_min, z_max = 0.83, 2.23
         for i in range(1, 13):
             joint_frame_id = self.sim.model.jnt_bodyid[i]
             joint_pos = self.sim.data.xpos[joint_frame_id]
@@ -257,8 +269,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         change control method here if needed 
         """
         self.save_state()
-        #if self.pixel_perc > 30 and self.grasp_attempt <= 1:
-        if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.93 and self.grasp_attempt <= 1:
+        if self.pixel_perc > 30 and self.grasp_attempt <= 1:
+            #if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.93 and self.grasp_attempt <= 1:
             if self.grasping_steps_left == 0:  # Start of new grasping sequence
                 self.grasping_steps_left = 50  # Reset the counter to 100 steps
                 self.fixed_positions = self.sim.data.qpos[:7].copy()
@@ -275,18 +287,19 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                                         render_cbk=self.mj_render if self.mujoco_render_frames else None)
         else:
             a[-1] = -1
+            #a = [0, 1, 1, 1, 1, 1, -1]
+            #a = a*10
             a = np.clip(a, self.action_space.low, self.action_space.high)
             self.fixed_positions = None
             self.last_ctrl = self.robot.step(ctrl_desired=a,
                                         last_qpos = self.sim.data.qpos[:7].copy(),
                                         dt = self.dt,
                                         render_cbk=self.mj_render if self.mujoco_render_frames else None)
-        #print(a)
-        
+
         #self.do_simulation(ctrl_feasible, self.frame_skip)
         
         if self.check_collision():
-            #print("Collision detected, reverting action")
+            print("Collision detected, reverting action")
             self.restore_state()
         
 
@@ -295,7 +308,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     def set_color(self, color):
             self.color = color
     
-    def get_image_data(self, show=False, camera="end_effector_cam", width=200, height=200):
+    def get_image_data(self, show=False, camera="end_effector_cam", width=224, height=224):
         """
         Returns the RGB and depth images of the provided camera.
 
@@ -317,7 +330,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         
         if self.color == 'red':
             Lower = (0, 50, 50)
-            Upper = (10, 255, 255)
+            Upper = (7, 255, 245)
         elif self.color == 'green':
             Lower = (29, 86, 56)
             Upper = (64, 255, 255)
@@ -340,31 +353,33 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
             # Calculate the centroid of the contour
             M = cv.moments(cnt)
-            self.cx = int(M['m10']/M['m00'])
-            self.cy = int(M['m01']/M['m00'])
+            if M['m00'] != 0:
+                self.cx = int(M['m10']/M['m00'])
+                self.cy = int(M['m01']/M['m00'])
         #else:
-            #self.cx, self.cy = 0, 200
+            #self.cx, self.cy = 0, 224
         
-        self.pixel_dis = np.abs(np.linalg.norm(np.array([99, 34]) - np.array([self.cx, self.cy])))
+        self.pixel_dis = np.abs(np.linalg.norm(np.array([100, 100]) - np.array([self.cx, self.cy])))
         #print(self.pixel_dis)
 
         #define the grasping rectangle
         x1, y1 = int(63/200 * self.IMAGE_WIDTH), 0
         x2, y2 = int(136/200 * self.IMAGE_WIDTH), int(68/200 * self.IMAGE_WIDTH)
 
-        cv.rectangle(rgb, (x1, 0), (x2, y2), (0, 0, 255), thickness=2)
-        cv.rectangle(mask, (x1, 0), (x2, y2), 255, thickness=1)
+        #cv.rectangle(rgb, (x1, 0), (x2, y2), (0, 0, 255), thickness=2)
+        #cv.rectangle(mask, (x1, 0), (x2, y2), 255, thickness=1)
 
         roi = mask[y1:y2, x1:x2]
         white_pixels = np.sum(roi == 255)
         total_pixels = roi.size
         self.pixel_perc = (white_pixels / total_pixels) * 100
         self.total_pix = (np.sum(mask==255)/mask.size) * 100
+        #print(np.sum(mask==255))
         
         #print(f"Percentage of white pixels in the rectangle: {self.pixel_perc:.2f}%")
         if show:
-            cv.circle(rgb, (self.cx, self.cy), 2, (255, 0, 0), -1)
-            cv.circle(rgb, (99, 34), 2, (0, 255, 0), -1)
+            cv.circle(rgb, (self.cx, self.cy), 1, (0, 0, 255), -1)
+            cv.circle(rgb, (100, 100), 1, (0, 255, 0), -1)
             cv.imshow("rbg", rgb)# cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
             cv.imshow("mask", mask)
             #cv.imshow('Inverted Colored Depth', depth_normalized)
@@ -388,7 +403,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         far = self.model.vis.map.zfar * extend
         return near / (1 - depth * (1 - near / far))
 
-    def pixel_2_world(self, pixel_x, pixel_y, depth, width=200, height=200, camera="end_effector_cam"):
+    def pixel_2_world(self, pixel_x, pixel_y, depth, width=224, height=224, camera="end_effector_cam"):
         """
         Converts pixel coordinates into world coordinates.
 
@@ -416,7 +431,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         return pos_w
 
-    def _setup_camera(self, height=200, width=200):
+    def _setup_camera(self, height=224, width=224):
         """Sets up the camera to render the scene from the required view."""
         # This assumes you have a fixed camera in your model XML
         self.camera_id = self.sim.model.camera_name2id('end_effector_cam')
@@ -432,7 +447,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.cam_init = True
     
 
-    def world_2_pixel(self, world_coordinate, width=200, height=200, camera="end_effector_cam"):
+    def world_2_pixel(self, world_coordinate, width=224, height=224, camera="end_effector_cam"):
         """
         Takes a XYZ world position and transforms it into pixel coordinates.
         Mainly implemented for testing the correctness of the camera matrix, focal length etc.
