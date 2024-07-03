@@ -36,15 +36,15 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         'qp_robot', 'qv_robot'
     ]
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
-        "reach": 1.,
-        "bonus": 1.0,
-        #"contact": 10,
+        "reach": .1,
+        #"bonus": 1.0,
+        "contact": 1,
         #"claw_ori": 0, 
         #"target_dist": 0.0,
-        'object_fall': -50,
+        'object_height': 100,
         #'power_cost': -0.0001,
         'sparse': 0,
-        'solved': 500
+        #'solved': 0
     }
 
 
@@ -94,6 +94,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.IMAGE_HEIGHT = image_height
         self.grasping_steps_left = 0
         self.grasp_attempt = 0
+        self.obj_init_z = self.sim.data.site_xpos[self.grasp_sid][-1]
+        print(self.obj_init_z)
         self.fixed_positions = None
         self.cam_init = False
         self.color = np.random.choice(['red'])
@@ -104,7 +106,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.pixel_dis = 100
         self.cx, self.cy = 0, 0
         
-        self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
+        #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
 
         super()._setup(obs_keys=obs_keys,
                        proprio_keys=proprio_keys,
@@ -112,7 +114,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                        reward_mode=reward_mode,
                        frame_skip=frame_skip,
                        **kwargs)
-        self.init_qpos[:] = self.sim.model.key_qpos[0].copy()
+        self.init_qpos[:] = self.sim.model.key_qpos[1].copy()
 
 
     def get_obs_dict(self, sim):
@@ -122,7 +124,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         obs_dict['qv_robot'] = sim.data.qvel[:7].copy()
         obs_dict['xmat_pinch'] = mat2euler(np.reshape(self.sim.data.site_xmat[self.grasp_sid], (3, 3)))
         obs_dict['claw_ori_err'] = obs_dict['xmat_pinch'] - np.array([-np.pi, 0, -np.pi/2])
-        obs_dict['reach_err'] = np.abs(np.array([self.pixel_dis/100])) #sim.data.site_xpos[self.target_sid]-sim.data.site_xpos[self.grasp_sid]
+        obs_dict['reach_err'] = np.abs(np.array([self.total_pix/100])) #sim.data.site_xpos[self.target_sid]-sim.data.site_xpos[self.grasp_sid]
         obs_dict['target_err'] = sim.data.site_xpos[self.goal_sid]-sim.data.site_xpos[self.grasp_sid]
         #obs_dict['pixel'] = np.array([self.pixel_perc])
         obs_dict['power_cost'] = sim.data.qvel.copy()*sim.data.qfrc_actuator.copy()
@@ -145,18 +147,18 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #print(power_cost*0.0001)
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
-            ('reach',   np.exp(-reach_dist)),
+            ('reach',  total_pix),
             #('target_dist',   target_dist),
             #('claw_ori',  2.*np.exp(-claw_rot_err**2)),
             #('obj_ori',   -(obj_rot_err[0])**2), 
-            ('bonus',   total_pix > 10),
-            #('contact', contact),
+            #('bonus',   total_pix > 10),
+            ('contact', contact),
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  np.array([0])),
-            ('solved',  contact),
-            ('object_fall',  obj_height < 0.5),
-            ('done',    contact), #reach_dist > far_th
+            ('solved',  obj_height  - self.obj_init_z > 0.2),
+            ('object_height',  obj_height  - self.obj_init_z > 0.1),
+            ('done',    obj_height  - self.obj_init_z > 0.2), #reach_dist > far_th
         ))
         #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
@@ -175,7 +177,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.grasp_attempt = 0
         self.cx, self.cy = 0, 0
         if self.obj_xyz_range is not None:        
-            reset_qpos = self.sim.model.key_qpos[0].copy()
+            reset_qpos = self.sim.model.key_qpos[1].copy()
             new_pos = self.np_random.uniform(**self.obj_xyz_range)
             reset_qpos[14:17] = new_pos
             #reset_qpos[56:59] = new_pos
@@ -187,7 +189,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #self.sim.model.site_pos[self.target_sid] = self.np_random.uniform(high=self.target_xyz_range['high'], low=self.target_xyz_range['low'])
         #self.sim_obsd.model.site_pos[self.target_sid] = self.sim.model.site_pos[self.target_sid]
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
-        self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
+        #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
         self.current_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 4), dtype=np.uint8)
         self.color = np.random.choice(['red'])
         return {'image': self.current_image, 'vector': obs}
@@ -196,7 +198,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         sensor_index = self.sim.model.sensor_name2id('beaker')
         is_contact = self.sim.data.sensordata[sensor_index]
         if is_contact > 0:
-            #print("Contact detected")
+            print("Contact detected")
             return True
         else:
             #print("No contact")
