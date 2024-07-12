@@ -172,7 +172,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         return rwd_dict
     
     def reset(self, reset_qpos=None, reset_qvel=None, **kwargs):
-        print('resetting')
+        #print('resetting')
         self.target_sid = self.sim.model.site_name2id(self.target_site_name)
         self.grasping_steps_left = 0
         self.grasp_attempt = 0
@@ -290,8 +290,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                                         render_cbk=self.mj_render if self.mujoco_render_frames else None)
         else:
             a[-1] = -1
-            #a = [0, 1, 1, 1, 1, 1, -1]
-            #a = a*10
+            #print(a)
             a = np.clip(a, self.action_space.low, self.action_space.high)
             self.fixed_positions = None
             print(a, self.normalize_act)
@@ -302,9 +301,11 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         #self.do_simulation(ctrl_feasible, self.frame_skip)
         
+        '''
         if self.check_collision():
             print("Collision detected, reverting action")
             self.restore_state()
+        '''
         
 
         return self.forward(self.current_image, **kwargs)
@@ -346,8 +347,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         mask = cv.inRange(hsv, Lower, Upper)
         mask = cv.erode(mask, None, iterations=2)
         mask = cv.dilate(mask, None, iterations=2)
-        #print(mask.shape, rgb.shape)
-        self.current_image = np.concatenate((rgb, np.expand_dims(mask, axis=-1)), axis=2)
+        #print(np.max(mask/255))
+        self.current_image = np.concatenate((rgb/255, np.expand_dims(mask/255, axis=-1)), axis=2)
         
         contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
