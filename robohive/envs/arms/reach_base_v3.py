@@ -271,7 +271,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         change control method here if needed 
         """
         self.save_state()
-        if self.pixel_perc > 30 and self.grasp_attempt <= 1:
+        if self.pixel_perc > 50 and self.grasp_attempt <= 1:
             #if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.93 and self.grasp_attempt <= 1:
             if self.grasping_steps_left == 0:  # Start of new grasping sequence
                 self.grasping_steps_left = 50  # Reset the counter to 100 steps
@@ -293,6 +293,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             #a = a*10
             a = np.clip(a, self.action_space.low, self.action_space.high)
             self.fixed_positions = None
+            print(a, self.normalize_act)
             self.last_ctrl = self.robot.step(ctrl_desired=a,
                                         last_qpos = self.sim.data.qpos[:7].copy(),
                                         dt = self.dt,
