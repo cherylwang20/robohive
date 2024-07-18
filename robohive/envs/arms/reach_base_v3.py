@@ -74,7 +74,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                image_width=224,
                image_height=224,
                obj_xyz_range = None,
-               frame_skip = 4,#40,
+               frame_skip = 12,#40,
                reward_mode = "dense",
                obs_keys=DEFAULT_OBS_KEYS,
                proprio_keys=DEFAULT_PROPRIO_KEYS,
@@ -142,9 +142,9 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         obj_height = np.array([self.sim.data.site_xpos[self.target_sid][-1]])
         pix_perc = np.array([self.pixel_perc - 2.4234])
         contact = np.array([self.check_contact()])
-        #print(pix_perc)
+
         power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
-        #print(power_cost*0.0001)
+
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
             ('reach',  total_pix),
@@ -172,6 +172,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         return rwd_dict
     
     def reset(self, reset_qpos=None, reset_qvel=None, **kwargs):
+        #print('resetting')
         self.target_sid = self.sim.model.site_name2id(self.target_site_name)
         self.grasping_steps_left = 0
         self.grasp_attempt = 0
@@ -271,7 +272,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         change control method here if needed 
         """
         self.save_state()
-        if self.pixel_perc > 30 and self.grasp_attempt <= 1:
+        if self.pixel_perc > 50 and self.grasp_attempt <= 1:
             #if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.93 and self.grasp_attempt <= 1:
             if self.grasping_steps_left == 0:  # Start of new grasping sequence
                 self.grasping_steps_left = 50  # Reset the counter to 100 steps
@@ -289,8 +290,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                                         render_cbk=self.mj_render if self.mujoco_render_frames else None)
         else:
             a[-1] = -1
-            #a = [0, 1, 1, 1, 1, 1, -1]
-            #a = a*10
             a = np.clip(a, self.action_space.low, self.action_space.high)
             self.fixed_positions = None
             self.last_ctrl = self.robot.step(ctrl_desired=a,
@@ -300,9 +299,11 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         #self.do_simulation(ctrl_feasible, self.frame_skip)
         
+        '''
         if self.check_collision():
             print("Collision detected, reverting action")
             self.restore_state()
+        '''
         
 
         return self.forward(self.current_image, **kwargs)
@@ -348,8 +349,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         mask = cv.inRange(hsv, Lower, Upper)
         mask = cv.erode(mask, None, iterations=2)
         mask = cv.dilate(mask, None, iterations=2)
-        #print(mask.shape, rgb.shape)
-        self.current_image = np.concatenate((rgb, np.expand_dims(mask, axis=-1)), axis=2)
+        self.current_image = np.concatenate((rgb/255, np.expand_dims(mask/255, axis=-1)), axis=2)
         
         contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
@@ -366,7 +366,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             #self.cx, self.cy = 0, 224
         
         self.pixel_dis = np.abs(np.linalg.norm(np.array([100, 100]) - np.array([self.cx, self.cy])))
-        #print(self.pixel_dis)
 
         #define the grasping rectangle
         x1, y1 = int(63/200 * self.IMAGE_WIDTH), 0
@@ -380,8 +379,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         total_pixels = roi.size
         self.pixel_perc = (white_pixels / total_pixels) * 100
         self.total_pix = (np.sum(mask==255)/mask.size) * 100
-        #print(np.sum(mask==255))
-        
+
         #print(f"Percentage of white pixels in the rectangle: {self.pixel_perc:.2f}%")
         if show:
             cv.circle(rgb, (self.cx, self.cy), 1, (0, 0, 255), -1)
@@ -469,7 +467,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             self.create_camera_data(width, height, camera)
         self.cam_pos = self.sim.data.cam_xpos[self.sim.model.camera_name2id(camera)]
         self.cam_rot_mat = self.sim.data.cam_xmat[self.sim.model.camera_name2id(camera)].reshape(3, 3)
-        #print('cam_pos', self.cam_pos)
+
         # Homogeneous image point
         hom_pixel = self.cam_matrix @ self.cam_rot_mat @ (world_coordinate - self.cam_pos)
         # Real image point
