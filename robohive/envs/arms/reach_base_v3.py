@@ -318,7 +318,11 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             show: If True displays the images for five seconds or until a key is pressed.
             camera: String specifying the name of the camera to use.
         """
+        current_directory = os.getcwd()
+        model = mp.MjModel.from_xml_path(current_directory + "/mj_envs/robohive/envs/arms/ur10e/scene_gripper.xml")
+        data = mp.MjData(model)
 
+        # Initialize the simulator
         rgb, depth = copy.deepcopy(
             self.sim.renderer.render_offscreen(width=width, height=height, camera_id=camera, depth = True)
         )
