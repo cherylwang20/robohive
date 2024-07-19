@@ -199,6 +199,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     
     def reset(self, reset_qpos=None, reset_qvel=None, **kwargs):
         #print('resetting')
+        print('resetting')
         self.target_sid = self.sim.model.site_name2id(self.target_site_name)
         self.grasping_steps_left = 0
         self.grasp_attempt = 0
