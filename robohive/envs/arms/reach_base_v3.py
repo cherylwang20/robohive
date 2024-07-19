@@ -384,10 +384,10 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         if show:
             cv.circle(rgb, (self.cx, self.cy), 1, (0, 0, 255), -1)
             cv.circle(rgb, (100, 100), 1, (0, 255, 0), -1)
-            cv.imshow("rbg", rgb)# cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
-            cv.imshow("mask", mask)
+            #cv.imshow("rbg", rgb)# cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
+            #cv.imshow("mask", mask)
             #cv.imshow('Inverted Colored Depth', depth_normalized)
-            cv.waitKey(1)
+            # cv.waitKey(1)
             # cv.waitKey(delay=5000)
             # cv.destroyAllWindows()
 
