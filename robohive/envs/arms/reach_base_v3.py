@@ -77,6 +77,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                image_height=224,
                obj_xyz_range = None,
                frame_skip = 12,#40,
+               frame_skip = 12,#40,
                reward_mode = "dense",
                obs_keys=DEFAULT_OBS_KEYS,
                proprio_keys=DEFAULT_PROPRIO_KEYS,
@@ -199,7 +200,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     
     def reset(self, reset_qpos=None, reset_qvel=None, **kwargs):
         #print('resetting')
-        print('resetting')
         self.target_sid = self.sim.model.site_name2id(self.target_site_name)
         self.grasping_steps_left = 0
         self.grasp_attempt = 0
@@ -330,10 +330,11 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         #self.do_simulation(ctrl_feasible, self.frame_skip)
         
-        
+        '''
         if self.check_collision():
             print("Collision detected, reverting action")
             self.restore_state()
+        '''
         
         
 
