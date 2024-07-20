@@ -1,10 +1,6 @@
-# Control of planar movements in an arm, using the example scene provided by MuJoCo. For more information on
-# the simulator and the key feature of the physics simulation see:
-# https://mujoco.readthedocs.io/en/stable/overview.html#introduction
 from typing import List
 
 import mujoco
-import mujoco.viewer as viewer
 import numpy as np
 from numpy.linalg import pinv, inv
 import glfw
@@ -80,6 +76,3 @@ def load_callback(model=None, data=None):
 
     return model, data
 
-
-if __name__ == '__main__':
-    viewer.launch(loader=load_callback)

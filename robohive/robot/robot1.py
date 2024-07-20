@@ -620,7 +620,6 @@ class Robot():
         # last_obs = self.get_sensor_from_cache(-1)
         processed_controls = controls.copy()
         act_id = -1
-        print(self._act_mode)
         for name, device in self.robot_config.items():
             if name == "default_robot":
                 if self._act_mode == "pos":
@@ -684,7 +683,6 @@ class Robot():
         control = (self.robot_vel_bound[:7, 1]+self.robot_vel_bound[:7, 0])/2.0 + \
                                         ctrl_desired*(self.robot_vel_bound[:7, 1]-self.robot_vel_bound[:7, 0])/2.0
         control = last_qpos[:7] + control*dt
-        print(control)
         ctrl_feasible = np.clip(control, self.robot_pos_bound[:7, 0], self.robot_pos_bound[:7, 1])
 
         n_frames=int(dt/self.sim.step_duration)

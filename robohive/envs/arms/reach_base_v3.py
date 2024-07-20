@@ -12,7 +12,12 @@ We are using this as a testing ground for reaching with visual inputs.
 
 
 import collections
-import mujoco as mp
+#import mujoco as mp
+import os
+
+# Set environment variables
+os.environ['MUJOCO_GL'] = 'egl'
+os.environ['PYOPENGL_PLATFORM'] = 'egl'
 import gym
 import numpy as np
 import cv2 as cv
@@ -20,7 +25,7 @@ import os
 import matplotlib.pyplot as plt
 import copy
 from robohive.physics.sim_scene import SimScene
-import dm_control.mujoco as dm_mujoco
+#import dm_control.mujoco as dm_mujoco
 
 from robohive.envs import env_base_1
 from robohive.utils.quat_math import mat2euler, euler2quat
@@ -76,7 +81,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                image_width=224,
                image_height=224,
                obj_xyz_range = None,
-               frame_skip = 12,#40,
                frame_skip = 12,#40,
                reward_mode = "dense",
                obs_keys=DEFAULT_OBS_KEYS,
@@ -174,7 +178,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         obj_height = np.array([self.sim.data.site_xpos[self.target_sid][-1]])
         pix_perc = np.array([self.pixel_perc - 2.4234])
         contact = np.array([np.sum(obs_dict["touching_body"][0][0][:2])])
-        print(contact)
         power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
@@ -351,9 +354,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             show: If True displays the images for five seconds or until a key is pressed.
             camera: String specifying the name of the camera to use.
         """
-        current_directory = os.getcwd()
-        model = mp.MjModel.from_xml_path(current_directory + "/mj_envs/robohive/envs/arms/ur10e/scene_gripper.xml")
-        data = mp.MjData(model)
 
         # Initialize the simulator
         rgb, depth = copy.deepcopy(
