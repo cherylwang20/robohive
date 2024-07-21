@@ -86,6 +86,17 @@
         <mesh file="base_2_collision_13.obj"/>
         <mesh file="base_2_collision_14.obj"/>
 
+        <mesh file="flat_base_tube_0.obj"/>
+        <mesh file="flat_base_tube_1.obj"/>
+        <mesh file="flat_base_tube_collision_0.obj"/>
+        <mesh file="flat_base_tube_collision_1.obj"/>
+        <mesh file="flat_base_tube_collision_2.obj"/>
+        <mesh file="flat_base_tube_collision_3.obj"/>
+        <mesh file="flat_base_tube_collision_4.obj"/>
+        <mesh file="flat_base_tube_collision_5.obj"/>
+        <mesh file="flat_base_tube_collision_6.obj"/>
+        <mesh file="flat_base_tube_collision_7.obj"/>
+        <mesh file="flat_base_tube_collision_8.obj"/>
 
         <mesh file="base_0.obj"/>
         <mesh file="base_1.obj"/>
@@ -115,7 +126,8 @@
         <mesh class="2f85" file="pad.stl"/>
         <mesh class="2f85" file="silicone_pad.stl"/>
         <mesh class="2f85" file="spring_link.stl"/>
-        <mesh file="mug.obj" scale=".01 .01 .01"/>
+        
+
 
     </asset>
 
@@ -186,9 +198,9 @@
             <geom group="2" type="mesh" contype="0" conaffinity="0"/>
         </default>
         <default class="collision_b">
-            <geom group="3" type="mesh" condim="6"/>
+            <geom group="3" type="mesh" condim="6" friction="3.0 0.5 0.25"/>
             <default class="table_collision">
-                <geom type="box"/>
+                <geom type="box" friction="3.0 0.5 0.25"/>
             </default>
         </default>
     </default>

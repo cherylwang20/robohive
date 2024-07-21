@@ -40,8 +40,8 @@ setup(
     install_requires=[
         'click',
         'gym==0.13',
-        'mujoco==2.3.7',
-        'dm-control==1.0.14',
+        #'mujoco==2.3.7',
+        #'dm-control==1.0.14',
         'termcolor',
         'sk-video',
         'flatten_dict',
@@ -49,7 +49,7 @@ setup(
         'ffmpeg',
         'absl-py',
         'torch',
-        'h5py==3.7.0',
+        #'h5py==3.8.0',
         'pink-noise-rl',
         'gitpython'
     ],

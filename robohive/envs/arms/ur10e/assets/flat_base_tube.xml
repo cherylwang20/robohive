@@ -1,0 +1,40 @@
+<mujoco model="flat_base_tube">
+  <default>
+    <default class="visual">
+      <geom group="2" type="mesh" contype="0" conaffinity="0"/>
+    </default>
+    <default class="collision">
+      <geom group="3" type="mesh"/>
+    </default>
+  </default>
+  <asset>
+    <material name="Material.001" specular="0.5" shininess="0.36" rgba="0.800000 0.800000 0.800000 1.000000"/>
+    <material name="Material.003" specular="0.5" shininess="0.36" rgba="0.800000 0.800000 0.800000 1.000000"/>
+    <mesh file="flat_base_tube_0.obj"/>
+    <mesh file="flat_base_tube_1.obj"/>
+    <mesh file="flat_base_tube_collision_0.obj"/>
+    <mesh file="flat_base_tube_collision_1.obj"/>
+    <mesh file="flat_base_tube_collision_2.obj"/>
+    <mesh file="flat_base_tube_collision_3.obj"/>
+    <mesh file="flat_base_tube_collision_4.obj"/>
+    <mesh file="flat_base_tube_collision_5.obj"/>
+    <mesh file="flat_base_tube_collision_6.obj"/>
+    <mesh file="flat_base_tube_collision_7.obj"/>
+    <mesh file="flat_base_tube_collision_8.obj"/>
+  </asset>
+  <worldbody>
+    <body name="flat_base_tube">
+      <geom mesh="flat_base_tube_0" material="Material.003" class="visual"/>
+      <geom mesh="flat_base_tube_1" material="Material.001" class="visual"/>
+      <geom mesh="flat_base_tube_collision_0" rgba="0.9633637841372181 0.6853043767531604 0.983107586118501 1" class="collision"/>
+      <geom mesh="flat_base_tube_collision_1" rgba="0.7080396778643432 0.5168620414645244 0.6900475691269663 1" class="collision"/>
+      <geom mesh="flat_base_tube_collision_2" rgba="0.17644394460465573 0.6912336881547901 0.6809493941528965 1" class="collision"/>
+      <geom mesh="flat_base_tube_collision_3" rgba="0.3607454016309073 0.13373627284144363 0.5692490577650914 1" class="collision"/>
+      <geom mesh="flat_base_tube_collision_4" rgba="0.8054037928810556 0.8025292154990145 0.4778490684565804 1" class="collision"/>
+      <geom mesh="flat_base_tube_collision_5" rgba="0.2045625510737279 0.016768155619079295 0.6286976814858604 1" class="collision"/>
+      <geom mesh="flat_base_tube_collision_6" rgba="0.13663541527676804 0.8720304070941197 0.33320988694000375 1" class="collision"/>
+      <geom mesh="flat_base_tube_collision_7" rgba="0.587911742993111 0.47826094149074183 0.3716386086508753 1" class="collision"/>
+      <geom mesh="flat_base_tube_collision_8" rgba="0.5187374664955691 0.11918325529749363 0.49520045056767814 1" class="collision"/>
+    </body>
+  </worldbody>
+</mujoco>

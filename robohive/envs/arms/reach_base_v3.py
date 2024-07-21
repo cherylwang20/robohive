@@ -12,7 +12,12 @@ We are using this as a testing ground for reaching with visual inputs.
 
 
 import collections
-import mujoco as mp
+#import mujoco as mp
+import os
+
+# Set environment variables
+os.environ['MUJOCO_GL'] = 'egl'
+os.environ['PYOPENGL_PLATFORM'] = 'egl'
 import gym
 import numpy as np
 import cv2 as cv
@@ -20,11 +25,12 @@ import os
 import matplotlib.pyplot as plt
 import copy
 from robohive.physics.sim_scene import SimScene
-import dm_control.mujoco as dm_mujoco
+#import dm_control.mujoco as dm_mujoco
 
 from robohive.envs import env_base_1
 from robohive.utils.quat_math import mat2euler, euler2quat
 
+from .python_api import BodyIdInfo, arm_control, get_touching_objects, ObjLabels
 
 
 class ReachBaseV0(env_base_1.MujocoEnv):
@@ -36,14 +42,15 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         'qp_robot', 'qv_robot'
     ]
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
-        "reach": .1,
+        "reach": .01,
         #"bonus": 1.0,
-        "contact": .1,
-        #"claw_ori": 0, 
-        #"target_dist": 0.0,
-        'object_height': 100,
+        "contact": ..5,
+        "claw_ori": .1, 
+        "obj_ori": .1,
+        #"target_dist": -1.0,
+        #'object_height': 100,
         #'power_cost': -0.0001,
-        'sparse': 0,
+        'sparse': 10,
         #'solved': 0
     }
 
@@ -98,7 +105,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         print(self.obj_init_z)
         self.fixed_positions = None
         self.cam_init = False
-        self.color = np.random.choice(['red'])
+        self.color = np.random.choice(['green'])
         self._setup_camera()
         self.current_image = np.ones((image_width, image_height, 4), dtype=np.uint8)
         self.pixel_perc = 0
@@ -123,6 +130,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         obs_dict['qp_robot'] = sim.data.qpos[:7].copy()
         obs_dict['qv_robot'] = sim.data.qvel[:7].copy()
         obs_dict['xmat_pinch'] = mat2euler(np.reshape(self.sim.data.site_xmat[self.grasp_sid], (3, 3)))
+        obs_dict['obj_ori'] = mat2euler(np.reshape(self.sim.data.site_xmat[self.target_sid], (3, 3)))
+        obs_dict['obj_ori_err'] =  obs_dict['obj_ori'] - np.array([np.pi/2, 0, 0])
         obs_dict['claw_ori_err'] = obs_dict['xmat_pinch'] - np.array([-np.pi, 0, -np.pi/2])
         obs_dict['reach_err'] = np.abs(np.array([self.total_pix/100])) #sim.data.site_xpos[self.target_sid]-sim.data.site_xpos[self.grasp_sid]
         obs_dict['target_err'] = sim.data.site_xpos[self.goal_sid]-sim.data.site_xpos[self.grasp_sid]
@@ -130,32 +139,58 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         obs_dict['power_cost'] = sim.data.qvel.copy()*sim.data.qfrc_actuator.copy()
         obs_dict['total_pix'] = np.array([self.total_pix*10]) #times 10 to incentivzie larger pixel
         self.current_observation = self.get_observation(show=True)
+
+        this_model = sim.model
+        id_info = BodyIdInfo(this_model)
+        this_data = sim.data
+
+        touching_objects = set(get_touching_objects(this_model, this_data, id_info))
+
+        obs_vec = self._obj_label_to_obs(touching_objects)
+        obs_dict["touching_body"] = obs_vec
+
         #self.check_contact()
         return obs_dict
 
+    def _obj_label_to_obs(self, touching_body):
+        # Function to convert touching body set to an binary observation vector
+        # order follows the definition in python_api file
+        obs_vec = np.array([0, 0, 0, 0])
+        for i in touching_body:
+            if i == ObjLabels.LEFT_GRIP:
+                obs_vec[0] += 1
+            elif i == ObjLabels.RIGHT_GRIP:
+                obs_vec[1] += 1
+            elif i == ObjLabels.GOAL:
+                obs_vec[3] += 1
+            else:
+                obs_vec[2] += 1
 
+        return obs_vec
+    
     def get_reward_dict(self, obs_dict):
         reach_dist = np.linalg.norm(obs_dict['reach_err'], axis=-1)[0]
         total_pix = np.linalg.norm(obs_dict['total_pix'], axis=-1)[0]
         target_dist = np.linalg.norm(obs_dict['target_err'], axis=-1)[0]
         claw_rot_err = np.linalg.norm(obs_dict['claw_ori_err'], axis=-1)[0]
+        obj_ori_err = np.linalg.norm(obs_dict['obj_ori_err'], axis=-1)[0]
+        #print(claw_rot_err)
         obj_height = np.array([self.sim.data.site_xpos[self.target_sid][-1]])
         pix_perc = np.array([self.pixel_perc - 2.4234])
-        contact = np.array([self.check_contact()])
-
+        contact = np.array([np.sum(obs_dict["touching_body"][0][0][:2])])
         power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
-
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
             ('reach',  total_pix),
-            #('target_dist',   target_dist),
-            #('claw_ori',  2.*np.exp(-claw_rot_err**2)),
+            ('target_dist',   target_dist),
+            ('claw_ori',  np.exp(-claw_rot_err**2)),
+            ('obj_ori', np.exp(-obj_ori_err**2)),
             #('obj_ori',   -(obj_rot_err[0])**2), 
             #('bonus',   total_pix > 10),
             ('contact', contact),
             #('power_cost', power_cost),
             # Must keys
-            ('sparse',  np.array([0])),
+            ('sparse',  pix_perc),
             ('solved',  obj_height  - self.obj_init_z > 0.2),
             ('object_height',  obj_height  - self.obj_init_z > 0.1),
             ('done',    obj_height  - self.obj_init_z > 0.2), #reach_dist > far_th
@@ -164,11 +199,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
-        if self.grasping_steps_left > 0:
-            if gripper_width < 0.05 :
-                rwd_dict['dense'] -= 2
-            elif gripper_width > 0.05:
-                rwd_dict['dense'] += 2
         return rwd_dict
     
     def reset(self, reset_qpos=None, reset_qvel=None, **kwargs):
@@ -180,11 +210,9 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         if self.obj_xyz_range is not None:        
             reset_qpos = self.sim.model.key_qpos[1].copy()
             new_pos = self.np_random.uniform(**self.obj_xyz_range)
-            reset_qpos[14:17] = new_pos
-            #reset_qpos[56:59] = new_pos
-            #reset_qpos[58] += 0.01
-            #self.sim.model.body_pos[self.object_bid] = self.np_random.uniform(**self.obj_xyz_range)
-            #self.sim_obsd.model.body_pos[self.object_bid] = self.sim.model.body_pos[self.object_bid]
+            self.sim.model.body_pos[self.object_bid] = new_pos
+            object_qpos_adr = self.sim.model.body(self.object_bid).jntadr[0]
+            self.sim.data.qpos[object_qpos_adr:object_qpos_adr+3] = new_pos
 
 
         #self.sim.model.site_pos[self.target_sid] = self.np_random.uniform(high=self.target_xyz_range['high'], low=self.target_xyz_range['low'])
@@ -192,18 +220,9 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
         self.current_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 4), dtype=np.uint8)
-        self.color = np.random.choice(['red'])
+        self.color = np.random.choice(['green'])
         return {'image': self.current_image, 'vector': obs}
     
-    def check_contact(self):
-        sensor_index = self.sim.model.sensor_name2id('beaker')
-        is_contact = self.sim.data.sensordata[sensor_index]
-        if is_contact > 0:
-            print("Contact detected")
-            return True
-        else:
-            #print("No contact")
-            return False
 
     def get_observation(self, show=True):
         """
@@ -234,7 +253,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         """ Check if any joint is out of the defined boundary """
         x_min, x_max = -1.5, 1.5
         y_min, y_max = -1.7, 1.5
-        z_min, z_max = 0.83, 2.23
+        z_min, z_max = 0.85, 2.23
         for i in range(1, 13):
             joint_frame_id = self.sim.model.jnt_bodyid[i]
             joint_pos = self.sim.data.xpos[joint_frame_id]
@@ -273,9 +292,24 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         """
         self.save_state()
         #if self.pixel_perc > 50 and self.grasp_attempt <= 1:
-        if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.91 and self.grasp_attempt <= 1:
-            if self.grasping_steps_left == 0:  # Start of new grasping sequence
-                self.grasping_steps_left = 50  # Reset the counter to 100 steps
+        #if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.8 and self.grasp_attempt <= 1:
+        '''
+        if self.time <= 3.5:
+            # Behavior before time exceeds 3.5
+            a[-1] = -1
+        elif self.time > 3.5 or self.sim.data.site_xpos[self.grasp_sid][-1] < 0.93:
+            a= [0, 0, 0, 0, 0, 0, 1]
+        
+        a = np.clip(a, self.action_space.low, self.action_space.high)
+        self.fixed_positions = None
+        self.last_ctrl = self.robot.step(ctrl_desired=a,
+                                    last_qpos = self.sim.data.qpos[:7].copy(),
+                                    dt = self.dt,
+                                    render_cbk=self.mj_render if self.mujoco_render_frames else None)
+        '''
+        if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.53 and self.grasp_attempt <= 1:
+            if self.grasping_steps_left == 0: # Start of new grasping sequence
+                self.grasping_steps_left = 50 # Reset the counter to 100 steps
                 self.fixed_positions = self.sim.data.qpos[:7].copy()
                 self.grasp_attempt += 1
                 #print(self.pixel_perc)
@@ -283,13 +317,13 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         if self.grasping_steps_left > 0:
             self.fixed_positions[-1] = 1
             a = [0, 0, 0, 0, 0, 0, 1]
-            self.grasping_steps_left -= 1  # Decrement the counter each step
+            self.grasping_steps_left -= 1 # Decrement the counter each step
             self.last_ctrl = self.robot.step(ctrl_desired=a,
-                                        last_qpos = self.fixed_positions,
-                                        dt = self.dt,
-                                        render_cbk=self.mj_render if self.mujoco_render_frames else None)
+            last_qpos = self.fixed_positions,
+            dt = self.dt,
+            render_cbk=self.mj_render if self.mujoco_render_frames else None)
         else:
-            a[-1] = -1
+            #a[-1] = -1
             a = np.clip(a, self.action_space.low, self.action_space.high)
             self.fixed_positions = None
             self.last_ctrl = self.robot.step(ctrl_desired=a,
@@ -304,6 +338,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             print("Collision detected, reverting action")
             self.restore_state()
         '''
+        
         
 
         return self.forward(self.current_image, **kwargs)
@@ -320,6 +355,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             camera: String specifying the name of the camera to use.
         """
 
+        # Initialize the simulator
         rgb, depth = copy.deepcopy(
             self.sim.renderer.render_offscreen(width=width, height=height, camera_id=camera, depth = True)
         )
@@ -367,8 +403,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         x1, y1 = int(63/200 * self.IMAGE_WIDTH), 0
         x2, y2 = int(136/200 * self.IMAGE_WIDTH), int(68/200 * self.IMAGE_WIDTH)
 
-        #cv.rectangle(rgb, (x1, 0), (x2, y2), (0, 0, 255), thickness=2)
-        #cv.rectangle(mask, (x1, 0), (x2, y2), 255, thickness=1)
+        cv.rectangle(rgb, (x1, 0), (x2, y2), (0, 0, 255), thickness=2)
+        cv.rectangle(mask, (x1, 0), (x2, y2), 255, thickness=1)
 
         roi = mask[y1:y2, x1:x2]
         white_pixels = np.sum(roi == 255)
@@ -380,10 +416,10 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         if show:
             cv.circle(rgb, (self.cx, self.cy), 1, (0, 0, 255), -1)
             cv.circle(rgb, (100, 100), 1, (0, 255, 0), -1)
-            cv.imshow("rbg", rgb)# cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
-            cv.imshow("mask", mask)
+            #cv.imshow("rbg", rgb)# cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
+            #cv.imshow("mask", mask)
             #cv.imshow('Inverted Colored Depth', depth_normalized)
-            cv.waitKey(1)
+            # cv.waitKey(1)
             # cv.waitKey(delay=5000)
             # cv.destroyAllWindows()
 
@@ -462,6 +498,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         if not self.cam_init:
             self.create_camera_data(width, height, camera)
         self.cam_pos = self.sim.data.cam_xpos[self.sim.model.camera_name2id(camera)]
+        
         self.cam_rot_mat = self.sim.data.cam_xmat[self.sim.model.camera_name2id(camera)].reshape(3, 3)
 
         # Homogeneous image point
