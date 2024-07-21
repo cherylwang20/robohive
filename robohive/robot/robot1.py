@@ -683,10 +683,10 @@ class Robot():
         """
         control = (self.robot_vel_bound[:7, 1]+self.robot_vel_bound[:7, 0])/2.0 + \
                                         ctrl_desired*(self.robot_vel_bound[:7, 1]-self.robot_vel_bound[:7, 0])/2.0
-        print(last_qpos[:7])
-        print(dt, ctrl_desired)
+        #print(last_qpos[:7])
+        #print(dt, ctrl_desired)
         control = last_qpos[:7] + control*dt
-        print(control)
+        #print(control)
         ctrl_feasible = np.clip(control, self.robot_pos_bound[:7, 0], self.robot_pos_bound[:7, 1])
 
         n_frames=int(dt/self.sim.step_duration)

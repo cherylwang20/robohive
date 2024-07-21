@@ -38,7 +38,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "reach": .1,
         #"bonus": 1.0,
-        "contact": 1,
+        "contact": .1,
         #"claw_ori": 0, 
         #"target_dist": 0.0,
         'object_height': 100,
@@ -272,8 +272,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         change control method here if needed 
         """
         self.save_state()
-        if self.pixel_perc > 50 and self.grasp_attempt <= 1:
-            #if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.93 and self.grasp_attempt <= 1:
+        #if self.pixel_perc > 50 and self.grasp_attempt <= 1:
+        if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.91 and self.grasp_attempt <= 1:
             if self.grasping_steps_left == 0:  # Start of new grasping sequence
                 self.grasping_steps_left = 50  # Reset the counter to 100 steps
                 self.fixed_positions = self.sim.data.qpos[:7].copy()
