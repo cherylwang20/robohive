@@ -44,14 +44,15 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "reach": .01,
         #"bonus": 1.0,
-        "contact": .5,
-        "claw_ori": .1, 
+        "contact": 1,
+        "claw_ori": .5, 
         "obj_ori": .1,
         #"target_dist": -1.0,
         #'object_height': 100,
         #'power_cost': -0.0001,
-        'sparse': 10,
-        #'solved': 0
+        'sparse': .1,
+        #'solved': 0,
+        "done": 1000,
     }
 
 
@@ -106,11 +107,11 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.fixed_positions = None
         self.cam_init = False
         self.color = np.random.choice(['green'])
-        self._setup_camera()
         self.current_image = np.ones((image_width, image_height, 4), dtype=np.uint8)
+        self.rgb_out = np.ones((image_height, image_width))
         self.pixel_perc = 0
         self.total_pix = 0
-        self.pixel_dis = 100
+        self.touch_success = 0
         self.cx, self.cy = 0, 0
         
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
@@ -177,7 +178,10 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #print(claw_rot_err)
         obj_height = np.array([self.sim.data.site_xpos[self.target_sid][-1]])
         pix_perc = np.array([self.pixel_perc - 2.4234])
+        #print(pix_perc)
         contact = np.array([np.sum(obs_dict["touching_body"][0][0][:2])])
+        if contact == 1:
+            self.touch_success += 1
         power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
@@ -193,7 +197,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             ('sparse',  pix_perc),
             ('solved',  obj_height  - self.obj_init_z > 0.2),
             ('object_height',  obj_height  - self.obj_init_z > 0.1),
-            ('done',    obj_height  - self.obj_init_z > 0.2), #reach_dist > far_th
+            ('done',    np.array([self.touch_success]) >= 25), #reach_dist > far_th
         ))
         #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
@@ -206,6 +210,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.target_sid = self.sim.model.site_name2id(self.target_site_name)
         self.grasping_steps_left = 0
         self.grasp_attempt = 0
+        self.touch_success = 0
         self.cx, self.cy = 0, 0
         if self.obj_xyz_range is not None:        
             reset_qpos = self.sim.model.key_qpos[1].copy()
@@ -237,13 +242,13 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         )
         #depth = self.depth_2_meters(depth) #we don't need this, already in meters
         site_pos = self.sim.data.site_xpos[self.target_sid]
-        pixel_x, pixel_y = self.world_2_pixel(site_pos)
+        #pixel_x, pixel_y = self.world_2_pixel(site_pos)
 
         observation = {}
         observation["rgb"] = rgb
         #observation["depth"] =   np.array([depth[pixel_y][pixel_x]]) #np.array([ 2.701]) #
         #print(np.array([depth[pixel_y][pixel_x]]), np.array([depth[pixel_y][224 - pixel_x]]))
-        observation["pixel_coords"] = [pixel_x, pixel_y]
+        #observation["pixel_coords"] = [pixel_x, pixel_y]
         #print('pixel coords,', pixel_x, pixel_y)
 
         return observation
@@ -253,7 +258,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         """ Check if any joint is out of the defined boundary """
         x_min, x_max = -1.5, 1.5
         y_min, y_max = -1.7, 1.5
-        z_min, z_max = 0.85, 2.23
+        z_min, z_max = 0.88, 2.23
         for i in range(1, 13):
             joint_frame_id = self.sim.model.jnt_bodyid[i]
             joint_pos = self.sim.data.xpos[joint_frame_id]
@@ -293,51 +298,31 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.save_state()
         #if self.pixel_perc > 50 and self.grasp_attempt <= 1:
         #if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.8 and self.grasp_attempt <= 1:
-        '''
-        if self.time <= 3.5:
-            # Behavior before time exceeds 3.5
-            a[-1] = -1
-        elif self.time > 3.5 or self.sim.data.site_xpos[self.grasp_sid][-1] < 0.93:
-            a= [0, 0, 0, 0, 0, 0, 1]
-        
-        a = np.clip(a, self.action_space.low, self.action_space.high)
-        self.fixed_positions = None
-        self.last_ctrl = self.robot.step(ctrl_desired=a,
-                                    last_qpos = self.sim.data.qpos[:7].copy(),
-                                    dt = self.dt,
-                                    render_cbk=self.mj_render if self.mujoco_render_frames else None)
-        '''
-        if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.53 and self.grasp_attempt <= 1:
-            if self.grasping_steps_left == 0: # Start of new grasping sequence
-                self.grasping_steps_left = 50 # Reset the counter to 100 steps
-                self.fixed_positions = self.sim.data.qpos[:7].copy()
-                self.grasp_attempt += 1
-                #print(self.pixel_perc)
-                print('grasp')
-        if self.grasping_steps_left > 0:
+
+        #print(self.time) self.sim.data.site_xpos[self.grasp_sid][-1] < 0.53 
+        if self.touch_success >= 1000:
+            self.fixed_positions = self.sim.data.qpos[:7].copy()
             self.fixed_positions[-1] = 1
-            a = [0, 0, 0, 0, 0, 0, 1]
+            a[-1] = 1
             self.grasping_steps_left -= 1 # Decrement the counter each step
             self.last_ctrl = self.robot.step(ctrl_desired=a,
-            last_qpos = self.fixed_positions,
-            dt = self.dt,
-            render_cbk=self.mj_render if self.mujoco_render_frames else None)
+                                        last_qpos = self.fixed_positions,
+                                        dt = self.dt,
+                                        render_cbk=self.mj_render if self.mujoco_render_frames else None)
         else:
-            #a[-1] = -1
             a = np.clip(a, self.action_space.low, self.action_space.high)
             self.fixed_positions = None
             self.last_ctrl = self.robot.step(ctrl_desired=a,
                                         last_qpos = self.sim.data.qpos[:7].copy(),
                                         dt = self.dt,
                                         render_cbk=self.mj_render if self.mujoco_render_frames else None)
-
         #self.do_simulation(ctrl_feasible, self.frame_skip)
         
-        '''
+        
         if self.check_collision():
             print("Collision detected, reverting action")
             self.restore_state()
-        '''
+        
         
         
 
@@ -354,11 +339,16 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             show: If True displays the images for five seconds or until a key is pressed.
             camera: String specifying the name of the camera to use.
         """
+        #rgb_out =  self.sim.renderer.render_offscreen(width=800, height=800, camera_id='ft_cam')
+        #self.sim.renderer.close()
 
         # Initialize the simulator
         rgb, depth = copy.deepcopy(
             self.sim.renderer.render_offscreen(width=width, height=height, camera_id=camera, depth = True)
         )
+
+        #self.rgb_out = rgb_out
+
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
         blurred = cv.GaussianBlur(rgb, (11, 11), 0)
         hsv = cv.cvtColor(blurred, cv.COLOR_BGR2HSV)
@@ -416,15 +406,16 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         if show:
             cv.circle(rgb, (self.cx, self.cy), 1, (0, 0, 255), -1)
             cv.circle(rgb, (100, 100), 1, (0, 255, 0), -1)
-            #cv.imshow("rbg", rgb)# cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
-            #cv.imshow("mask", mask)
+            cv.imshow("rbg", rgb)# cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
+            cv.imshow("mask", mask)
             #cv.imshow('Inverted Colored Depth', depth_normalized)
-            # cv.waitKey(1)
+            cv.waitKey(1)
             # cv.waitKey(delay=5000)
             # cv.destroyAllWindows()
 
         return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
 
+    '''
     def depth_2_meters(self, depth):
         """
         Converts the depth array delivered by MuJoCo (values between 0 and 1) into actual m values.
@@ -507,4 +498,4 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         pixel = hom_pixel[:2] / hom_pixel[2]
 
         return np.round(pixel[0]).astype(int), np.round(pixel[1]).astype(int)
-    
+    '''
