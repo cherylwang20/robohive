@@ -44,15 +44,15 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "reach": .01,
         #"bonus": 1.0,
-        "contact": 1,
+        "contact": 10,
         "claw_ori": .5, 
-        "obj_ori": .1,
-        #"target_dist": -1.0,
+        "obj_ori": .5,
+        "target_dist": -1.0,
         #'object_height': 100,
-        #'power_cost': -0.0001,
-        'sparse': .1,
-        #'solved': 0,
-        "done": 1000,
+        #'penalty': -5,
+        'sparse': .01,
+        'solved': 500,
+        "done": 0,
     }
 
 
@@ -112,6 +112,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.pixel_perc = 0
         self.total_pix = 0
         self.touch_success = 0
+        self.single_touch = 0
         self.cx, self.cy = 0, 0
         
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
@@ -181,8 +182,12 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #print(pix_perc)
         contact = np.array([np.sum(obs_dict["touching_body"][0][0][:2])])
         if contact == 1:
-            self.touch_success += 1
-        power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
+            self.single_touch += 1
+        elif contact == 2:
+            if self.touch_success ==1:
+                print('grasping')
+            self.touch_success +=1
+        #power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
             ('reach',  total_pix),
@@ -192,14 +197,15 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             #('obj_ori',   -(obj_rot_err[0])**2), 
             #('bonus',   total_pix > 10),
             ('contact', contact),
+            ('penalty', np.array([-1])),
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
-            ('solved',  obj_height  - self.obj_init_z > 0.2),
+            ('solved',  np.array([self.touch_success]) >= 25 and contact == 2),
             ('object_height',  obj_height  - self.obj_init_z > 0.1),
-            ('done',    np.array([self.touch_success]) >= 25), #reach_dist > far_th
+            ('done',    obj_height  - self.obj_init_z > 0.5), #reach_dist > far_th
         ))
-        #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
+        print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
@@ -211,6 +217,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.grasping_steps_left = 0
         self.grasp_attempt = 0
         self.touch_success = 0
+        self.single_touch = 0
         self.cx, self.cy = 0, 0
         if self.obj_xyz_range is not None:        
             reset_qpos = self.sim.model.key_qpos[1].copy()
@@ -299,8 +306,10 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #if self.pixel_perc > 50 and self.grasp_attempt <= 1:
         #if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.8 and self.grasp_attempt <= 1:
 
-        #print(self.time) self.sim.data.site_xpos[self.grasp_sid][-1] < 0.53 
-        if self.touch_success >= 1000:
+        #print(self.time) self.sim.data.site_xpos[self.grasp_sid][-1] < 0.53
+        #print(self.single_touch) 
+        if self.single_touch >= 100:
+            print('hard-coded')
             self.fixed_positions = self.sim.data.qpos[:7].copy()
             self.fixed_positions[-1] = 1
             a[-1] = 1
