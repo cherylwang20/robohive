@@ -60,7 +60,7 @@
                     <body name="base" pos="0 0 0.0038" quat="1 0 0 -1">
                       <inertial mass="0.777441" pos="0 -2.70394e-05 0.0354675" quat="1 -0.00152849 0 0"
                         diaginertia="0.000260285 0.000225381 0.000152708"/>
-                      <camera name="end_effector_cam" pos=".06 0.0 0.01" quat="0 -0.7071 0.7071 0" fovy="65"/>
+                      <camera name="end_effector_cam" pos=".06 0.0 0.01" euler="0 3.14 1.57" fovy="65"/>
                       <geom class="visual" mesh="base" material="black"/>
                       <geom class="collision" mesh="base"/>
                       <site name="pinch" pos="0 0 0.1" type="sphere" group="1" rgba=".9 0.9 0.9 1" size="0.001"/>

@@ -36,7 +36,7 @@ from .python_api import BodyIdInfo, arm_control, get_touching_objects, ObjLabels
 class ReachBaseV0(env_base_1.MujocoEnv):
 
     DEFAULT_OBS_KEYS = [
-        'qp_robot', 'qv_robot', 'reach_err'
+        'time', 'qp_robot', 'qv_robot'
     ]
     DEFAULT_PROPRIO_KEYS = [
         'qp_robot', 'qv_robot'
@@ -44,14 +44,14 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "reach": .01,
         #"bonus": 1.0,
-        "contact": 10,
-        "claw_ori": .5, 
-        "obj_ori": .5,
-        "target_dist": -1.0,
-        #'object_height': 100,
-        #'penalty': -5,
-        'sparse': .01,
-        'solved': 500,
+        "contact": 5,
+        "claw_ori": .01, 
+        "obj_ori": .01,
+        #"target_dist": -1.0,
+        #'gripper_height': 1,
+        'penalty': -5,
+        'sparse': 1,
+        'solved': 0,
         "done": 0,
     }
 
@@ -106,7 +106,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         print(self.obj_init_z)
         self.fixed_positions = None
         self.cam_init = False
-        self.color = np.random.choice(['green'])
+        self.color = np.random.choice(['green', 'red', 'blue'])
         self.current_image = np.ones((image_width, image_height, 4), dtype=np.uint8)
         self.rgb_out = np.ones((image_height, image_width))
         self.pixel_perc = 0
@@ -123,7 +123,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                        reward_mode=reward_mode,
                        frame_skip=frame_skip,
                        **kwargs)
-        self.init_qpos[:] = self.sim.model.key_qpos[1].copy()
+        self.init_qpos[:] = self.sim.model.key_qpos[2].copy()
 
 
     def get_obs_dict(self, sim):
@@ -178,6 +178,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         obj_ori_err = np.linalg.norm(obs_dict['obj_ori_err'], axis=-1)[0]
         #print(claw_rot_err)
         obj_height = np.array([self.sim.data.site_xpos[self.target_sid][-1]])
+        gripper_height = np.array([self.sim.data.site_xpos[self.grasp_sid][-1]])
         pix_perc = np.array([self.pixel_perc - 2.4234])
         #print(pix_perc)
         contact = np.array([np.sum(obs_dict["touching_body"][0][0][:2])])
@@ -191,7 +192,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
             ('reach',  total_pix),
-            ('target_dist',   target_dist),
+            ('target_dist',   target_dist + np.log(target_dist + 1e-6)),
             ('claw_ori',  np.exp(-claw_rot_err**2)),
             ('obj_ori', np.exp(-obj_ori_err**2)),
             #('obj_ori',   -(obj_rot_err[0])**2), 
@@ -202,10 +203,11 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             # Must keys
             ('sparse',  pix_perc),
             ('solved',  np.array([self.touch_success]) >= 25 and contact == 2),
-            ('object_height',  obj_height  - self.obj_init_z > 0.1),
-            ('done',    obj_height  - self.obj_init_z > 0.5), #reach_dist > far_th
+            ('gripper_height',  gripper_height - 0.83),
+            ('done',  np.array([self.touch_success]) >= 15 ), #obj_height  - self.obj_init_z > 0.5), #reach_dist > far_th
         ))
-        print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
+        #print(pix_perc)
+        #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
@@ -220,7 +222,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.single_touch = 0
         self.cx, self.cy = 0, 0
         if self.obj_xyz_range is not None:        
-            reset_qpos = self.sim.model.key_qpos[1].copy()
+            reset_qpos = self.sim.model.key_qpos[2].copy()
             new_pos = self.np_random.uniform(**self.obj_xyz_range)
             self.sim.model.body_pos[self.object_bid] = new_pos
             object_qpos_adr = self.sim.model.body(self.object_bid).jntadr[0]
@@ -232,7 +234,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
         self.current_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 4), dtype=np.uint8)
-        self.color = np.random.choice(['green'])
+        self.color = np.random.choice(['green', 'red', 'blue'])
         return {'image': self.current_image, 'vector': obs}
     
 
@@ -265,7 +267,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         """ Check if any joint is out of the defined boundary """
         x_min, x_max = -1.5, 1.5
         y_min, y_max = -1.7, 1.5
-        z_min, z_max = 0.88, 2.23
+        z_min, z_max = 0.85, 2.23
         for i in range(1, 13):
             joint_frame_id = self.sim.model.jnt_bodyid[i]
             joint_pos = self.sim.data.xpos[joint_frame_id]
@@ -308,7 +310,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         #print(self.time) self.sim.data.site_xpos[self.grasp_sid][-1] < 0.53
         #print(self.single_touch) 
-        if self.single_touch >= 100:
+        if self.single_touch >= 1000:
             print('hard-coded')
             self.fixed_positions = self.sim.data.qpos[:7].copy()
             self.fixed_positions[-1] = 1
@@ -399,11 +401,11 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.pixel_dis = np.abs(np.linalg.norm(np.array([100, 100]) - np.array([self.cx, self.cy])))
 
         #define the grasping rectangle
-        x1, y1 = int(63/200 * self.IMAGE_WIDTH), 0
-        x2, y2 = int(136/200 * self.IMAGE_WIDTH), int(68/200 * self.IMAGE_WIDTH)
+        x1, y1 = int(63/200 * self.IMAGE_HEIGHT), self.IMAGE_HEIGHT - int(68/200 * self.IMAGE_HEIGHT)
+        x2, y2 = int(136/200 * self.IMAGE_HEIGHT), self.IMAGE_HEIGHT 
 
-        cv.rectangle(rgb, (x1, 0), (x2, y2), (0, 0, 255), thickness=2)
-        cv.rectangle(mask, (x1, 0), (x2, y2), 255, thickness=1)
+        cv.rectangle(rgb, (x1, y1), (x2, y2), (0, 0, 255), thickness=2)
+        cv.rectangle(mask, (x1, y1), (x2, y2), 255, thickness=1)
 
         roi = mask[y1:y2, x1:x2]
         white_pixels = np.sum(roi == 255)
@@ -415,14 +417,25 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         if show:
             cv.circle(rgb, (self.cx, self.cy), 1, (0, 0, 255), -1)
             cv.circle(rgb, (100, 100), 1, (0, 255, 0), -1)
-            cv.imshow("rbg", rgb)# cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
-            cv.imshow("mask", mask)
+            #cv.imshow("rbg", rgb)# cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
+            #cv.imshow("mask", mask)
             #cv.imshow('Inverted Colored Depth', depth_normalized)
-            cv.waitKey(1)
+            #cv.waitKey(1)
             # cv.waitKey(delay=5000)
             # cv.destroyAllWindows()
 
         return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
+
+    def render(self, mode='rgb_array'):
+        # Your implementation here, which should return an RGB array if mode is 'rgb_array'
+        mode='rgb_array'
+        if mode == 'rgb_array':
+            rgb, depth = copy.deepcopy(
+            self.sim.renderer.render_offscreen(width=224, height=224, camera_id='end_effector_cam', depth = True)
+            )
+            return rgb
+        else:
+            super().render(mode)
 
     '''
     def depth_2_meters(self, depth):

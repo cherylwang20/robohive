@@ -19,7 +19,7 @@ class ObjLabels(enum.Enum):
 
 class BodyIdInfo:
     def __init__(self, model: mujoco.MjModel):
-        self.manip_body_id = model.body("beaker_2").id
+        self.manip_body_id = model.body("beaker").id
 
         left_bodies = [model.body(i).id for i in range(model.nbody) if model.body(i).name.startswith("Lgrip/")]
         self.left_range = (min(left_bodies), max(left_bodies))
