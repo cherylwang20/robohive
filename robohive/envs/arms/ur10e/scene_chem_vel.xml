@@ -62,17 +62,11 @@
     <!--site name='pick_target' type='sphere' size='.08' pos='-0.3 0.5 1.2' group='1' rgba='.1 .1 1 0.1'/>-->
     <site name='place_target' type='cylinder' size='.088 0.021' pos='-0.4 0.5 .85' group='1' rgba='1 1 1 0.2'/>
 
-
-
-    <!--composite prefix = '1' type="particle" count="3 3 3" spacing="0.015" offset="0 .5 .95">
-        <geom type="sphere" size="0.009" group = '1' rgba=".8 .2 .1 1" solref=".005 1" solimp="0.9 0.9 0.01" />
-    </composite>-->
-
-    <body name="beaker" pos="0.35 0.58 0.93" euler="1.57 0 0">
+    <body name="object_1" pos="0.5 0.58 0.93" euler="1.57 0 0">
       <freejoint/>
-      <site name="beaker" size="0.001" pos="0 0.0 0.03"/>
+      <site name="object_1" size="0.001" pos="0 0.0 0.03"/>
       <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
-      <geom rgba="1 0 0 0.9" mesh="beaker_thick_0" class="visual_b"/>
+      <geom name = "object_1" rgba="1 0 0 0.9" mesh="beaker_thick_0" class="visual_b"/>
       <geom rgba="1 1 1 0.3" mesh="beaker_thick_1" class="visual_b"/>
       <geom mesh="beaker_thick_collision_0" class="collision_b"/>
       <geom mesh="beaker_thick_collision_1" class="collision_b"/>
@@ -91,11 +85,11 @@
       <geom mesh="beaker_thick_collision_14" class="collision_b"/>
     </body>
 
-    <body name="beaker_2" pos="0.48 0.58 0.93" euler="1.57 0 0">
+    <body name="object_2" pos="0.38 0.58 0.93" euler="1.57 0 0">
       <freejoint/>
-      <site name="beaker_2" size="0.001" pos="0 0.0 0.03"/>
+      <site name="object_2" size="0.001" pos="0 0.0 0.03"/>
       <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
-      <geom rgba="0 1 0 0.9" mesh="beaker_thick_0" class="visual_b"/>
+      <geom name = "object_2" rgba="0 1 0 0.9" mesh="beaker_thick_0" class="visual_b"/>
       <geom rgba="1 1 1 0.3" mesh="beaker_thick_1" class="visual_b"/>
       <geom mesh="beaker_thick_collision_0" class="collision_b"/>
       <geom mesh="beaker_thick_collision_1" class="collision_b"/>
@@ -112,161 +106,6 @@
       <geom mesh="beaker_thick_collision_12" class="collision_b"/>
       <geom mesh="beaker_thick_collision_13" class="collision_b"/>
       <geom mesh="beaker_thick_collision_14" class="collision_b"/>
-    </body>
-
-    <body name="beaker_3" pos="0.42 0.7 0.93" euler="1.57 0 0">
-      <freejoint/>
-      <site name="beaker_3" size="0.001" pos="0 0.0 0.03"/>
-      <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
-      <geom rgba="0 0.8 1 .9" mesh="beaker_thick_0" class="visual_b"/>
-      <geom rgba="1 1 1 0.3" mesh="beaker_thick_1" class="visual_b"/>
-      <geom mesh="beaker_thick_collision_0" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_1" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_2" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_3" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_4" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_5" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_6" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_7" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_8" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_9" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_10" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_11" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_12" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_13" class="collision_b"/>
-      <geom mesh="beaker_thick_collision_14" class="collision_b"/>
-    </body>
-
-    <body name="fbt" pos="0.3 0.38 1.05" euler="1.57 0 0">
-      <freejoint/>
-      <site name="ftb" size="0.001" pos="0 0.0 0.03"/>
-      <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
-      <geom rgba="1 1 0.82 0.9" mesh="flat_base_tube_0" class="visual_b"/>
-      <geom rgba="1 1 1 0.3" mesh="flat_base_tube_1" class="visual_b"/>
-      <geom mesh="flat_base_tube_collision_0" class="collision_b"/>
-      <geom mesh="flat_base_tube_collision_1" class="collision_b"/>
-      <geom mesh="flat_base_tube_collision_2" class="collision_b"/>
-      <geom mesh="flat_base_tube_collision_3" class="collision_b"/>
-      <geom mesh="flat_base_tube_collision_4" class="collision_b"/>
-      <geom mesh="flat_base_tube_collision_5" class="collision_b"/>
-      <geom mesh="flat_base_tube_collision_6" class="collision_b"/>
-      <geom mesh="flat_base_tube_collision_7" class="collision_b"/>
-      <geom mesh="flat_base_tube_collision_8" class="collision_b"/>
-    </body>
-
-    <!--body name="tubes" pos="0.3 0.5 .85" euler="1.57 0 0">
-    <freejoint/>
-      <geom rgba="0.0 1 0.0 0.8" mesh="tubes_0" class="visual_b"/>
-      <geom rgba="1 1 1 .4" mesh="tubes_1" class="visual_b"/>
-      <geom mesh="tubes_collision_0" class="collision_b"/>
-      <geom mesh="tubes_collision_1" class="collision_b"/>
-      <geom mesh="tubes_collision_2" class="collision_b"/>
-      <geom mesh="tubes_collision_3" class="collision_b"/>
-      <geom mesh="tubes_collision_4" class="collision_b"/>
-      <geom mesh="tubes_collision_5" class="collision_b"/>
-      <geom mesh="tubes_collision_6" class="collision_b"/>
-      <geom mesh="tubes_collision_7" class="collision_b"/>
-    </body>
-
-    <body name="rack" pos="0.3 0.2 1" euler="1.57 0 0">
-      <freejoint/>
-      <geom rgba="0.5 0.3 0 1" mesh="rack" class="visual_b"/>
-      <geom mesh="rack_collision_0" class="collision_b"/>
-      <geom mesh="rack_collision_1" class="collision_b"/>
-      <geom mesh="rack_collision_2" class="collision_b"/>
-      <geom mesh="rack_collision_3" class="collision_b"/>
-      <geom mesh="rack_collision_4" class="collision_b"/>
-      <geom mesh="rack_collision_5" class="collision_b"/>
-    </body>
-
-    <body name="tube_2" pos="0.35 0.5 .85" euler="1.57 0 0">
-      <freejoint/>
-      <geom rgba="0 1 0.0 1" mesh="tubes_0" class="visual_b"/>
-      <geom rgba="1 1 1 .4" mesh="tubes_1" class="visual_b"/>
-      <geom mesh="tubes_collision_0" class="collision_b"/>
-      <geom mesh="tubes_collision_1" class="collision_b"/>
-      <geom mesh="tubes_collision_2" class="collision_b"/>
-      <geom mesh="tubes_collision_3" class="collision_b"/>
-      <geom mesh="tubes_collision_4" class="collision_b"/>
-      <geom mesh="tubes_collision_5" class="collision_b"/>
-      <geom mesh="tubes_collision_6" class="collision_b"/>
-      <geom mesh="tubes_collision_7" class="collision_b"/>
-    </body>
-
-    <body name="tube_3" pos="0.4 0.5 .85" euler="1.57 0 0">
-    <freejoint/>
-      <geom rgba="0 1 0.0 1" mesh="tubes_0" class="visual_b"/>
-      <geom rgba="1 1 1 .4" mesh="tubes_1" class="visual_b"/>
-      <geom mesh="tubes_collision_0" class="collision_b"/>
-      <geom mesh="tubes_collision_1" class="collision_b"/>
-      <geom mesh="tubes_collision_2" class="collision_b"/>
-      <geom mesh="tubes_collision_3" class="collision_b"/>
-      <geom mesh="tubes_collision_4" class="collision_b"/>
-      <geom mesh="tubes_collision_5" class="collision_b"/>
-      <geom mesh="tubes_collision_6" class="collision_b"/>
-      <geom mesh="tubes_collision_7" class="collision_b"/>
-    </body>-->
-
-
-    <body name="rbf" pos="0.5 0.4 0.99" euler="1.57 0 0">
-      <freejoint/>
-      <geom rgba="1 1 0.82 0.9" mesh="rbf_0" class="visual_b"/>
-      <geom rgba="1 1 1 .4" mesh="rbf_1" class="visual_b"/>
-      <geom mesh="rbf_collision_0" class="collision_b"/>
-      <geom mesh="rbf_collision_1" class="collision_b"/>
-      <geom mesh="rbf_collision_2" class="collision_b"/>
-      <geom mesh="rbf_collision_3" class="collision_b"/>
-      <geom mesh="rbf_collision_4" class="collision_b"/>
-      <geom mesh="rbf_collision_5" class="collision_b"/>
-      <geom mesh="rbf_collision_6" class="collision_b"/>
-      <geom mesh="rbf_collision_7" class="collision_b"/>
-      <geom mesh="rbf_collision_8" class="collision_b"/>
-      <geom mesh="rbf_collision_9" class="collision_b"/>
-      <geom mesh="rbf_collision_10" class="collision_b"/>
-      <geom mesh="rbf_collision_11" class="collision_b"/>
-      <geom mesh="rbf_collision_12" class="collision_b"/>
-      <geom mesh="rbf_collision_13" class="collision_b"/>
-      <geom mesh="rbf_collision_14" class="collision_b"/>
-    </body>
-
-    <body name="base_rbf" pos="0.5 0.4 0.87" euler="1.57 0 0">
-      <freejoint/>
-      <geom rgba="0.4627 0.4627 0.4627 1" mesh="base_2" class="visual_b"/>
-      <geom mesh="base_2_collision_0" class="collision_b"/>
-      <geom mesh="base_2_collision_1" class="collision_b"/>
-      <geom mesh="base_2_collision_2" class="collision_b"/>
-      <geom mesh="base_2_collision_3" class="collision_b"/>
-      <geom mesh="base_2_collision_4" class="collision_b"/>
-      <geom mesh="base_2_collision_5" class="collision_b"/>
-      <geom mesh="base_2_collision_6" class="collision_b"/>
-      <geom mesh="base_2_collision_7" class="collision_b"/>
-      <geom mesh="base_2_collision_8" class="collision_b"/>
-      <geom mesh="base_2_collision_9" class="collision_b"/>
-      <geom mesh="base_2_collision_10" class="collision_b"/>
-      <geom mesh="base_2_collision_11" class="collision_b"/>
-      <geom mesh="base_2_collision_12" class="collision_b"/>
-      <geom mesh="base_2_collision_13" class="collision_b"/>
-      <geom mesh="base_2_collision_14" class="collision_b"/>
-    </body>
-
-    <body name="base_rbf_2" pos="-0.5 0.35 0.87" euler="1.57 0 0">
-      <freejoint/>
-      <geom rgba="0.4627 0.4627 0.4627 1" mesh="base_2" class="visual_b"/>
-      <geom mesh="base_2_collision_0" class="collision_b"/>
-      <geom mesh="base_2_collision_1" class="collision_b"/>
-      <geom mesh="base_2_collision_2" class="collision_b"/>
-      <geom mesh="base_2_collision_3" class="collision_b"/>
-      <geom mesh="base_2_collision_4" class="collision_b"/>
-      <geom mesh="base_2_collision_5" class="collision_b"/>
-      <geom mesh="base_2_collision_6" class="collision_b"/>
-      <geom mesh="base_2_collision_7" class="collision_b"/>
-      <geom mesh="base_2_collision_8" class="collision_b"/>
-      <geom mesh="base_2_collision_9" class="collision_b"/>
-      <geom mesh="base_2_collision_10" class="collision_b"/>
-      <geom mesh="base_2_collision_11" class="collision_b"/>
-      <geom mesh="base_2_collision_12" class="collision_b"/>
-      <geom mesh="base_2_collision_13" class="collision_b"/>
-      <geom mesh="base_2_collision_14" class="collision_b"/>
     </body>
 
     <!--body name = 'p1' pos="0 0.5 0.95">
@@ -299,14 +138,10 @@
     </body>-->
   </worldbody>
 
-  <sensor>
-	    <touch name = "beaker" site="beaker"/>
-  </sensor>
-
-  <keyframe>
-    <key qpos='0.395315 0.825843 -0.6835 0.314426 0.378896 -0.665566 0.00265002 0.000149042 0.00285231 -0.00308147 0.00260377 0.000143228 0.00284263 -0.00307379 0.35 0.579971 0.890315 0.707116 0.707097 -1.9455e-07 -1.47702e-07 0.480166 0.579853 0.890315 0.707106 0.707108 2.00649e-05 1.99742e-05 0.42 0.701582 0.890315 0.707118 0.707095 4.84044e-05 4.84729e-05 0.3 0.379855 1.03299 0.707107 0.707107 -3.36933e-07 -3.30748e-07 0.50305 0.399309 0.983531 0.708013 0.706194 -0.00124915 -0.00238354 0.500005 0.399987 0.867133 0.707107 0.707107 3.0739e-06 -5.72555e-06 -0.5 0.349985 0.867438 0.707106 0.707108 -3.51336e-06 3.74886e-06'/>
-    <key name = 'home' qpos='1.69641 -1.75924 -0.7855 -2.13622 1.57075 -0.00449232 0.00435232 0.000149042 0.00285231 -0.00308147 0.00260377 0.000143228 0.00284263 -0.00307379 0.35 0.579971 0.890315 0.707116 0.707097 -1.9455e-07 -1.47702e-07 0.480166 0.579853 0.890315 0.707106 0.707108 2.00649e-05 1.99742e-05 0.42 0.701582 0.890315 0.707118 0.707095 4.84044e-05 4.84729e-05 0.3 0.379855 1.03299 0.707107 0.707107 -3.36933e-07 -3.30748e-07 0.50305 0.399309 0.983531 0.708013 0.706194 -0.00124915 -0.00238354 0.500005 0.399987 0.867133 0.707107 0.707107 3.0739e-06 -5.72555e-06 -0.5 0.349985 0.867438 0.707106 0.707108 -3.51336e-06 3.74886e-06'/>
-    <key qpos='1.69641 -1.82207 -1.06828 -0.69113 1.57075 -0.00449232 0.00435232 0.000149042 0.00285231 -0.00308147 0.00260377 0.000143228 0.00284263 -0.00307379 0.35 0.579971 0.890315 0.707116 0.707097 -1.9455e-07 -1.47702e-07 0.480166 0.579853 0.890315 0.707106 0.707108 2.00649e-05 1.99742e-05 0.42 0.701582 0.890315 0.707118 0.707095 4.84044e-05 4.84729e-05 0.3 0.379855 1.03299 0.707107 0.707107 -3.36933e-07 -3.30748e-07 0.50305 0.399309 0.983531 0.708013 0.706194 -0.00124915 -0.00238354 0.500005 0.399987 0.867133 0.707107 0.707107 3.0739e-06 -5.72555e-06 -0.5 0.349985 0.867438 0.707106 0.707108 -3.51336e-06 3.74886e-06'/>
-    <key qpos='1.51 -1.75924 -0.7855 -2.13622 1.5706 -0.00534768 0.00291994 0.000149042 0.00285231 -0.00308147 0.00260377 0.000143228 0.00284263 -0.00307379 0.35 0.579971 0.890315 0.707116 0.707097 -1.9455e-07 -1.47702e-07 0.480166 0.579853 0.890315 0.707106 0.707108 2.00649e-05 1.99742e-05 0.42 0.701582 0.890315 0.707118 0.707095 4.84044e-05 4.84729e-05 0.3 0.379855 1.03299 0.707107 0.707107 -3.36933e-07 -3.30748e-07 0.50305 0.399309 0.983531 0.708013 0.706194 -0.00124915 -0.00238354 0.500005 0.399987 0.867133 0.707107 0.707107 3.0739e-06 -5.72555e-06 -0.5 0.349985 0.867438 0.707106 0.707108 -3.51336e-06 3.74886e-06'/>
+  <keyframe>` 
+    <key qpos='0.395315 0.825843 -0.6835 0.314426 0.378896 -0.665566 0.00265002 0.000149042 0.00285151 -0.00308068 0.00260296 0.00014323 0.00284183 -0.00307305 0.499999 0.579984 0.890301 0.707228 0.706985 -1.27461e-05 1.25462e-05 0.379993 0.57998 0.890316 0.707115 0.707098 -4.21356e-06 3.75251e-07'/>
+    <key name = 'home' qpos='1.69641 -1.75924 -0.7855 -2.13622 1.57075 -0.00449232 0.00435232 0.000149042 0.00285151 -0.00308068 0.00260296 0.00014323 0.00284183 -0.00307305 0.499999 0.579984 0.890301 0.707228 0.706985 -1.27461e-05 1.25462e-05 0.379993 0.57998 0.890316 0.707115 0.707098 -4.21356e-06 3.75251e-07'/>
+    <key qpos='1.69641 -1.75924 -0.7855 -1.13622 1.57075 -0.00449232 0.00435232 0.000149042 0.00285151 -0.00308068 0.00260296 0.00014323 0.00284183 -0.00307305 0.499999 0.579984 0.890301 0.707228 0.706985 -1.27461e-05 1.25462e-05 0.379993 0.57998 0.890316 0.707115 0.707098 -4.21356e-06 3.75251e-07'/>  
+    <key qpos='1.38238 -2.59626 -0.885095 -1.13231 1.57033 0.00605251 0.433535 0.000605807 0.431403 -0.426515 0.433701 -0.00937157 0.425422 -0.400178 0.5 0.57997 0.890316 0.707104 0.707109 -5.94456e-06 4.65049e-06 0.397345 0.600339 0.894967 0.355716 0.649749 -0.383091 -0.551845'/>
   </keyframe>
 </mujoco>

@@ -63,22 +63,23 @@ register(
 )
 
 
-#env for chemical objects
+#env for chemical objects, for picking and lifting
 register(
     id='UR10eReachFixed-v2',
-    entry_point='robohive.envs.arms.reach_base_v3:ReachBaseV0',
-    max_episode_steps=150, #50steps*40Skip*2ms = 4s
+    entry_point='robohive.envs.arms.reach_base_v2:ReachBaseV0',
+    max_episode_steps=500, #50steps*40Skip*2ms = 4s
     kwargs={
-        'model_path': curr_dir+'/ur10e/scene_chem.xml',
+        'model_path': curr_dir+'/ur10e/scene_chem_vel.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
         'robot_site_name': "pinch",
-        'target_site_name': "beaker",
+        'target_site_name': "object_1",
         'obj_xyz_range': {'high':[0.05, 0.5, 0.895831], 'low':[-0., 0.5 ,0.895831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
-        'goal_site_name': "pick_target",
+        'goal_site_name': "place_target",
         'target_xyz_range': {'high':[0.435, 0.5, 0.9], 'low':[-0.435, 0.4, 0.9]}
     }
 )
 
+##env training for reaching and touching for two beakers
 register(
     id='UR10eReachFixed-v3',
     entry_point='robohive.envs.arms.reach_base_v3:ReachBaseV0',
@@ -87,7 +88,23 @@ register(
         'model_path': curr_dir+'/ur10e/scene_chem_vel.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
         'robot_site_name': "pinch",
-        'target_site_name': "beaker",
+        'target_site_name': "object_1",
+        'obj_xyz_range': {'high':[0.4, 0.55, 0.995831], 'low':[0.35, 0.6 ,0.995831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
+        'goal_site_name': "place_target",
+        'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}
+    }
+)
+
+#this env is for testing for two rbf
+register(
+    id='UR10eReachFixed-v4',
+    entry_point='robohive.envs.arms.reach_base_v3:ReachBaseV0',
+    max_episode_steps=300, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene_chem.xml',
+        #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
+        'robot_site_name': "pinch",
+        'target_site_name': "object_1",
         'obj_xyz_range': {'high':[0.4, 0.55, 0.995831], 'low':[0.35, 0.6 ,0.995831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
         'goal_site_name': "place_target",
         'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}

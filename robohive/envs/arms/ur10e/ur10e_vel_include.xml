@@ -61,6 +61,7 @@
                       <inertial mass="0.777441" pos="0 -2.70394e-05 0.0354675" quat="1 -0.00152849 0 0"
                         diaginertia="0.000260285 0.000225381 0.000152708"/>
                       <camera name="end_effector_cam" pos=".06 0.0 0.01" euler="0 3.14 1.57" fovy="65"/>
+                      <!--camera name="end_effector_cam" pos=".06 0.0 0.01" quat="0 -0.7071 0.7071 0" fovy="65"/>-->
                       <geom class="visual" mesh="base" material="black"/>
                       <geom class="collision" mesh="base"/>
                       <site name="pinch" pos="0 0 0.1" type="sphere" group="1" rgba=".9 0.9 0.9 1" size="0.001"/>
@@ -97,9 +98,12 @@
                             <inertial mass="0.0035" pos="0 -0.0025 0.0185" quat="0.707107 0 0 0.707107"
                               diaginertia="4.73958e-07 3.64583e-07 1.23958e-07"/>
                             <geom class="visual" mesh="pad"/>
-                            <body name="Rgrip/right_silicone_pad">
+                            <body name="right_silicone_pad">
                               <site name="right_silicone_pad" pos="0 -0.01 .01" type="sphere" group="1" rgba=".9 0.9 0.9 1" size="0.005"/>
                               <geom class="visual" mesh="silicone_pad" material="black"/>
+                              <body name = 'Rgrip/contact_pad'>
+                                <geom name = 'rcontact' class="visual" type="box" size="0.0085 .001 0.016" pos="0 -0.006 0.02" material="urblue"/>
+                              </body>
                             </body>
                           </body>
                         </body>
@@ -137,9 +141,12 @@
                             <inertial mass="0.0035" pos="0 -0.0025 0.0185" quat="1 0 0 1"
                               diaginertia="4.73958e-07 3.64583e-07 1.23958e-07"/>
                             <geom class="visual" mesh="pad"/>
-                            <body name="Lgrip/left_silicone_pad">
-                              <site name="left_silicone_pad" pos="0 -0.01 .01" type="sphere" group="1" rgba=".9 0.9 0.9 1" size="0.005"/>
+                            <body name="left_silicone_pad">
+                              <site name="left_silicone_pad" pos="0 -0.01 .01" type="sphere" group="1" rgba=".9 0.9 0.9 1" size="0.003"/>
                               <geom class="visual" mesh="silicone_pad" material="black"/>
+                              <body name = 'Lgrip/contact_pad'>
+                                <geom name = 'lcontact' class="visual" type="box" size="0.0085 .001 0.016" pos="0 -0.006 0.02" material="urblue"/>
+                              </body>
                             </body>
                           </body>
                         </body>
