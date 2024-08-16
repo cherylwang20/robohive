@@ -44,11 +44,11 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "reach": .01,
         #"bonus": 1.0,
-        "contact": 2,
+        "contact": 5,
         "claw_ori": 5, 
         "obj_ori": .01,
         "target_dist": -1.0,
-        'gripper_height': 10,
+        'gripper_height': 5,
         'penalty': 5, #penalty is defined negative
         'sparse': .1,
         'solved': 10,

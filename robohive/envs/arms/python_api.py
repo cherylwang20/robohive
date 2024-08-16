@@ -50,9 +50,9 @@ def get_touching_objects(model: mujoco.MjModel, data: mujoco.MjData, id_info: Bo
 
 def body_id_to_label(body_id, id_info: BodyIdInfo):
     #print(id_info.left_range[0], id_info.right_range[0], body_id)
-    if id_info.left_range[0]  - 2 <= body_id < id_info.left_range[1]:
+    if id_info.left_range[0]  - 1 <= body_id < id_info.left_range[1]:
         return ObjLabels.LEFT_GRIP
-    elif id_info.right_range[0] - 2 <= body_id < id_info.right_range[1]:
+    elif id_info.right_range[0] - 1 <= body_id < id_info.right_range[1]:
         return ObjLabels.RIGHT_GRIP
     elif body_id == id_info.goal_id:
         return ObjLabels.GOAL

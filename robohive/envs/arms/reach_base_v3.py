@@ -50,7 +50,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #"target_dist": -1.0,
         #'gripper_height': 1,
         'penalty': 5, #penalty is defined negative
-        'sparse': 1,
+        'sparse': .1,
         'solved': 100,
         "done": 1000,
     }
@@ -205,7 +205,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             ('sparse',  pix_perc),
             ('solved',  np.array([self.touch_success]) >= 15 and contact == 2),
             ('gripper_height',  gripper_height - 0.83),
-            ('done',  np.array([self.touch_success]) >= 30 ), #obj_height  - self.obj_init_z > 0.5), #reach_dist > far_th
+            ('done',  np.array([self.touch_success]) >= 40 ), #obj_height  - self.obj_init_z > 0.5), #reach_dist > far_th
         ))
         #print(pix_perc)
         #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
