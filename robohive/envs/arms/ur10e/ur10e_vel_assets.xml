@@ -11,6 +11,12 @@
         <material name="gray" rgba="0.4627 0.4627 0.4627 1"/>
         <material name="mug" specular="1" shininess="1"/>
 
+        <mesh name="apple" file="../../../../simhive/object_sim/apple/apple.stl"/>
+        <mesh name="contact0" file="../../../../simhive/object_sim/apple/contact0.stl"/>
+        <mesh name="contact1" file="../../../../simhive/object_sim/apple/contact1.stl"/>
+        <mesh name="cylindersmall" file="../../../../simhive/object_sim/cylindersmall/cylindersmall.stl"/>
+        <mesh name="c_contact0" file="../../../../simhive/object_sim/cylindersmall/contact0.stl"/>
+
         <mesh file="beaker_thick_0.obj"/>
         <mesh file="beaker_thick_1.obj"/>
         <mesh file="beaker_thick_collision_0.obj"/>
@@ -48,8 +54,6 @@
         <mesh file="rack_collision_3.obj"/>
         <mesh file="rack_collision_4.obj"/>
         <mesh file="rack_collision_5.obj"/>
-
-
 
         <mesh file  = "rbf_0.obj"/>
         <mesh file  = "rbf_1.obj"/>

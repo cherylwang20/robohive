@@ -64,6 +64,7 @@
 
     <body name="object_1" pos="0.5 0.58 1.03" euler="1.57 0 0">
       <freejoint/>
+      <site name="object_1" size="0.001" pos="0 0.0 0.03"/>
       <geom name = "object_1" rgba="0 1 0 .9" mesh="rbf_0" class="visual_b"/>
       <geom rgba="1 1 1 .4" mesh="rbf_1" class="visual_b"/>
       <geom mesh="rbf_collision_0" class="collision_b"/>
@@ -105,6 +106,7 @@
 
     <body name="object_2" pos="0.33 0.58 1.03" euler="1.57 0 0">
       <freejoint/>
+      <site name="object_2" size="0.001" pos="0 0.0 0.03"/>
       <geom name = "object_2" rgba="1 0 0 .9" mesh="rbf_0" class="visual_b"/>
       <geom rgba="1 1 1 .4" mesh="rbf_1" class="visual_b"/>
       <geom mesh="rbf_collision_0" class="collision_b"/>

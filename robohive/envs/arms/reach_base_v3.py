@@ -42,17 +42,17 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         'qp_robot', 'qv_robot'
     ]
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
-        "reach": .01,
+        "reach": .1,
         #"bonus": 1.0,
-        "contact": 10,
+        "contact": 1,
         #"claw_ori": 1, 
         #"obj_ori": .01,
         #"target_dist": -1.0,
         #'gripper_height': 1,
-        'penalty': 5, #penalty is defined negative
-        'sparse': .1,
-        'solved': 100,
-        "done": 1000,
+        #'penalty': 1, #penalty is defined negative
+        'sparse': 2,
+        'solved': 10,
+        "done": 100,
     }
 
 
@@ -93,7 +93,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         # ids
         self.target_site_name = target_site_name
         self.grasp_sid = self.sim.model.site_name2id(robot_site_name) #robot part name
-        #self.target_sid = self.sim.model.site_name2id(target_site_name) #object name
+        self.target_sid = self.sim.model.site_name2id(target_site_name) #object name
         self.goal_sid = self.sim.model.site_name2id(goal_site_name) #final location
         self.obj_xyz_range = obj_xyz_range #random re-initialized object location
         self.object_bid = self.sim.model.body_name2id(target_site_name)
@@ -139,7 +139,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         obs_dict['target_err'] = sim.data.site_xpos[self.goal_sid]-sim.data.site_xpos[self.grasp_sid]
         #obs_dict['pixel'] = np.array([self.pixel_perc])
         obs_dict['power_cost'] = sim.data.qvel.copy()*sim.data.qfrc_actuator.copy()
-        obs_dict['total_pix'] = np.array([self.total_pix*10]) #times 10 to incentivzie larger pixel
+        obs_dict['total_pix'] = np.array([self.total_pix/100]) 
         self.current_observation = self.get_observation(show=True)
 
         this_model = sim.model
@@ -177,9 +177,9 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         claw_rot_err = np.linalg.norm(obs_dict['claw_ori_err'], axis=-1)[0]
         #obj_ori_err = np.linalg.norm(obs_dict['obj_ori_err'], axis=-1)[0]
         #print(claw_rot_err)
-        #obj_height = np.array([self.sim.data.site_xpos[self.target_sid][-1]])
+        obj_height = np.array([self.sim.data.site_xpos[self.target_sid][-1]])
         gripper_height = np.array([self.sim.data.site_xpos[self.grasp_sid][-1]])
-        pix_perc = np.array([self.pixel_perc - 2.4234])
+        pix_perc = np.array([self.pixel_perc - 2.4234])/10
         contact = np.array([np.sum(obs_dict["touching_body"][0][0][:2])])
         #print(contact)
         if contact == 1:
@@ -203,11 +203,11 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
-            ('solved',  np.array([self.touch_success]) >= 15 and contact == 2),
+            ('solved',  np.array([self.touch_success]) >= 20 and contact == 2),
             ('gripper_height',  gripper_height - 0.83),
-            ('done',  np.array([self.touch_success]) >= 40 ), #obj_height  - self.obj_init_z > 0.5), #reach_dist > far_th
+            ('done', np.array([self.touch_success]) >= 200), # obj_height  - self.obj_init_z > 0.2   obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
-        #print(pix_perc)
+        print(pix_perc, total_pix)
         #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
@@ -381,7 +381,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         # blobs left in the mask
         # we might want to add a series of color to identify e.g., green, blue, red, yellow. 
         
-        if self.touch_success < 1000:
+        if self.single_touch < 1:
             if self.color == 'red':
                 Lower = (0, 50, 50)
                 Upper = (7, 255, 245)

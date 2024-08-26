@@ -83,7 +83,7 @@ register(
 register(
     id='UR10eReachFixed-v3',
     entry_point='robohive.envs.arms.reach_base_v3:ReachBaseV0',
-    max_episode_steps=300, #50steps*40Skip*2ms = 4s
+    max_episode_steps=200, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_chem_vel.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -99,7 +99,7 @@ register(
 register(
     id='UR10eReachFixed-v4',
     entry_point='robohive.envs.arms.reach_base_v3:ReachBaseV0',
-    max_episode_steps=300, #50steps*40Skip*2ms = 4s
+    max_episode_steps=200, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_chem.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -110,6 +110,55 @@ register(
         'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}
     }
 )
+
+#this env is for testing for two squre blocks
+register(
+    id='UR10eReachObject-v0',
+    entry_point='robohive.envs.arms.reach_base_v3:ReachBaseV0',
+    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene_gripper.xml',
+        #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
+        'robot_site_name': "pinch",
+        'target_site_name': "object_1",
+        'obj_xyz_range': {'high':[0.4, 0.55, 0.995831], 'low':[0.35, 0.6 ,0.995831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
+        'goal_site_name': "place_target",
+        'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}
+    }
+)
+
+#this env is for testing for two apples
+register(
+    id='UR10eReachObject-v1',
+    entry_point='robohive.envs.arms.reach_base_v3:ReachBaseV0',
+    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene_apple.xml',
+        #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
+        'robot_site_name': "pinch",
+        'target_site_name': "object_1",
+        'obj_xyz_range': {'high':[0.4, 0.55, 0.995831], 'low':[0.35, 0.6 ,0.995831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
+        'goal_site_name': "place_target",
+        'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}
+    }
+)
+
+#this env is testing for two cylinders
+register(
+    id='UR10eReachObject-v2',
+    entry_point='robohive.envs.arms.reach_base_v3:ReachBaseV0',
+    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene_cylinder.xml',
+        #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
+        'robot_site_name': "pinch",
+        'target_site_name': "object_1",
+        'obj_xyz_range': {'high':[0.4, 0.55, 0.995831], 'low':[0.35, 0.6 ,0.995831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
+        'goal_site_name': "place_target",
+        'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}
+    }
+)
+
 
 
 # Reach to random target

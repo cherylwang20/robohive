@@ -44,15 +44,16 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "reach": .01,
         #"bonus": 1.0,
-        "contact": 5,
-        "claw_ori": 5, 
-        "obj_ori": .01,
+        "contact": 2,
+        "claw_ori": 1, 
+        #"obj_ori": .01,
         "target_dist": -1.0,
         'gripper_height': 5,
-        'penalty': 5, #penalty is defined negative
+        'penalty': 1, #penalty is defined negative
         'sparse': .1,
-        'solved': 10,
-        "done": 1000,
+        'solved': 5,
+        'power_cost': -1, 
+        "done": 100,
     }
 
 
@@ -188,7 +189,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             if self.touch_success ==1:
                 print('grasping')
             self.touch_success +=1
-        #power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
+        power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
             ('reach',  total_pix),
@@ -199,14 +200,14 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             #('bonus',   total_pix > 10),
             ('contact', contact),
             ('penalty', np.array([-1])),
-            #('power_cost', power_cost),
+            ('power_cost', power_cost/100),
             # Must keys
             ('sparse',  pix_perc),
             ('solved',  np.array([self.touch_success]) >= 25 and contact == 2),
             ('gripper_height',  gripper_height > 1.2), #gripper_height - 0.83),
             ('done',  obj_height > 1.5 ), #obj_height  - self.obj_init_z > 0.5), #reach_dist > far_th
         ))
-        #print(obj_height)
+        #print(power_cost)
         #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
