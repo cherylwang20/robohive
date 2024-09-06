@@ -15,7 +15,6 @@ class ObjLabels(enum.Enum):
     LEFT_GRIP = 0
     RIGHT_GRIP = 1
     ENV = 2
-    GOAL = 3
 
 class BodyIdInfo:
     def __init__(self, model: mujoco.MjModel):
@@ -25,8 +24,6 @@ class BodyIdInfo:
 
         right_bodies = [model.body(i).id for i in range(model.nbody) if model.body(i).name.startswith("Rgrip/")]
         self.right_range = (min(right_bodies), max(right_bodies))
-
-        self.goal_id = model.body("busbin2").id
 
 def arm_control(model: mujoco.MjModel, data: mujoco.MjData, id_info: BodyIdInfo):
     # `model` contains static information about the modeled system, e.g. their indices in dynamics matrices
@@ -43,14 +40,13 @@ def get_touching_objects(model: mujoco.MjModel, data: mujoco.MjData, id_info: Bo
         elif model.geom(con.geom2).bodyid == object_id:
             yield body_id_to_label(model.geom(con.geom1).bodyid, id_info)
 
+
 def body_id_to_label(body_id, id_info: BodyIdInfo):
     #print(id_info.left_range[0], id_info.right_range[0], body_id)
     if id_info.left_range[0]  - 1 <= body_id < id_info.left_range[1]:
         return ObjLabels.LEFT_GRIP
     elif id_info.right_range[0] - 1 <= body_id < id_info.right_range[1]:
         return ObjLabels.RIGHT_GRIP
-    elif body_id == id_info.goal_id:
-        return ObjLabels.GOAL
     else:
         return ObjLabels.ENV
 

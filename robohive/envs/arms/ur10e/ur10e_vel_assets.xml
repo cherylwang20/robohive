@@ -12,10 +12,23 @@
         <material name="mug" specular="1" shininess="1"/>
 
         <mesh name="apple" file="../../../../simhive/object_sim/apple/apple.stl"/>
-        <mesh name="contact0" file="../../../../simhive/object_sim/apple/contact0.stl"/>
-        <mesh name="contact1" file="../../../../simhive/object_sim/apple/contact1.stl"/>
+        <mesh name="a_contact0" file="../../../../simhive/object_sim/apple/contact0.stl"/>
+        <mesh name="a_contact1" file="../../../../simhive/object_sim/apple/contact1.stl"/>
         <mesh name="cylindersmall" file="../../../../simhive/object_sim/cylindersmall/cylindersmall.stl"/>
         <mesh name="c_contact0" file="../../../../simhive/object_sim/cylindersmall/contact0.stl"/>
+        <mesh name="waterbottle" file="../../../../simhive/object_sim/waterbottle/waterbottle.stl"/>
+        <mesh name="w_contact0" file="../../../../simhive/object_sim/waterbottle/contact0.stl"/>
+        <mesh name="w_contact1" file="../../../../simhive/object_sim/waterbottle/contact1.stl"/>
+        <mesh name="rubberduck" file="../../../../simhive/object_sim/rubberduck/rubberduck.stl"/>
+        <mesh name="d_contact0" file="../../../../simhive/object_sim/rubberduck/contact0.stl"/>
+        <mesh name="d_contact1" file="../../../../simhive/object_sim/rubberduck/contact1.stl"/>
+        <mesh name="d_contact2" file="../../../../simhive/object_sim/rubberduck/contact2.stl"/>
+        <mesh name="torusmedium" file="../../../../simhive/object_sim/torusmedium/torusmedium.stl"/>
+        <mesh name="t_contact0" file="../../../../simhive/object_sim/torusmedium/contact0.stl"/>
+        <mesh name="t_contact1" file="../../../../simhive/object_sim/torusmedium/contact1.stl"/>
+        <mesh name="t_contact2" file="../../../../simhive/object_sim/torusmedium/contact2.stl"/>
+        <mesh name="t_contact3" file="../../../../simhive/object_sim/torusmedium/contact3.stl"/>
+        <mesh name="t_contact4" file="../../../../simhive/object_sim/torusmedium/contact4.stl"/>
 
         <mesh file="beaker_thick_0.obj"/>
         <mesh file="beaker_thick_1.obj"/>
@@ -34,6 +47,42 @@
         <mesh file="beaker_thick_collision_12.obj"/>
         <mesh file="beaker_thick_collision_13.obj"/>
         <mesh file="beaker_thick_collision_14.obj"/>
+
+        <mesh name="wineglass" file="../../../../simhive/object_sim/wineglass/wineglass.stl"/>
+        <mesh name="contact0" file="../../../../simhive/object_sim/wineglass/contact0.stl"/>
+        <mesh name="contact1" file="../../../../simhive/object_sim/wineglass/contact1.stl"/>
+        <mesh name="contact2" file="../../../../simhive/object_sim/wineglass/contact2.stl"/>
+        <mesh name="contact3" file="../../../../simhive/object_sim/wineglass/contact3.stl"/>
+        <mesh name="contact4" file="../../../../simhive/object_sim/wineglass/contact4.stl"/>
+        <mesh name="contact5" file="../../../../simhive/object_sim/wineglass/contact5.stl"/>
+        <mesh name="contact6" file="../../../../simhive/object_sim/wineglass/contact6.stl"/>
+        <mesh name="contact7" file="../../../../simhive/object_sim/wineglass/contact7.stl"/>
+        <mesh name="contact8" file="../../../../simhive/object_sim/wineglass/contact8.stl"/>
+        <mesh name="contact9" file="../../../../simhive/object_sim/wineglass/contact9.stl"/>
+        <mesh name="contact10" file="../../../../simhive/object_sim/wineglass/contact10.stl"/>
+        <mesh name="contact11" file="../../../../simhive/object_sim/wineglass/contact11.stl"/>
+        <mesh name="contact12" file="../../../../simhive/object_sim/wineglass/contact12.stl"/>
+        <mesh name="contact13" file="../../../../simhive/object_sim/wineglass/contact13.stl"/>
+        <mesh name="contact14" file="../../../../simhive/object_sim/wineglass/contact14.stl"/>
+        <mesh name="contact15" file="../../../../simhive/object_sim/wineglass/contact15.stl"/>
+        <mesh name="contact16" file="../../../../simhive/object_sim/wineglass/contact16.stl"/>
+        <mesh name="contact17" file="../../../../simhive/object_sim/wineglass/contact17.stl"/>
+        <mesh name="contact18" file="../../../../simhive/object_sim/wineglass/contact18.stl"/>
+        <mesh name="contact19" file="../../../../simhive/object_sim/wineglass/contact19.stl"/>
+        <mesh name="contact20" file="../../../../simhive/object_sim/wineglass/contact20.stl"/>
+        <mesh name="contact21" file="../../../../simhive/object_sim/wineglass/contact21.stl"/>
+        <mesh name="contact22" file="../../../../simhive/object_sim/wineglass/contact22.stl"/>
+        <mesh name="contact23" file="../../../../simhive/object_sim/wineglass/contact23.stl"/>
+        <mesh name="contact24" file="../../../../simhive/object_sim/wineglass/contact24.stl"/>
+        <mesh name="contact25" file="../../../../simhive/object_sim/wineglass/contact25.stl"/>
+        <mesh name="contact26" file="../../../../simhive/object_sim/wineglass/contact26.stl"/>
+        <mesh name="contact27" file="../../../../simhive/object_sim/wineglass/contact27.stl"/>
+        <mesh name="contact28" file="../../../../simhive/object_sim/wineglass/contact28.stl"/>
+        <mesh name="contact29" file="../../../../simhive/object_sim/wineglass/contact29.stl"/>
+        <mesh name="contact30" file="../../../../simhive/object_sim/wineglass/contact30.stl"/>
+        <mesh name="contact31" file="../../../../simhive/object_sim/wineglass/contact31.stl"/>
+        <mesh name="contact32" file="../../../../simhive/object_sim/wineglass/contact32.stl"/>
+        <mesh name="contact33" file="../../../../simhive/object_sim/wineglass/contact33.stl"/>
 
         <mesh file="tubes_0.obj"/>
         <mesh file="tubes_1.obj"/>

@@ -30,7 +30,10 @@ register(
     }
 )
 
-#UR10e
+# reach_base_v1 is env with five object but distance based reward
+# reach_base_v2 is the env with pick & place
+# reach_base_v3 is the env for two objects reaching and grabbing with masking
+# reach_base_v4 is the env with five object with masking based reward
 
 register(
     id='UR10eReachFixed-v0',
@@ -106,6 +109,100 @@ register(
         'robot_site_name': "pinch",
         'target_site_name': "object_1",
         'obj_xyz_range': {'high':[0.4, 0.55, 0.995831], 'low':[0.35, 0.6 ,0.995831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
+        'goal_site_name': "place_target",
+        'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}
+    }
+)
+
+#this env is for testing for two squre blocks
+register(
+    id='UR10eReachFive-v0',
+    entry_point='robohive.envs.arms.reach_base_v1:ReachBaseV0',
+    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
+        #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
+        'robot_site_name': "pinch",
+        'target_site_name': "object_1",
+        #'obj_xyz_range': {'high':[0.4, 0.55, 0.995831], 'low':[0.35, 0.6 ,0.995831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
+        'goal_site_name': "place_target",
+        'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}
+    }
+)
+
+#this is for reaching with three channel, no masking (distance based)
+register(
+    id='UR10eReach3C-v0',
+    entry_point='robohive.envs.arms.reach_3d_v0:ReachBaseV0',
+    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
+        #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
+        'robot_site_name': "pinch",
+        'target_site_name': "object_1",
+        #'obj_xyz_range': {'high':[0.4, 0.55, 0.995831], 'low':[0.35, 0.6 ,0.995831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
+        'goal_site_name': "place_target",
+        'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}
+    }
+)
+
+register(
+    id='UR10eReach4C-v0',
+    entry_point='robohive.envs.arms.reach_4d_v0:ReachBaseV0',
+    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
+        #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
+        'robot_site_name': "pinch",
+        'target_site_name': "object_1",
+        #'obj_xyz_range': {'high':[0.4, 0.55, 0.995831], 'low':[0.35, 0.6 ,0.995831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
+        'goal_site_name': "place_target",
+        'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}
+    }
+)
+
+#this is for reaching with three channel, with masking (pixel based)
+register(
+    id='UR10eMask3C-v0',
+    entry_point='robohive.envs.arms.mask_3d_v0:ReachBaseV0',
+    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
+        #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
+        'robot_site_name': "pinch",
+        'target_site_name': "object_1",
+        #'obj_xyz_range': {'high':[0.4, 0.55, 0.995831], 'low':[0.35, 0.6 ,0.995831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
+        'goal_site_name': "place_target",
+        'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}
+    }
+)
+
+register(
+    id='UR10eMask4C-v0',
+    entry_point='robohive.envs.arms.mask_4d_v0:ReachBaseV0',
+    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
+        #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
+        'robot_site_name': "pinch",
+        'target_site_name': "object_1",
+        #'obj_xyz_range': {'high':[0.4, 0.55, 0.995831], 'low':[0.35, 0.6 ,0.995831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
+        'goal_site_name': "place_target",
+        'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}
+    }
+)
+
+#with masking
+register(
+    id='UR10eReachFive-v1',
+    entry_point='robohive.envs.arms.reach_base_v4:ReachBaseV0',
+    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    kwargs={
+        'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
+        #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
+        'robot_site_name': "pinch",
+        'target_site_name': "object_1",
+        #'obj_xyz_range': {'high':[0.4, 0.55, 0.995831], 'low':[0.35, 0.6 ,0.995831]}, #{'high':[0.2, 0.3, 0.895831], 'low':[-0.3, 0.6 ,0.895831]},
         'goal_site_name': "place_target",
         'target_xyz_range': {'high':[-0.435, 0.5, 0.9], 'low':[-0.435, 0.5, 0.9]}
     }

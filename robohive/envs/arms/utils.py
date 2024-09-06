@@ -3,7 +3,6 @@ from pathlib import Path
 import time
 import numpy as np
 from termcolor import colored
-import cv2 as cv
 import matplotlib.pyplot as plt
 import xml.etree.ElementTree as ET
 

@@ -146,7 +146,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         id_info = BodyIdInfo(this_model)
         this_data = sim.data
 
-        touching_objects = set(get_touching_objects(this_model, this_data, id_info))
+        touching_objects = set(get_touching_objects(this_model, this_data, id_info, self.target_site_name))
 
         obs_vec = self._obj_label_to_obs(touching_objects)
         obs_dict["touching_body"] = obs_vec
@@ -184,6 +184,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #print(contact)
         if contact == 1:
             self.single_touch += 1
+            if single_touch == 1:
+                print('first touch')
         elif contact == 2:
             if self.touch_success == 1:
                 print('grasping')
@@ -207,7 +209,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             ('gripper_height',  gripper_height - 0.83),
             ('done', np.array([self.touch_success]) >= 200), # obj_height  - self.obj_init_z > 0.2   obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
-        print(pix_perc, total_pix)
+        #print(pix_perc, total_pix)
         #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
