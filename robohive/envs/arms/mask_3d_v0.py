@@ -32,6 +32,13 @@ from robohive.utils.quat_math import mat2euler, euler2quat
 
 from robohive.envs.arms.python_api_2 import BodyIdInfo, arm_control, get_touching_objects, ObjLabels
 
+from groundingdino.util.inference import load_model, load_image, predict, annotate
+import groundingdino.datasets.transforms as T
+from PIL import Image, ImageDraw
+
+from torchvision.ops import box_convert
+import torch
+
 
 class ReachBaseV0(env_base.MujocoEnv):
 
@@ -115,6 +122,17 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.touch_success = 0
         self.single_touch = 0
         self.cx, self.cy = 0, 0
+        
+        if 'eval_mode' in kwargs:
+            self.eval_mode = kwargs['eval_mode']
+        else: 
+            self.eval_mode = False
+        
+        self.mask_model = load_model( "./GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py", "./GroundingDINO/weights/groundingdino_swint_ogc.pth")
+            
+        self.BOX_THRESHOLD = 0.4
+        self.TEXT_THRESHOLD = 0.25
+        self.TEXT_PROMPT = 'apple'
         
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
 
@@ -209,7 +227,13 @@ class ReachBaseV0(env_base.MujocoEnv):
         ))
         #print(pix_perc, total_pix)
         #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
-        rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
+        
+        if not self.eval_mode:
+            rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
+        else:
+            rwd_dict['dense'] = 1.0 if contact == 2 else 0
+            rwd_dict['done'] = contact == 2
+              
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
         return rwd_dict
@@ -233,8 +257,10 @@ class ReachBaseV0(env_base.MujocoEnv):
 
         #randomly choose between the five objects; color it green, and the rest as white. 
         target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
-        self.target_site_name = np.random.choice(target_sites)
-        print(self.target_site_name)
+        target_names = ['apple', 'block', 'beaker', 'donut', 'rubber duck']
+        number = np.random.randint(1, 5)
+        self.target_site_name = target_sites[number]
+        self.TEXT_PROMPT = target_names[number]
         self.target_sid = self.sim.model.site_name2id(self.target_site_name) #object name
         current_directory = os.getcwd()
         self.object_image = cv.imread(current_directory + '/mj_envs/robohive/envs/arms/object_image/' + self.target_site_name + '.png', cv.IMREAD_COLOR)
@@ -356,7 +382,7 @@ class ReachBaseV0(env_base.MujocoEnv):
             self.restore_state()
     
         self.object_image_normalized = self.object_image / 255
-        self.final_image = np.concatenate((self.current_image, self.object_image_normalized), axis=2)
+        self.final_image = np.concatenate((self.current_image, self.object_image_normalized), axis=2) 
 
         return self.forward(self.final_image, **kwargs)
     
@@ -384,47 +410,67 @@ class ReachBaseV0(env_base.MujocoEnv):
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
         blurred = cv.GaussianBlur(rgb, (11, 11), 0)
         hsv = cv.cvtColor(blurred, cv.COLOR_BGR2HSV)
+        
         # construct a mask for the color "green", then perform
         # a series of dilations and erosions to remove any small
         # blobs left in the mask
         # we might want to add a series of color to identify e.g., green, blue, red, yellow. 
         
-        if self.single_touch < 1:
-            if self.color == 'red':
-                Lower = (0, 50, 50)
-                Upper = (7, 255, 245)
-            elif self.color == 'green':
-                Lower = (29, 86, 56)
-                Upper = (64, 255, 255)
-            elif self.color == 'blue':
-                Lower = (80, 50, 20)
-                Upper = (100, 255, 255)
-            else:
-                raise Warning('please define a valid color (red, gree, blue)')
-        else:
-            #print(self.touch_success)
-            Lower = (0, 0, 0)
-            Upper = (0, 0, 0)
-        mask = cv.inRange(hsv, Lower, Upper)
-        mask = cv.erode(mask, None, iterations=2)
-        mask = cv.dilate(mask, None, iterations=2)
-        self.current_image = rgb/255 #np.concatenate((rgb/255, np.expand_dims(mask/255, axis=-1)), axis=2)
+        # if self.single_touch < 1:
+        #     if self.color == 'red':
+        #         Lower = (0, 50, 50)
+        #         Upper = (7, 255, 245)
+        #     elif self.color == 'green':
+        #         Lower = (29, 86, 56)
+        #         Upper = (64, 255, 255)
+        #     elif self.color == 'blue':
+        #         Lower = (80, 50, 20)
+        #         Upper = (100, 255, 255)
+        #     else:
+        #         raise Warning('please define a valid color (red, gree, blue)')
+        # else:
+        #     #print(self.touch_success)
+        #     Lower = (0, 0, 0)
+        #     Upper = (0, 0, 0)
+        # mask = cv.inRange(hsv, Lower, Upper)
+        # mask = cv.erode(mask, None, iterations=2)
+        # mask = cv.dilate(mask, None, iterations=2)
+        # self.current_image = rgb/255 #np.concatenate((rgb/255, np.expand_dims(mask/255, axis=-1)), axis=2)
         
-        contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        # contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
 
-        if contours:
-            cnt = max(contours, key = cv.contourArea)
+        # if contours:
+        #     cnt = max(contours, key = cv.contourArea)
 
-            # Calculate the centroid of the contour
-            M = cv.moments(cnt)
-            if M['m00'] != 0:
-                self.cx = int(M['m10']/M['m00'])
-                self.cy = int(M['m01']/M['m00'])
-        #else:
-            #self.cx, self.cy = 0, 224
+        #     # Calculate the centroid of the contour
+        #     M = cv.moments(cnt)
+        #     if M['m00'] != 0:
+        #         self.cx = int(M['m10']/M['m00'])
+        #         self.cy = int(M['m01']/M['m00'])
+        # #else:
+        #     #self.cx, self.cy = 0, 224
         
-        self.pixel_dis = np.abs(np.linalg.norm(np.array([100, 100]) - np.array([self.cx, self.cy])))
+        # self.pixel_dis = np.abs(np.linalg.norm(np.array([100, 100]) - np.array([self.cx, self.cy])))
+
+
+        pil_image = Image.fromarray(rgb)
+
+        boxes, logits, phrases = predict(
+            model=self.mask_model,
+            image=self.load_image2(pil_image),
+            caption=self.TEXT_PROMPT,
+            box_threshold=self.BOX_THRESHOLD,
+            text_threshold=self.TEXT_THRESHOLD
+            )
+        
+        mask = np.zeros((self.IMAGE_HEIGHT, self.IMAGE_HEIGHT, 1), dtype=np.uint8)
+
+        mask = self.create_mask(mask, boxes=boxes)
+
+        self.mask_out = mask
+ 
+        # self.current_image = np.concatenate((rgb/255, np.expand_dims(mask/255, axis=-1)), axis=2)
 
         #define the grasping rectangle
         x1, y1 = int(63/200 * self.IMAGE_HEIGHT), self.IMAGE_HEIGHT - int(68/200 * self.IMAGE_HEIGHT)
@@ -439,6 +485,8 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.pixel_perc = (white_pixels / total_pixels) * 100
         self.total_pix = (np.sum(mask==255)/mask.size) * 100
 
+        print('total pixel', self.total_pix)
+        
         #print(f"Percentage of white pixels in the rectangle: {self.pixel_perc:.2f}%")
         if show:
             cv.circle(rgb, (self.cx, self.cy), 1, (0, 0, 255), -1)
@@ -462,6 +510,49 @@ class ReachBaseV0(env_base.MujocoEnv):
             return rgb
         else:
             super().render(mode)
+            
+    def create_mask(self, image_source: np.ndarray, boxes: torch.Tensor) -> np.ndarray:
+        """
+        This function creates a mask with white rectangles on a black background,
+        where the rectangles are defined by the bounding boxes.
+
+        Parameters:
+        image_source (np.ndarray): The source image for determining the size of the mask.
+        boxes (torch.Tensor): A tensor containing bounding box coordinates in cxcywh format.
+
+        Returns:
+        np.ndarray: The mask image.
+        """
+        # Get the dimensions of the source image
+        h, w, _ = image_source.shape
+
+        # Scale the boxes to the image dimensions
+        boxes = boxes * torch.Tensor([w, h, w, h])
+
+        # Convert boxes from cxcywh to xyxy format
+        xyxy = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
+
+        # Create a black mask
+        mask = np.zeros((h, w), dtype=np.uint8)
+
+        # Draw each box as a white rectangle on the mask
+        for box in xyxy:
+            top_left = (int(box[0]), int(box[1]))
+            bottom_right = (int(box[2]), int(box[3]))
+            cv.rectangle(mask, top_left, bottom_right, (255), thickness=-1)  # Fill the rectangle
+
+        return mask
+    
+    def load_image2(self, image_source):
+        transform = T.Compose(
+            [
+                T.RandomResize([800], max_size=1333),
+                T.ToTensor(),
+                T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        )
+        image_transformed, _ = transform(image_source, None)
+        return image_transformed
 
     '''
     def depth_2_meters(self, depth):
