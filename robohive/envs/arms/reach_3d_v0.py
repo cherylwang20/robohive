@@ -197,7 +197,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         #print(reach_dist)
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
-            ('reach',  reach_dist),
+            ('reach',  reach_dist + np.log(reach_dist + 1e-6)),
             #('target_dist',   target_dist + np.log(target_dist + 1e-6)),
             ('claw_ori',  np.exp(-claw_rot_err**2)),
             #('obj_ori', np.exp(-obj_ori_err**2)),

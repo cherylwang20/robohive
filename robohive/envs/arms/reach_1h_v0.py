@@ -199,7 +199,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         #print(reach_dist)
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
-            ('reach',  reach_dist),
+            ('reach',  reach_dist + np.log(reach_dist + 1e-6)),
             #('target_dist',   target_dist + np.log(target_dist + 1e-6)),
             ('claw_ori',  np.exp(-claw_rot_err**2)),
             #('obj_ori', np.exp(-obj_ori_err**2)),
@@ -219,7 +219,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         else:
             rwd_dict['dense'] = 1.0 if contact == 2 else 0
             rwd_dict['done'] = contact == 2
-            
+
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
         return rwd_dict
