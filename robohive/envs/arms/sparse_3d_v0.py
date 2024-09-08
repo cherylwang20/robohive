@@ -115,6 +115,11 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.touch_success = 0
         self.single_touch = 0
         self.cx, self.cy = 0, 0
+
+        if 'eval_mode' in kwargs:
+            self.eval_mode = kwargs['eval_mode']
+        else: 
+            self.eval_mode = False
         
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
 
@@ -207,9 +212,12 @@ class ReachBaseV0(env_base.MujocoEnv):
             ('gripper_height',  gripper_height - 0.83),
             ('done', obj_height  - self.obj_init_z > 0.2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
-        #print(pix_perc, total_pix)
-        #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
-        rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
+        
+        if not self.eval_mode:
+            rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
+        else:
+            rwd_dict['dense'] = 1.0 if contact == 2 else 0
+            rwd_dict['done'] = contact == 2
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
         return rwd_dict
