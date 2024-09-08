@@ -15,7 +15,6 @@ import collections
 #import mujoco as mp
 import os
 import sys
-sys.path.append('../cheryl16/GroundingDINO')
 import groundingdino
 from groundingdino.util.inference import load_model, load_image, predict, annotate
 import groundingdino.datasets.transforms as T
@@ -122,6 +121,12 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.touch_success = 0
         self.single_touch = 0
         self.cx, self.cy = 0, 0
+        
+        if 'eval_mode' in kwargs:
+            self.eval_mode = kwargs['eval_mode']
+        else: 
+            self.eval_mode = False
+            
         self.mask_model = load_model( "./GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py", "./GroundingDINO/weights/groundingdino_swint_ogc.pth")
         self.BOX_THRESHOLD = 0.4
         self.TEXT_THRESHOLD = 0.25
@@ -221,7 +226,12 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         ))
         #print(pix_perc, total_pix)
         #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
-        rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
+        if not self.eval_mode:
+            rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
+        else:
+            rwd_dict['dense'] = 1.0 if contact == 2 else 0
+            rwd_dict['done'] = contact == 2
+            
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
         return rwd_dict
