@@ -51,8 +51,8 @@ class ReachBaseV0(env_base.MujocoEnv):
         #'gripper_height': 1,
         #'penalty': 1, #penalty is defined negative
         'sparse': 0,
-        'solved': 10,
-        "done": 100,
+        'solved': 0,
+        "done": 10,
     }
 
 
@@ -197,20 +197,20 @@ class ReachBaseV0(env_base.MujocoEnv):
         #print(reach_dist)
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
-            ('reach',  reach_dist + np.log(reach_dist + 1e-6)),
+            ('reach',  reach_dist),
             #('target_dist',   target_dist + np.log(target_dist + 1e-6)),
             ('claw_ori',  np.exp(-claw_rot_err**2)),
             #('obj_ori', np.exp(-obj_ori_err**2)),
             #('obj_ori',   -(obj_rot_err[0])**2), 
             #('bonus',   total_pix > 10),
-            ('contact', contact),
+            ('contact', contact == 2),
             ('penalty', np.array([-1])),
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
             ('solved',  np.array([self.touch_success]) >= 20 and contact == 2),
             ('gripper_height',  gripper_height - 0.83),
-            ('done', obj_height  - self.obj_init_z > 0.2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
+            ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
 
         if not self.eval_mode:
