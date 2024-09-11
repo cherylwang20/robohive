@@ -42,7 +42,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         'qp_robot', 'qv_robot'
     ]
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
-        "reach": -1, #the reach reward here is the distance
+        #"reach": -1, #the reach reward here is the distance
         #"bonus": 1.0,
         "contact": 1,
         #"claw_ori": 1, 
@@ -51,8 +51,8 @@ class ReachBaseV0(env_base.MujocoEnv):
         #'gripper_height': 1,
         #'penalty': 1, #penalty is defined negative
         'sparse': 0,
-        'solved': 0,
-        "done": 10,
+        'solved': 10,
+        "done": 100,
     }
 
 
@@ -115,7 +115,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.touch_success = 0
         self.single_touch = 0
         self.cx, self.cy = 0, 0
-        
+
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
         else: 
@@ -203,22 +203,21 @@ class ReachBaseV0(env_base.MujocoEnv):
             #('obj_ori', np.exp(-obj_ori_err**2)),
             #('obj_ori',   -(obj_rot_err[0])**2), 
             #('bonus',   total_pix > 10),
-            ('contact', contact == 2),
+            ('contact', contact),
             ('penalty', np.array([-1])),
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
             ('solved',  np.array([self.touch_success]) >= 20 and contact == 2),
             ('gripper_height',  gripper_height - 0.83),
-            ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
+            ('done', obj_height  - self.obj_init_z > 0.2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
-
+        
         if not self.eval_mode:
             rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         else:
             rwd_dict['dense'] = 1.0 if contact == 2 else 0
             rwd_dict['done'] = contact == 2
-
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
         return rwd_dict

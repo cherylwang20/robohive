@@ -27,16 +27,16 @@ import copy
 from robohive.physics.sim_scene import SimScene
 #import dm_control.mujoco as dm_mujoco
 
-from robohive.envs import env_base
+from robohive.envs import env_base_2
 from robohive.utils.quat_math import mat2euler, euler2quat
 
 from robohive.envs.arms.python_api_2 import BodyIdInfo, arm_control, get_touching_objects, ObjLabels
 
 
-class ReachBaseV0(env_base.MujocoEnv):
+class ReachBaseV0(env_base_2.MujocoEnv):
 
     DEFAULT_OBS_KEYS = [
-        'time', 'qp_robot', 'qv_robot'
+        'time', 'qp_robot', 'qv_robot', 'encoding'
     ]
     DEFAULT_PROPRIO_KEYS = [
         'qp_robot', 'qv_robot'
@@ -114,6 +114,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.total_pix = 0
         self.touch_success = 0
         self.single_touch = 0
+        self.one_hot = np.zeros(8)
         self.cx, self.cy = 0, 0
         
         if 'eval_mode' in kwargs:
@@ -135,6 +136,7 @@ class ReachBaseV0(env_base.MujocoEnv):
     def get_obs_dict(self, sim):
         obs_dict = {}
         obs_dict['time'] = np.array([self.sim.data.time])
+        obs_dict['encoding'] = np.array([self.one_hot])
         obs_dict['qp_robot'] = sim.data.qpos[:7].copy()
         obs_dict['qv_robot'] = sim.data.qvel[:7].copy()
         obs_dict['xmat_pinch'] = mat2euler(np.reshape(self.sim.data.site_xmat[self.grasp_sid], (3, 3)))
@@ -212,7 +214,6 @@ class ReachBaseV0(env_base.MujocoEnv):
             ('gripper_height',  gripper_height - 0.83),
             ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
-
         if not self.eval_mode:
             rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         else:
@@ -243,11 +244,15 @@ class ReachBaseV0(env_base.MujocoEnv):
         #randomly choose between the five objects; color it green, and the rest as white. 
         target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
         self.target_site_name = np.random.choice(target_sites)
+        target_site_index = target_sites.index(self.target_site_name)
         print(self.target_site_name)
         self.target_sid = self.sim.model.site_name2id(self.target_site_name) #object name
         current_directory = os.getcwd()
         self.object_image = cv.imread(current_directory + '/mj_envs/robohive/envs/arms/object_image/' + self.target_site_name + '.png', cv.IMREAD_COLOR)
         self.object_image = cv.cvtColor(self.object_image, cv.COLOR_BGR2RGB)
+        self.one_hot = np.zeros(8)
+        self.one_hot[target_site_index] = 1
+        print(self.one_hot)
 
         
         '''
@@ -263,7 +268,7 @@ class ReachBaseV0(env_base.MujocoEnv):
 
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
-        self.final_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 6), dtype=np.uint8)
+        self.final_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 3), dtype=np.uint8)
         self.color = np.random.choice(['green'])
         return {'image': self.final_image, 'vector': obs}
     
@@ -365,7 +370,7 @@ class ReachBaseV0(env_base.MujocoEnv):
             self.restore_state()
     
         self.object_image_normalized = self.object_image / 255
-        self.final_image = np.concatenate((self.current_image, self.object_image_normalized), axis=2)
+        self.final_image = self.current_image
 
         return self.forward(self.final_image, **kwargs)
     
