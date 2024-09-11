@@ -47,7 +47,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         'qp_robot', 'qv_robot'
     ]
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
-        "reach": -1, 
+        "reach": 1, 
         #"bonus": 1.0,
         "contact": 1,
         #"claw_ori": 1, 
@@ -55,7 +55,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #"target_dist": -1.0,
         #'gripper_height': 1,
         #'penalty': 1, #penalty is defined negative
-        'sparse': 0,
+        'sparse': 1,
         'solved': 0,
         "done": 10,
     }
@@ -209,7 +209,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
-            ('reach',  reach_dist),
+            ('reach',  total_pix),
             #('target_dist',   target_dist + np.log(target_dist + 1e-6)),
             ('claw_ori',  np.exp(-claw_rot_err**2)),
             #('obj_ori', np.exp(-obj_ori_err**2)),
