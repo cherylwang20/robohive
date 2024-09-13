@@ -14,10 +14,10 @@ We are using this as a testing ground for reaching with visual inputs.
 import collections
 #import mujoco as mp
 import os
+from torchvision.ops import box_convert
+import torch
 
 # Set environment variables
-os.environ['MUJOCO_GL'] = 'egl'
-os.environ['PYOPENGL_PLATFORM'] = 'egl'
 import gym
 import numpy as np
 import cv2 as cv
@@ -27,13 +27,13 @@ import copy
 from robohive.physics.sim_scene import SimScene
 #import dm_control.mujoco as dm_mujoco
 
-from robohive.envs import env_base
+from robohive.envs import env_base_1
 from robohive.utils.quat_math import mat2euler, euler2quat
 
 from robohive.envs.arms.python_api_2 import BodyIdInfo, arm_control, get_touching_objects, ObjLabels
 
 
-class ReachBaseV0(env_base.MujocoEnv):
+class ReachBaseV0(env_base_1.MujocoEnv):
 
     DEFAULT_OBS_KEYS = [
         'time', 'qp_robot', 'qv_robot'
@@ -105,23 +105,27 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.grasp_attempt = 0
         self.obj_init_z = self.sim.data.site_xpos[self.grasp_sid][-1]
         self.fixed_positions = None
-        self.cam_init = False
+        self.cam_init = True
+        self._setup_camera()
         self.color = np.random.choice(['green'])
-        self.current_image = np.ones((image_width, image_height, 3), dtype=np.uint8)
+        self.current_image = np.ones((image_width, image_height, 4), dtype=np.uint8)
         self.object_image = np.ones((image_width, image_height, 3), dtype=np.uint8)
         self.rgb_out = np.ones((image_height, image_width))
+        self.mask_out = np.ones((image_height, image_width))
         self.pixel_perc = 0
         self.total_pix = 0
         self.touch_success = 0
         self.single_touch = 0
         self.cx, self.cy = 0, 0
+        self.r = 0
+        self.depth = 0
         self.eval = False
-        
+
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
         else: 
             self.eval_mode = False
-        
+
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
 
         super()._setup(obs_keys=obs_keys,
@@ -177,6 +181,7 @@ class ReachBaseV0(env_base.MujocoEnv):
     
     def get_reward_dict(self, obs_dict):
         reach_dist = np.linalg.norm(obs_dict['reach_err'], axis=-1)[0]
+        self.depth = reach_dist
         total_pix = np.linalg.norm(obs_dict['total_pix'], axis=-1)[0]
         #target_dist = np.linalg.norm(obs_dict['target_err'], axis=-1)[0]
         claw_rot_err = np.linalg.norm(obs_dict['claw_ori_err'], axis=-1)[0]
@@ -195,10 +200,11 @@ class ReachBaseV0(env_base.MujocoEnv):
             if self.touch_success == 1:
                 print('grasping')
             self.touch_success +=1
-        #print(reach_dist)
+        #print(contact)
+        #power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
-            ('reach',  reach_dist),
+            ('reach',  reach_dist ),
             #('target_dist',   target_dist + np.log(target_dist + 1e-6)),
             ('claw_ori',  np.exp(-claw_rot_err**2)),
             #('obj_ori', np.exp(-obj_ori_err**2)),
@@ -213,13 +219,11 @@ class ReachBaseV0(env_base.MujocoEnv):
             ('gripper_height',  gripper_height - 0.83),
             ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
-
         if not self.eval_mode:
             rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         else:
             rwd_dict['dense'] = 1.0 if contact == 2 else 0
             rwd_dict['done'] = contact == 2
-
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
         return rwd_dict
@@ -240,11 +244,17 @@ class ReachBaseV0(env_base.MujocoEnv):
             object_qpos_adr = self.sim.model.body(self.object_bid).jntadr[0]
             self.sim.data.qpos[object_qpos_adr:object_qpos_adr+3] = new_pos
         '''
-        if self.eval: 
+
+        #randomly choose between the five objects; color it green, and the rest as white. 
+        if self.eval:
             target_sites = ['object_6', 'object_7', 'object_8']
+            target_names = ['banana', 'alarm clock', 'cup']
+            number = np.random.randint(0, 3)
         else:
             target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
-        self.target_site_name = np.random.choice(target_sites)
+            target_names = ['apple', 'block', 'beaker', 'donut', 'rubber duck']
+            number = np.random.randint(0, 5)
+        self.target_site_name = target_sites[number]
         print(self.target_site_name)
         self.target_sid = self.sim.model.site_name2id(self.target_site_name) #object name
         current_directory = os.getcwd()
@@ -265,7 +275,7 @@ class ReachBaseV0(env_base.MujocoEnv):
 
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
-        self.final_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 6), dtype=np.uint8)
+        self.final_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 4), dtype=np.uint8)
         self.color = np.random.choice(['green'])
         return {'image': self.final_image, 'vector': obs}
     
@@ -282,7 +292,10 @@ class ReachBaseV0(env_base.MujocoEnv):
             width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show
         )
         #depth = self.depth_2_meters(depth) #we don't need this, already in meters
-        #site_pos = self.sim.data.site_xpos[self.target_sid]
+        site_pos = self.sim.data.site_xpos[self.target_sid]
+        pixel_x, pixel_y, radius = self.world_2_pixel(site_pos)
+        self.cx, self.cy = pixel_x, pixel_y
+        self.r = radius
         #pixel_x, pixel_y = self.world_2_pixel(site_pos)
 
         observation = {}
@@ -367,12 +380,23 @@ class ReachBaseV0(env_base.MujocoEnv):
             self.restore_state()
     
         self.object_image_normalized = self.object_image / 255
-        self.final_image = np.concatenate((self.current_image, self.object_image_normalized), axis=2)
+        self.final_image = self.current_image
 
         return self.forward(self.final_image, **kwargs)
     
     def set_color(self, color):
             self.color = color
+    
+    def render(self, mode='rgb_array'):
+        # Your implementation here, which should return an RGB array if mode is 'rgb_array'
+        mode='rgb_array'
+        if mode == 'rgb_array':
+            rgb, depth = copy.deepcopy(
+            self.sim.renderer.render_offscreen(width=224, height=224, camera_id='end_effector_cam', depth = True)
+            )
+            return rgb
+        else:
+            super().render(mode)
     
     def get_image_data(self, show=False, camera="end_effector_cam", width=224, height=224):
         """
@@ -390,53 +414,33 @@ class ReachBaseV0(env_base.MujocoEnv):
             self.sim.renderer.render_offscreen(width=width, height=height, camera_id=camera, depth = True)
         )
 
-        #self.rgb_out = rgb_out
+        self.rgb_out = rgb
 
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
         blurred = cv.GaussianBlur(rgb, (11, 11), 0)
         hsv = cv.cvtColor(blurred, cv.COLOR_BGR2HSV)
-        # construct a mask for the color "green", then perform
-        # a series of dilations and erosions to remove any small
-        # blobs left in the mask
-        # we might want to add a series of color to identify e.g., green, blue, red, yellow. 
+        mask = np.zeros(( self.IMAGE_HEIGHT,  self.IMAGE_HEIGHT), dtype=np.uint8)
+        x, y = self.cx, self.cy
+        half_side = int(self.r)
+        cv.rectangle(mask, (224 - x - half_side, y - half_side), (224- x + half_side, y + half_side), 255, thickness=-1)
+
+        self.mask_out = mask
+
+        #print(self.TEXT_PROMPT, boxes, logits, phrases)
+
+        # Display the mask
+        '''
+        cv.imshow('Mask', mask)
+        cv.imshow("rbg", rgb)
+        cv.waitKey(1)
+        cv.waitKey(delay=5000)
+        cv.destroyAllWindows()
+        '''
+
+        self.current_image = np.concatenate((rgb/255, np.expand_dims(mask/255, axis=-1)), axis=2)
+
+        #print(self.current_image.shape)
         
-        if self.single_touch < 1:
-            if self.color == 'red':
-                Lower = (0, 50, 50)
-                Upper = (7, 255, 245)
-            elif self.color == 'green':
-                Lower = (29, 86, 56)
-                Upper = (64, 255, 255)
-            elif self.color == 'blue':
-                Lower = (80, 50, 20)
-                Upper = (100, 255, 255)
-            else:
-                raise Warning('please define a valid color (red, gree, blue)')
-        else:
-            #print(self.touch_success)
-            Lower = (0, 0, 0)
-            Upper = (0, 0, 0)
-        mask = cv.inRange(hsv, Lower, Upper)
-        mask = cv.erode(mask, None, iterations=2)
-        mask = cv.dilate(mask, None, iterations=2)
-        self.current_image = rgb/255 #np.concatenate((rgb/255, np.expand_dims(mask/255, axis=-1)), axis=2)
-        
-        contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-
-
-        if contours:
-            cnt = max(contours, key = cv.contourArea)
-
-            # Calculate the centroid of the contour
-            M = cv.moments(cnt)
-            if M['m00'] != 0:
-                self.cx = int(M['m10']/M['m00'])
-                self.cy = int(M['m01']/M['m00'])
-        #else:
-            #self.cx, self.cy = 0, 224
-        
-        self.pixel_dis = np.abs(np.linalg.norm(np.array([100, 100]) - np.array([self.cx, self.cy])))
-
         #define the grasping rectangle
         x1, y1 = int(63/200 * self.IMAGE_HEIGHT), self.IMAGE_HEIGHT - int(68/200 * self.IMAGE_HEIGHT)
         x2, y2 = int(136/200 * self.IMAGE_HEIGHT), self.IMAGE_HEIGHT 
@@ -450,10 +454,11 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.pixel_perc = (white_pixels / total_pixels) * 100
         self.total_pix = (np.sum(mask==255)/mask.size) * 100
 
+
+        print('total pixel',self.total_pix)
+
         #print(f"Percentage of white pixels in the rectangle: {self.pixel_perc:.2f}%")
-        if show:
-            cv.circle(rgb, (self.cx, self.cy), 1, (0, 0, 255), -1)
-            cv.circle(rgb, (100, 100), 1, (0, 255, 0), -1)
+        #if show:
             #cv.imshow("rbg", rgb)# cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
             #cv.imshow("mask", mask)
             #cv.imshow('Inverted Colored Depth', depth_normalized)
@@ -463,18 +468,6 @@ class ReachBaseV0(env_base.MujocoEnv):
 
         return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
 
-    def render(self, mode='rgb_array'):
-        # Your implementation here, which should return an RGB array if mode is 'rgb_array'
-        mode='rgb_array'
-        if mode == 'rgb_array':
-            rgb, depth = copy.deepcopy(
-            self.sim.renderer.render_offscreen(width=224, height=224, camera_id='end_effector_cam', depth = True)
-            )
-            return rgb
-        else:
-            super().render(mode)
-
-    '''
     def depth_2_meters(self, depth):
         """
         Converts the depth array delivered by MuJoCo (values between 0 and 1) into actual m values.
@@ -483,7 +476,7 @@ class ReachBaseV0(env_base.MujocoEnv):
             depth: The depth array to be converted.
         """
         current_directory = os.getcwd()
-        self.model = mp.MjModel.from_xml_path(current_directory + "/mj_envs/robohive/envs/arms/ur10e/scene_gripper.xml")
+        self.model = mp.MjModel.from_xml_path(current_directory + "/mj_envs/robohive/envs/arms/ur10e/scene_chem.xml")
         extend = self.model.stat.extent
         near = self.model.vis.map.znear * extend
         far = self.model.vis.map.zfar * extend
@@ -551,10 +544,28 @@ class ReachBaseV0(env_base.MujocoEnv):
         
         self.cam_rot_mat = self.sim.data.cam_xmat[self.sim.model.camera_name2id(camera)].reshape(3, 3)
 
-        # Homogeneous image point
-        hom_pixel = self.cam_matrix @ self.cam_rot_mat @ (world_coordinate - self.cam_pos)
-        # Real image point
-        pixel = hom_pixel[:2] / hom_pixel[2]
+        
+        cam_coord = self.cam_rot_mat.T @ (world_coordinate - self.cam_pos)
+    
 
-        return np.round(pixel[0]).astype(int), np.round(pixel[1]).astype(int)
-    '''
+        # Project to image plane
+        hom_pixel = self.cam_matrix @ cam_coord
+        # Real image point
+        if hom_pixel[2] != 0:
+            pixel = hom_pixel[:2] / hom_pixel[2]
+        else:
+            pixel = hom_pixel[:2]  # Avoid division by zero
+        radius = self.calculate_radius(self.depth)
+        return np.round(pixel[0]).astype(int), np.round(pixel[1]).astype(int), radius
+    
+    def calculate_radius(self, d_depth):
+        """
+        Calculates the radius based on the depth.
+        The function can be adjusted based on empirical data or desired visualization effect.
+        """
+        base_radius = 20  # Maximum radius when object is at depth zero
+        if d_depth > 0:
+            radius = base_radius*0.2/d_depth
+            return radius  # Example function: Decrease radius with depth
+        else:
+            return 5

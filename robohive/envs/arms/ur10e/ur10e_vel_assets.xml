@@ -29,6 +29,30 @@
         <mesh name="t_contact2" file="../../../../simhive/object_sim/torusmedium/contact2.stl"/>
         <mesh name="t_contact3" file="../../../../simhive/object_sim/torusmedium/contact3.stl"/>
         <mesh name="t_contact4" file="../../../../simhive/object_sim/torusmedium/contact4.stl"/>
+        <mesh name="alarmclock" file="../../../../simhive/object_sim/alarmclock/alarmclock.stl"/>
+        <mesh name="al_contact0" file="../../../../simhive/object_sim/alarmclock/contact0.stl"/>
+        <mesh name="banana" file="../../../../simhive/object_sim/banana/banana.stl"/>
+        <mesh name="b_contact0" file="../../../../simhive/object_sim/banana/contact0.stl"/>
+        <mesh name="b_contact1" file="../../../../simhive/object_sim/banana/contact1.stl"/>
+        <mesh name="b_contact2" file="../../../../simhive/object_sim/banana/contact2.stl"/>
+        <mesh name="b_contact3" file="../../../../simhive/object_sim/banana/contact3.stl"/>
+        <mesh name="b_contact4" file="../../../../simhive/object_sim/banana/contact4.stl"/>
+        <mesh name="lightbulb" file="../../../../simhive/object_sim/lightbulb/lightbulb.stl"/>
+        <mesh name="l_contact0" file="../../../../simhive/object_sim/lightbulb/contact0.stl"/>
+        <mesh name="l_contact1" file="../../../../simhive/object_sim/lightbulb/contact1.stl"/>
+        <mesh name="cup" file="../../../../simhive/object_sim/cup/cup.stl"/>
+        <mesh name="p_contact0" file="../../../../simhive/object_sim/cup/contact0.stl"/>
+        <mesh name="p_contact1" file="../../../../simhive/object_sim/cup/contact1.stl"/>
+        <mesh name="p_contact2" file="../../../../simhive/object_sim/cup/contact2.stl"/>
+        <mesh name="p_contact3" file="../../../../simhive/object_sim/cup/contact3.stl"/>
+        <mesh name="p_contact4" file="../../../../simhive/object_sim/cup/contact4.stl"/>
+        <mesh name="p_contact5" file="../../../../simhive/object_sim/cup/contact5.stl"/>
+        <mesh name="p_contact6" file="../../../../simhive/object_sim/cup/contact6.stl"/>
+        <mesh name="p_contact7" file="../../../../simhive/object_sim/cup/contact7.stl"/>
+        <mesh name="p_contact8" file="../../../../simhive/object_sim/cup/contact8.stl"/>
+        <mesh name="p_contact9" file="../../../../simhive/object_sim/cup/contact9.stl"/>
+        <mesh name="p_contact10" file="../../../../simhive/object_sim/cup/contact10.stl"/>
+        <mesh name="p_contact11" file="../../../../simhive/object_sim/cup/contact11.stl"/>
 
         <mesh file="beaker_thick_0.obj"/>
         <mesh file="beaker_thick_1.obj"/>

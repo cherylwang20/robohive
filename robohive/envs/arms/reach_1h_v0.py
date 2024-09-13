@@ -116,6 +116,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         self.single_touch = 0
         self.one_hot = np.zeros(8)
         self.cx, self.cy = 0, 0
+        self.eval = False
         
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -241,8 +242,14 @@ class ReachBaseV0(env_base_2.MujocoEnv):
             self.sim.data.qpos[object_qpos_adr:object_qpos_adr+3] = new_pos
         '''
 
-        #randomly choose between the five objects; color it green, and the rest as white. 
-        target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
+        if self.eval:
+            target_sites = ['object_6', 'object_7', 'object_8']
+            self.one_hot = np.zeros(8)
+            self.one_hot[target_site_index + 5] = 1
+        else:
+            target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
+            self.one_hot = np.zeros(8)
+            self.one_hot[target_site_index] = 1
         self.target_site_name = np.random.choice(target_sites)
         target_site_index = target_sites.index(self.target_site_name)
         print(self.target_site_name)
@@ -250,8 +257,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         current_directory = os.getcwd()
         self.object_image = cv.imread(current_directory + '/mj_envs/robohive/envs/arms/object_image/' + self.target_site_name + '.png', cv.IMREAD_COLOR)
         self.object_image = cv.cvtColor(self.object_image, cv.COLOR_BGR2RGB)
-        self.one_hot = np.zeros(8)
-        self.one_hot[target_site_index] = 1
+
         print(self.one_hot)
 
         

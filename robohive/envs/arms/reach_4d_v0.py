@@ -126,6 +126,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.BOX_THRESHOLD = 0.4
         self.TEXT_THRESHOLD = 0.25
         self.TEXT_PROMPT = 'apple'
+        self.eval = False
 
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -251,9 +252,14 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         '''
 
         #randomly choose between the five objects; color it green, and the rest as white. 
-        target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
-        target_names = ['apple', 'block', 'beaker', 'donut', 'rubber duck']
-        number = np.random.randint(1, 5)
+        if self.eval:
+            target_sites = ['object_6', 'object_7', 'object_8']
+            target_names = ['banana', 'alarm clock', 'cup']
+            number = np.random.randint(0, 3)
+        else:
+            target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
+            target_names = ['apple', 'block', 'beaker', 'donut', 'rubber duck']
+            number = np.random.randint(0, 5)
         self.target_site_name = target_sites[number]
         self.TEXT_PROMPT = target_names[number]
         self.target_sid = self.sim.model.site_name2id(self.target_site_name) #object name
