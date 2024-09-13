@@ -16,8 +16,8 @@ import collections
 import os
 import sys
 import groundingdino
-from groundingdino.util.inference import load_model, load_image, predict, annotate
-import groundingdino.datasets.transforms as T
+# from groundingdino.util.inference import load_model, load_image, predict, annotate
+# import groundingdino.datasets.transforms as T
 from PIL import Image, ImageDraw
 from torchvision.ops import box_convert
 import torch
@@ -130,7 +130,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         else: 
             self.eval_mode = False
             
-        self.mask_model = load_model( "./GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py", "./GroundingDINO/weights/groundingdino_swint_ogc.pth")
+        # self.mask_model = load_model( "./GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py", "./GroundingDINO/weights/groundingdino_swint_ogc.pth")
         self.BOX_THRESHOLD = 0.4
         self.TEXT_THRESHOLD = 0.25
         self.TEXT_PROMPT = 'apple'
@@ -417,7 +417,10 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         
         mask = np.zeros(( self.IMAGE_HEIGHT,  self.IMAGE_HEIGHT), dtype=np.uint8)
         x, y = self.cx, self.cy
-        half_side = int(self.r)
+        if isinstance(self.r, np.ndarray):
+            half_side = int(self.r.item())
+        else:
+            half_side = int(self.r)
         cv.rectangle(mask, (224 - x - half_side, y - half_side), (224- x + half_side, y + half_side), 255, thickness=-1)
 
         self.mask_out = mask
