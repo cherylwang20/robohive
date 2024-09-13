@@ -193,6 +193,7 @@ class ReachBaseV0(env_base.MujocoEnv):
     def get_reward_dict(self, obs_dict):
         reach_dist = np.linalg.norm(obs_dict['reach_err'], axis=-1)[0]
         self.depth = reach_dist
+        #print(self.depth)
         total_pix = np.linalg.norm(obs_dict['total_pix'], axis=-1)[0]
         #target_dist = np.linalg.norm(obs_dict['target_err'], axis=-1)[0]
         claw_rot_err = np.linalg.norm(obs_dict['claw_ori_err'], axis=-1)[0]
@@ -262,8 +263,9 @@ class ReachBaseV0(env_base.MujocoEnv):
         #randomly choose between the five objects; color it green, and the rest as white. 
         target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
         target_names = ['apple', 'block', 'beaker', 'donut', 'rubber duck']
-        number = np.random.randint(1, 5)
+        number = np.random.randint(0, 5)
         self.target_site_name = target_sites[number]
+        print(self.target_site_name)
         self.TEXT_PROMPT = target_names[number]
         self.target_sid = self.sim.model.site_name2id(self.target_site_name) #object name
         current_directory = os.getcwd()
@@ -413,7 +415,7 @@ class ReachBaseV0(env_base.MujocoEnv):
 
         
 
-        #self.rgb_out = rgb_out
+        self.rgb_out = rgb
 
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
         blurred = cv.GaussianBlur(rgb, (11, 11), 0)
@@ -486,7 +488,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.pixel_perc = (white_pixels / total_pixels) * 100
         self.total_pix = (np.sum(mask==255)/mask.size) * 100
 
-        print('total pixel', self.total_pix)
+        #print('total pixel', self.total_pix)
         
 
         return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))

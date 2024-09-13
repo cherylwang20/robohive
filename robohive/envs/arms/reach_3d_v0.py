@@ -115,7 +115,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.touch_success = 0
         self.single_touch = 0
         self.cx, self.cy = 0, 0
-        self.eval = False
+        self.eval = True
         
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -130,7 +130,7 @@ class ReachBaseV0(env_base.MujocoEnv):
                        reward_mode=reward_mode,
                        frame_skip=frame_skip,
                        **kwargs)
-        self.init_qpos[:] = self.sim.model.key_qpos[1].copy()
+        self.init_qpos[:] = self.sim.model.key_qpos[2].copy()
 
 
     def get_obs_dict(self, sim):
@@ -209,7 +209,7 @@ class ReachBaseV0(env_base.MujocoEnv):
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
-            ('solved',  np.array([self.touch_success]) >= 20 and contact == 2),
+            ('solved',  contact == 2),#np.array([self.touch_success]) >= 20 and contact == 2),
             ('gripper_height',  gripper_height - 0.83),
             ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
@@ -390,7 +390,7 @@ class ReachBaseV0(env_base.MujocoEnv):
             self.sim.renderer.render_offscreen(width=width, height=height, camera_id=camera, depth = True)
         )
 
-        #self.rgb_out = rgb_out
+        self.rgb_out = rgb
 
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
         blurred = cv.GaussianBlur(rgb, (11, 11), 0)
