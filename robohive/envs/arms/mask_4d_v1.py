@@ -16,8 +16,8 @@ import collections
 import os
 import sys
 import groundingdino
-from groundingdino.util.inference import load_model, load_image, predict, annotate
-import groundingdino.datasets.transforms as T
+# from groundingdino.util.inference import load_model, load_image, predict, annotate
+# import groundingdino.datasets.transforms as T
 from PIL import Image, ImageDraw
 from torchvision.ops import box_convert
 import torch
@@ -56,8 +56,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #'gripper_height': 1,
         #'penalty': 1, #penalty is defined negative
         'sparse': 1,
-        'solved': 10,
-        "done": 100,
+        'solved': 1,
+        "done": 10,
     }
 
 
@@ -130,7 +130,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         else: 
             self.eval_mode = False
             
-        self.mask_model = load_model( "./GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py", "./GroundingDINO/weights/groundingdino_swint_ogc.pth")
+        # self.mask_model = load_model( "./GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py", "./GroundingDINO/weights/groundingdino_swint_ogc.pth")
         self.BOX_THRESHOLD = 0.4
         self.TEXT_THRESHOLD = 0.25
         self.TEXT_PROMPT = 'apple'
@@ -219,14 +219,14 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             #('obj_ori', np.exp(-obj_ori_err**2)),
             #('obj_ori',   -(obj_rot_err[0])**2), 
             #('bonus',   total_pix > 10),
-            ('contact', contact),
+            ('contact', contact == 2),
             ('penalty', np.array([-1])),
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
             ('solved',  np.array([self.touch_success]) >= 20 and contact == 2),
             ('gripper_height',  gripper_height - 0.83),
-            ('done', obj_height  - self.obj_init_z > 0.2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
+            ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
         #print(pix_perc, total_pix)
         #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
@@ -417,7 +417,10 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         
         mask = np.zeros(( self.IMAGE_HEIGHT,  self.IMAGE_HEIGHT), dtype=np.uint8)
         x, y = self.cx, self.cy
-        half_side = int(self.r)
+        if isinstance(self.r, np.ndarray):
+            half_side = int(self.r.item())
+        else:
+            half_side = int(self.r)
         cv.rectangle(mask, (224 - x - half_side, y - half_side), (224- x + half_side, y + half_side), 255, thickness=-1)
 
         self.mask_out = mask

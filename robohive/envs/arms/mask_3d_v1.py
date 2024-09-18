@@ -32,8 +32,8 @@ from robohive.utils.quat_math import mat2euler, euler2quat
 
 from robohive.envs.arms.python_api_2 import BodyIdInfo, arm_control, get_touching_objects, ObjLabels
 
-from groundingdino.util.inference import load_model, load_image, predict, annotate
-import groundingdino.datasets.transforms as T
+# from groundingdino.util.inference import load_model, load_image, predict, annotate
+# import groundingdino.datasets.transforms as T
 from PIL import Image, ImageDraw
 
 from torchvision.ops import box_convert
@@ -58,8 +58,8 @@ class ReachBaseV0(env_base.MujocoEnv):
         #'gripper_height': 1,
         #'penalty': 1, #penalty is defined negative
         'sparse': 1,
-        'solved': 10,
-        "done": 100,
+        'solved': 1,
+        "done": 10,
     }
 
 
@@ -131,7 +131,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         else: 
             self.eval_mode = False
         
-        self.mask_model = load_model( "./GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py", "./GroundingDINO/weights/groundingdino_swint_ogc.pth")
+        # self.mask_model = load_model( "./GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py", "./GroundingDINO/weights/groundingdino_swint_ogc.pth")
             
         self.BOX_THRESHOLD = 0.4
         self.TEXT_THRESHOLD = 0.25
@@ -195,13 +195,18 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.depth = reach_dist
         #print(self.depth)
         total_pix = np.linalg.norm(obs_dict['total_pix'], axis=-1)[0]
+
         #target_dist = np.linalg.norm(obs_dict['target_err'], axis=-1)[0]
         claw_rot_err = np.linalg.norm(obs_dict['claw_ori_err'], axis=-1)[0]
+        
         #obj_ori_err = np.linalg.norm(obs_dict['obj_ori_err'], axis=-1)[0]
         #print(claw_rot_err)
         obj_height = np.array([self.sim.data.site_xpos[self.target_sid][-1]])
+        
         gripper_height = np.array([self.sim.data.site_xpos[self.grasp_sid][-1]])
+        
         pix_perc = np.array([self.pixel_perc - 2.4234])/10
+
         contact = np.array([np.sum(obs_dict["touching_body"][0][0][:2])])
         #print(contact)
         if contact == 1:
@@ -221,14 +226,14 @@ class ReachBaseV0(env_base.MujocoEnv):
             #('obj_ori', np.exp(-obj_ori_err**2)),
             #('obj_ori',   -(obj_rot_err[0])**2), 
             #('bonus',   total_pix > 10),
-            ('contact', contact),
+            ('contact', contact==2),
             ('penalty', np.array([-1])),
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
             ('solved',  np.array([self.touch_success]) >= 20 and contact == 2),
             ('gripper_height',  gripper_height - 0.83),
-            ('done', obj_height  - self.obj_init_z > 0.2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
+            ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
         #print(pix_perc, total_pix)
         #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
@@ -241,6 +246,8 @@ class ReachBaseV0(env_base.MujocoEnv):
               
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
+        
+
         return rwd_dict
     
     def reset(self, reset_qpos=None, reset_qvel=None, **kwargs):
@@ -298,7 +305,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         Args:
             show: If True, displays the observation in a cv2 window.
         """
-
+        
         rgb, depth = self.get_image_data(
             width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show
         )
@@ -314,7 +321,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         #print(np.array([depth[pixel_y][pixel_x]]), np.array([depth[pixel_y][224 - pixel_x]]))
         #observation["pixel_coords"] = [pixel_x, pixel_y]
         #print('pixel coords,', pixel_x, pixel_y)
-
+        
         return observation
 
     #setting a boundary of virtual box such that the arm will not accidentally
@@ -413,8 +420,6 @@ class ReachBaseV0(env_base.MujocoEnv):
             self.sim.renderer.render_offscreen(width=width, height=height, camera_id=camera, depth = True)
         )
 
-        
-
         self.rgb_out = rgb
 
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
@@ -423,7 +428,11 @@ class ReachBaseV0(env_base.MujocoEnv):
 
         mask = np.zeros(( self.IMAGE_HEIGHT,  self.IMAGE_HEIGHT), dtype=np.uint8)
         x, y = self.cx, self.cy
-        half_side = int(self.r)
+        if isinstance(self.r, np.ndarray):
+            half_side = int(self.r.item())
+        else:
+            half_side = int(self.r)
+            
         cv.rectangle(mask, (224 - x - half_side, y - half_side), (224- x + half_side, y + half_side), 255, thickness=-1)
 
         self.mask_out = mask
@@ -469,9 +478,6 @@ class ReachBaseV0(env_base.MujocoEnv):
         #     #self.cx, self.cy = 0, 224
         
         # self.pixel_dis = np.abs(np.linalg.norm(np.array([100, 100]) - np.array([self.cx, self.cy])))
-
-
-        
  
         # self.current_image = np.concatenate((rgb/255, np.expand_dims(mask/255, axis=-1)), axis=2)
 
@@ -487,6 +493,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         total_pixels = roi.size
         self.pixel_perc = (white_pixels / total_pixels) * 100
         self.total_pix = (np.sum(mask==255)/mask.size) * 100
+        
 
         #print('total pixel', self.total_pix)
         
