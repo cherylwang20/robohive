@@ -126,7 +126,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.BOX_THRESHOLD = 0.4
         self.TEXT_THRESHOLD = 0.25
         self.TEXT_PROMPT = 'apple'
-        self.eval = False
+        self.eval = True
 
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -261,6 +261,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             target_names = ['apple', 'block', 'beaker', 'donut', 'rubber duck']
             number = np.random.randint(0, 5)
         self.target_site_name = target_sites[number]
+        print(self.target_site_name)
         self.TEXT_PROMPT = target_names[number]
         self.target_sid = self.sim.model.site_name2id(self.target_site_name) #object name
         current_directory = os.getcwd()
@@ -421,6 +422,10 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             box_threshold=self.BOX_THRESHOLD,
             text_threshold=self.TEXT_THRESHOLD
             )
+        print(logits)
+        if logits.nelement() > 0:
+            max, indices = torch.max(logits, dim = 0)
+            boxes = boxes[0:indices]
         
         mask = np.zeros((self.IMAGE_HEIGHT, self.IMAGE_HEIGHT, 1), dtype=np.uint8)
 
@@ -457,7 +462,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.total_pix = (np.sum(mask==255)/mask.size) * 100
 
 
-        print('total pixel',self.total_pix)
+        #print('total pixel',self.total_pix)
 
         #print(f"Percentage of white pixels in the rectangle: {self.pixel_perc:.2f}%")
         if show:
@@ -495,6 +500,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         # Create a black mask
         mask = np.zeros((h, w), dtype=np.uint8)
+
 
         # Draw each box as a white rectangle on the mask
         for box in xyxy:

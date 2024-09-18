@@ -27,13 +27,13 @@ import copy
 from robohive.physics.sim_scene import SimScene
 #import dm_control.mujoco as dm_mujoco
 
-from robohive.envs import env_base_1
+from robohive.envs import env_base_3
 from robohive.utils.quat_math import mat2euler, euler2quat
 
 from robohive.envs.arms.python_api_2 import BodyIdInfo, arm_control, get_touching_objects, ObjLabels
 
 
-class ReachBaseV0(env_base_1.MujocoEnv):
+class ReachBaseV0(env_base_3.MujocoEnv):
 
     DEFAULT_OBS_KEYS = [
         'time', 'qp_robot', 'qv_robot'
@@ -120,7 +120,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.r = 0
         self.depth = 0
         self.eval = False
-        
 
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -216,7 +215,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
-            ('solved',  np.array([self.single_touch]) >= 1),
+            ('solved',  np.array([self.touch_success]) >= 20 and contact == 2),
             ('gripper_height',  gripper_height - 0.83),
             ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
@@ -237,6 +236,14 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.touch_success = 0
         self.single_touch = 0
         self.cx, self.cy = 0, 0
+        '''
+        if self.obj_xyz_range is not None:        
+            reset_qpos = self.sim.model.key_qpos[1].copy()
+            new_pos = self.np_random.uniform(**self.obj_xyz_range)
+            self.sim.model.body_pos[self.object_bid] = new_pos
+            object_qpos_adr = self.sim.model.body(self.object_bid).jntadr[0]
+            self.sim.data.qpos[object_qpos_adr:object_qpos_adr+3] = new_pos
+        '''
 
         #randomly choose between the five objects; color it green, and the rest as white. 
         if self.eval:
@@ -254,43 +261,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.object_image = cv.imread(current_directory + '/mj_envs/robohive/envs/arms/object_image/' + self.target_site_name + '.png', cv.IMREAD_COLOR)
         self.object_image = cv.cvtColor(self.object_image, cv.COLOR_BGR2RGB)
 
-        obj_xyz_ranges = {
-            'object_1': {'low': [-0.15, -0.15, 0], 'high': [0.15, 0.15, 0]},
-            'object_2': {'low': [-0.14, -0.14, 0], 'high': [0.1, 0.1, 0]},
-            'object_3': {'low': [-0.1, -0.1, 0], 'high': [0.13, 0.13, 0]},
-            'object_4': {'low': [-0.07, -0.07, 0], 'high': [0.07, 0.07, 0]},
-            'object_5': {'low': [-0.1, -0.12, 0], 'high': [0.12, 0.08, 0]}
-        }
-
-        reset_qpos = self.sim.model.key_qpos[1].copy()
-        for obj_name in target_sites:
-            objec_bid = self.sim.model.body_name2id(obj_name)  # get body ID using object name
-            object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
-            object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
-            initial_pos = reset_qpos[object_qpos_adr:object_qpos_adr + 3]  # copy the initial position
-            z_coord = initial_pos[2]  # get the fixed z-coordinate from the initial position
-
-            # Generate new x, y positions within specified ranges, keeping z constant
-            new_x, new_y = np.random.uniform(
-                low=[obj_xyz_ranges[obj_name]['low'][0], obj_xyz_ranges[obj_name]['low'][1]],
-                high=[obj_xyz_ranges[obj_name]['high'][0], obj_xyz_ranges[obj_name]['high'][1]],
-                size=2
-            )
-            new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
-
-            # Set the new position in the simulation
-            #self.sim.model.body_pos[objec_bid] = new_pos
-            reset_qpos[object_qpos_adr:object_qpos_adr + 3] = new_pos
-            if obj_name == 'object_4': 
-                objec_bid = self.sim.model.body_name2id('base_rbf')  # get body ID using object name
-                object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
-                object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
-                new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
-                initial_pos = reset_qpos[object_qpos_adr:object_qpos_adr + 3]  # copy the initial position
-                z_coord = initial_pos[2]  # get the fixed z-coordinate from the initial position
-                new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
-                reset_qpos[object_qpos_adr:object_qpos_adr + 3] = new_pos
-        
         
         '''
         for object_name in target_sites:
@@ -305,7 +275,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
-        self.final_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 4), dtype=np.uint8)
+        self.final_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 7), dtype=np.uint8)
         self.color = np.random.choice(['green'])
         return {'image': self.final_image, 'vector': obs}
     
@@ -410,7 +380,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             self.restore_state()
     
         self.object_image_normalized = self.object_image / 255
-        self.final_image = self.current_image
+        self.final_image = np.concatenate((self.current_image, self.object_image_normalized), axis=2)
 
         return self.forward(self.final_image, **kwargs)
     
@@ -488,7 +458,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.total_pix = (np.sum(mask==255)/mask.size) * 100
 
 
-        #print('total pixel',self.total_pix)
+        print('total pixel',self.total_pix)
 
         #print(f"Percentage of white pixels in the rectangle: {self.pixel_perc:.2f}%")
         #if show:
