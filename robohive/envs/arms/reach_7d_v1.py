@@ -16,7 +16,7 @@ import collections
 import os
 from torchvision.ops import box_convert
 import torch
-
+import random
 # Set environment variables
 import gym
 import numpy as np
@@ -31,7 +31,7 @@ from robohive.envs import env_base_3
 from robohive.utils.quat_math import mat2euler, euler2quat
 
 from robohive.envs.arms.python_api_2 import BodyIdInfo, arm_control, get_touching_objects, ObjLabels
-
+from PIL import Image
 
 class ReachBaseV0(env_base_3.MujocoEnv):
 
@@ -108,8 +108,8 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         self.cam_init = True
         self._setup_camera()
         self.color = np.random.choice(['green'])
-        self.current_image = np.ones((image_width, image_height, 4), dtype=np.uint8)
-        self.object_image = np.ones((image_width, image_height, 3), dtype=np.uint8)
+        self.current_image = np.ones((224, 224, 4), dtype=np.uint8)
+        self.object_image = np.ones((224, 224, 3), dtype=np.uint8)
         self.rgb_out = np.ones((image_height, image_width))
         self.mask_out = np.ones((image_height, image_width))
         self.pixel_perc = 0
@@ -118,6 +118,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         self.single_touch = 0
         self.cx, self.cy = 0, 0
         self.r = 0
+
         self.depth = 0
         self.eval = False
 
@@ -226,6 +227,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
             rwd_dict['done'] = contact == 2
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
+
         return rwd_dict
     
     def reset(self, reset_qpos=None, reset_qvel=None, **kwargs):
@@ -247,8 +249,8 @@ class ReachBaseV0(env_base_3.MujocoEnv):
 
         #randomly choose between the five objects; color it green, and the rest as white. 
         if self.eval:
-            target_sites = ['object_6', 'object_7', 'object_8']
-            target_names = ['banana', 'alarm clock', 'cup']
+            target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1']
+            target_names = ['banana', 'alarm clock', 'cup', 'donut', 'apple']
             number = np.random.randint(0, 3)
         else:
             target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
@@ -262,7 +264,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         self.object_image = cv.cvtColor(self.object_image, cv.COLOR_BGR2RGB)
 
         obj_xyz_ranges = {
-            'object': {'low': [-0.15, -0.15, 0], 'high': [0.15, 0.15, 0]},
+            'object': {'low': [-0.1, -0.1, 0], 'high': [0.1, 0.1, 0]},
         }
 
         new_x, new_y = np.random.uniform(
@@ -272,6 +274,8 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         )
 
         reset_qpos = self.sim.model.key_qpos[1].copy()
+        position_vec = []
+
         for obj_name in target_sites:
             objec_bid = self.sim.model.body_name2id(obj_name)  # get body ID using object name
             object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
@@ -280,9 +284,13 @@ class ReachBaseV0(env_base_3.MujocoEnv):
             z_coord = initial_pos[2]  # get the fixed z-coordinate from the initial position
 
             # Generate new x, y positions within specified ranges, keeping z constant
-
             new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
-
+            if obj_name == 'object_4': 
+                beak_pos = new_pos
+                beak_pos[-1] -= 0.05
+                position_vec.append(beak_pos)
+            else:
+                position_vec.append(new_pos)
             # Set the new position in the simulation
             #self.sim.model.body_pos[objec_bid] = new_pos
             reset_qpos[object_qpos_adr:object_qpos_adr + 3] = new_pos
@@ -295,22 +303,29 @@ class ReachBaseV0(env_base_3.MujocoEnv):
                 z_coord = initial_pos[2]  # get the fixed z-coordinate from the initial position
                 new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
                 reset_qpos[object_qpos_adr:object_qpos_adr + 3] = new_pos
-        
-        '''
-        for object_name in target_sites:
-            object_id = self.sim.model.geom_name2id(object_name)
-            if object_name == self.target_site_name:
-                # Set the color to green with alpha 0.9
-                self.sim.model.geom_rgba[object_id] = [0, 1, 0, 0.9]
-            else:
-                # Set the color to white with alpha 0.9
-                self.sim.model.geom_rgba[object_id] = [1, 1, 1, 0.9]
-        '''
+
+
+        position_vec = sorted(position_vec, key=lambda x: random.random())
+        for idx, (obj_name, pos) in enumerate(zip(target_sites, position_vec)):
+            objec_bid = self.sim.model.body_name2id(obj_name)
+            object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+            object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+
+            if obj_name == 'object_4':
+                pos[-1] += 0.08  # Adjust z by 0.05 for object_4
+
+            reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
+
+            if obj_name == 'object_4':  # Special handling for object_4
+                objec_bid = self.sim.model.body_name2id('base_rbf')
+                object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+                object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+                pos[-1] -= 0.01
+                reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
 
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
-        self.final_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 7), dtype=np.uint8)
-        self.color = np.random.choice(['green'])
+        self.final_image = np.ones((224, 224, 7), dtype=np.uint8)
         return {'image': self.final_image, 'vector': obs}
     
 
@@ -322,9 +337,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
             show: If True, displays the observation in a cv2 window.
         """
 
-        rgb, depth = self.get_image_data(
-            width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show
-        )
+        rgb, depth = self.get_image_data(show=show)
         #depth = self.depth_2_meters(depth) #we don't need this, already in meters
         site_pos = self.sim.data.site_xpos[self.target_sid]
         pixel_x, pixel_y, radius = self.world_2_pixel(site_pos)
@@ -432,7 +445,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         else:
             super().render(mode)
     
-    def get_image_data(self, show=False, camera="end_effector_cam", width=224, height=224):
+    def get_image_data(self, show=False, camera="end_effector_cam"):
         """
         Returns the RGB and depth images of the provided camera.
 
@@ -445,15 +458,18 @@ class ReachBaseV0(env_base_3.MujocoEnv):
 
         # Initialize the simulator
         rgb, depth = copy.deepcopy(
-            self.sim.renderer.render_offscreen(width=width, height=height, camera_id=camera, depth = True)
+            self.sim.renderer.render_offscreen(width=self.IMAGE_HEIGHT, height=self.IMAGE_WIDTH, camera_id=camera, depth = True)
         )
-
         self.rgb_out = rgb
+
+        rgb = cv.resize(rgb, dsize=(224, 224), interpolation=cv.INTER_CUBIC)
+
+        
 
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
         blurred = cv.GaussianBlur(rgb, (11, 11), 0)
         hsv = cv.cvtColor(blurred, cv.COLOR_BGR2HSV)
-        mask = np.zeros(( self.IMAGE_HEIGHT,  self.IMAGE_HEIGHT), dtype=np.uint8)
+        mask = np.zeros(( 224,  224), dtype=np.uint8)
         x, y = self.cx, self.cy
         if isinstance(self.r, np.ndarray):
             half_side = int(self.r.item())
@@ -479,8 +495,8 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         #print(self.current_image.shape)
         
         #define the grasping rectangle
-        x1, y1 = int(63/200 * self.IMAGE_HEIGHT), self.IMAGE_HEIGHT - int(68/200 * self.IMAGE_HEIGHT)
-        x2, y2 = int(136/200 * self.IMAGE_HEIGHT), self.IMAGE_HEIGHT 
+        x1, y1 = int(63/200 * 224), 224 - int(68/200 * 224)
+        x2, y2 = int(136/200 * 224), 224
 
         cv.rectangle(rgb, (x1, y1), (x2, y2), (0, 0, 255), thickness=2)
         cv.rectangle(mask, (x1, y1), (x2, y2), 255, thickness=1)
@@ -519,7 +535,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         far = self.model.vis.map.zfar * extend
         return near / (1 - depth * (1 - near / far))
 
-    def pixel_2_world(self, pixel_x, pixel_y, depth, width=224, height=224, camera="end_effector_cam"):
+    def pixel_2_world(self, pixel_x, pixel_y, depth, camera="end_effector_cam"):
         """
         Converts pixel coordinates into world coordinates.
 
@@ -533,7 +549,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         """
 
         if not self.cam_init:
-            self.create_camera_data(width, height, camera)
+            self.create_camera_data(self.IMAGE_WIDTH, self.IMAGE_WIDTH, camera)
 
         # Create coordinate vector
         pixel_coord = np.array([pixel_x, pixel_y, 1])
@@ -547,11 +563,11 @@ class ReachBaseV0(env_base_3.MujocoEnv):
 
         return pos_w
 
-    def _setup_camera(self, height=224, width=224):
+    def _setup_camera(self):
         """Sets up the camera to render the scene from the required view."""
         # This assumes you have a fixed camera in your model XML
         self.camera_id = self.sim.model.camera_name2id('end_effector_cam')
-        self.get_camera_matrices(self.camera_id, height, width)
+        self.get_camera_matrices(self.camera_id, self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
     
     def get_camera_matrices(self, camera_id, height, width):
         """Retrieve projection, position, and rotation matrices for the specified camera."""
@@ -563,7 +579,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         self.cam_init = True
     
 
-    def world_2_pixel(self, world_coordinate, width=224, height=224, camera="end_effector_cam"):
+    def world_2_pixel(self, world_coordinate, camera="end_effector_cam"):
         """
         Takes a XYZ world position and transforms it into pixel coordinates.
         Mainly implemented for testing the correctness of the camera matrix, focal length etc.
@@ -576,7 +592,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         """
 
         if not self.cam_init:
-            self.create_camera_data(width, height, camera)
+            self.create_camera_data(self.IMAGE_HEIGHT, self.IMAGE_WIDTH, camera)
         self.cam_pos = self.sim.data.cam_xpos[self.sim.model.camera_name2id(camera)]
         
         self.cam_rot_mat = self.sim.data.cam_xmat[self.sim.model.camera_name2id(camera)].reshape(3, 3)

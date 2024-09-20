@@ -14,7 +14,7 @@ We are using this as a testing ground for reaching with visual inputs.
 import collections
 #import mujoco as mp
 import os
-
+import random
 # Set environment variables
 os.environ['MUJOCO_GL'] = 'egl'
 os.environ['PYOPENGL_PLATFORM'] = 'egl'
@@ -244,14 +244,16 @@ class ReachBaseV0(env_base_2.MujocoEnv):
 
         if self.eval:
             target_sites = ['object_6', 'object_7', 'object_8']
+            target_site_index = target_sites.index(self.target_site_name)
             self.one_hot = np.zeros(8)
             self.one_hot[target_site_index + 5] = 1
         else:
             target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
+            target_site_index = target_sites.index(self.target_site_name)
             self.one_hot = np.zeros(8)
             self.one_hot[target_site_index] = 1
         self.target_site_name = np.random.choice(target_sites)
-        target_site_index = target_sites.index(self.target_site_name)
+
         print(self.target_site_name)
         self.target_sid = self.sim.model.site_name2id(self.target_site_name) #object name
         current_directory = os.getcwd()
@@ -259,18 +261,65 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         self.object_image = cv.cvtColor(self.object_image, cv.COLOR_BGR2RGB)
 
         print(self.one_hot)
+        obj_xyz_ranges = {
+            'object': {'low': [-0.1, -0.1, 0], 'high': [0.1, 0.1, 0]},
+        }
 
-        
-        '''
-        for object_name in target_sites:
-            object_id = self.sim.model.geom_name2id(object_name)
-            if object_name == self.target_site_name:
-                # Set the color to green with alpha 0.9
-                self.sim.model.geom_rgba[object_id] = [0, 1, 0, 0.9]
+        new_x, new_y = np.random.uniform(
+                low=[obj_xyz_ranges['object']['low'][0], obj_xyz_ranges['object']['low'][1]],
+                high=[obj_xyz_ranges['object']['high'][0], obj_xyz_ranges['object']['high'][1]],
+                size=2
+        )
+
+        reset_qpos = self.sim.model.key_qpos[1].copy()
+        position_vec = []
+
+        for obj_name in target_sites:
+            objec_bid = self.sim.model.body_name2id(obj_name)  # get body ID using object name
+            object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+            object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+            initial_pos = reset_qpos[object_qpos_adr:object_qpos_adr + 3]  # copy the initial position
+            z_coord = initial_pos[2]  # get the fixed z-coordinate from the initial position
+
+            # Generate new x, y positions within specified ranges, keeping z constant
+            new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
+            if obj_name == 'object_4': 
+                beak_pos = new_pos
+                beak_pos[-1] -= 0.05
+                position_vec.append(beak_pos)
             else:
-                # Set the color to white with alpha 0.9
-                self.sim.model.geom_rgba[object_id] = [1, 1, 1, 0.9]
-        '''
+                position_vec.append(new_pos)
+            # Set the new position in the simulation
+            #self.sim.model.body_pos[objec_bid] = new_pos
+            reset_qpos[object_qpos_adr:object_qpos_adr + 3] = new_pos
+            if obj_name == 'object_4': 
+                objec_bid = self.sim.model.body_name2id('base_rbf')  # get body ID using object name
+                object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+                object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+                new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
+                initial_pos = reset_qpos[object_qpos_adr:object_qpos_adr + 3]  # copy the initial position
+                z_coord = initial_pos[2]  # get the fixed z-coordinate from the initial position
+                new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
+                reset_qpos[object_qpos_adr:object_qpos_adr + 3] = new_pos
+
+
+        position_vec = sorted(position_vec, key=lambda x: random.random())
+        for idx, (obj_name, pos) in enumerate(zip(target_sites, position_vec)):
+            objec_bid = self.sim.model.body_name2id(obj_name)
+            object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+            object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+
+            if obj_name == 'object_4':
+                pos[-1] += 0.08  # Adjust z by 0.05 for object_4
+
+            reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
+
+            if obj_name == 'object_4':  # Special handling for object_4
+                objec_bid = self.sim.model.body_name2id('base_rbf')
+                object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+                object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+                pos[-1] -= 0.01
+                reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
 
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
@@ -399,7 +448,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
             self.sim.renderer.render_offscreen(width=width, height=height, camera_id=camera, depth = True)
         )
 
-        #self.rgb_out = rgb_out
+        self.rgb_out = rgb
 
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
         blurred = cv.GaussianBlur(rgb, (11, 11), 0)
