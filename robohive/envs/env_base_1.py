@@ -5,7 +5,7 @@ Source  :: https://github.com/vikashplus/robohive
 License :: Under Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
 ================================================= """
 
-import gym
+import gymnasium as gym
 import numpy as np
 import os
 import time as timer
@@ -132,7 +132,7 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
         self._setup_rgb_encoders(self.visual_keys, device=None)
 
         # reset to get the env ready
-        observation, _reward, done, _info = self.step(np.zeros(self.sim.model.nu))
+        observation, _reward, done, _, _info = self.step(np.zeros(self.sim.model.nu))
         # Question: Should we replace above with following? Its specially helpful for hardware as it forces a env reset before continuing, without which the hardware will make a big jump from its position to the position asked by step.
         # observation = self.reset()
         assert not done, "Check initialization. Simulation starts in a done state."
@@ -297,7 +297,7 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
         #print(image.size)
         obs = {'image': image.reshape((224, 224, 4)), 'vector': obs}
 
-        return obs, env_info['rwd_'+self.rwd_mode], bool(env_info['done']), env_info
+        return obs, env_info['rwd_'+self.rwd_mode], bool(env_info['done']), False, env_info
 
 
     def get_obs(self, image = None, update_proprioception=False, update_exteroception=False):

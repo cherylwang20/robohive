@@ -15,15 +15,15 @@ import collections
 #import mujoco as mp
 import os
 import sys
-import groundingdino
+# import groundingdino
 # from groundingdino.util.inference import load_model, load_image, predict, annotate
 # import groundingdino.datasets.transforms as T
 from PIL import Image, ImageDraw
-from torchvision.ops import box_convert
-import torch
+# from torchvision.ops import box_convert
+# import torch
 
 # Set environment variables
-import gym
+import gymnasium as gym
 import numpy as np
 import cv2 as cv
 import os
@@ -459,7 +459,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
 
-    def create_mask(self, image_source: np.ndarray, boxes: torch.Tensor) -> np.ndarray:
+    def create_mask(self, image_source: np.ndarray, boxes ) -> np.ndarray:
         """
         This function creates a mask with white rectangles on a black background,
         where the rectangles are defined by the bounding boxes.
@@ -475,19 +475,19 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         h, w, _ = image_source.shape
 
         # Scale the boxes to the image dimensions
-        boxes = boxes * torch.Tensor([w, h, w, h])
+        # boxes = boxes * torch.Tensor([w, h, w, h])
 
-        # Convert boxes from cxcywh to xyxy format
-        xyxy = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
+        # # Convert boxes from cxcywh to xyxy format
+        # xyxy = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
 
         # Create a black mask
         mask = np.zeros((h, w), dtype=np.uint8)
 
-        # Draw each box as a white rectangle on the mask
-        for box in xyxy:
-            top_left = (int(box[0]), int(box[1]))
-            bottom_right = (int(box[2]), int(box[3]))
-            cv.rectangle(mask, top_left, bottom_right, (255), thickness=-1)  # Fill the rectangle
+        # # Draw each box as a white rectangle on the mask
+        # for box in xyxy:
+        #     top_left = (int(box[0]), int(box[1]))
+        #     bottom_right = (int(box[2]), int(box[3]))
+        #     cv.rectangle(mask, top_left, bottom_right, (255), thickness=-1)  # Fill the rectangle
 
         return mask
 

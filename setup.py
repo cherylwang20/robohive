@@ -39,7 +39,7 @@ setup(
     author='Movement Control Lab, UW',
     install_requires=[
         'click',
-        'gym==0.13',
+        # 'gym==0.13',
         #'mujoco==2.3.7',
         #'dm-control==1.0.14',
         'termcolor',
@@ -48,7 +48,7 @@ setup(
         'matplotlib',
         'ffmpeg',
         'absl-py',
-        'torch',
+        # 'torch',
         #'h5py==3.8.0',
         'pink-noise-rl',
         'gitpython'
