@@ -120,7 +120,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         self.r = 0
 
         self.depth = 0
-        self.eval = False
+        self.eval = True
 
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -249,8 +249,8 @@ class ReachBaseV0(env_base_3.MujocoEnv):
 
         #randomly choose between the five objects; color it green, and the rest as white. 
         if self.eval:
-            target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1']
-            target_names = ['banana', 'alarm clock', 'cup', 'donut', 'apple']
+            target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1', 'object_3']
+            target_names = ['banana', 'alarm clock', 'cup', 'beaker', 'apple', 'donut']
             number = np.random.randint(0, 3)
         else:
             target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
@@ -313,7 +313,8 @@ class ReachBaseV0(env_base_3.MujocoEnv):
 
             if obj_name == 'object_4':
                 pos[-1] += 0.08  # Adjust z by 0.05 for object_4
-
+            if obj_name == 'object_8':
+                pos[-1] += 0.08
             reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
 
             if obj_name == 'object_4':  # Special handling for object_4

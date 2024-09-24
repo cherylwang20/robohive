@@ -211,7 +211,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
-            ('solved',  np.array([self.touch_success]) >= 20 and contact == 2),
+            ('solved',  np.array([self.single_touch]) >= 1),
             ('gripper_height',  gripper_height - 0.83),
             ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
@@ -242,17 +242,19 @@ class ReachBaseV0(env_base_2.MujocoEnv):
             self.sim.data.qpos[object_qpos_adr:object_qpos_adr+3] = new_pos
         '''
 
-        if self.eval:
+        if self.eval:   
             target_sites = ['object_6', 'object_7', 'object_8']
+            self.target_site_name = np.random.choice(target_sites)
             target_site_index = target_sites.index(self.target_site_name)
             self.one_hot = np.zeros(8)
             self.one_hot[target_site_index + 5] = 1
         else:
             target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
+            self.target_site_name = np.random.choice(target_sites)
             target_site_index = target_sites.index(self.target_site_name)
             self.one_hot = np.zeros(8)
             self.one_hot[target_site_index] = 1
-        self.target_site_name = np.random.choice(target_sites)
+        
 
         print(self.target_site_name)
         self.target_sid = self.sim.model.site_name2id(self.target_site_name) #object name

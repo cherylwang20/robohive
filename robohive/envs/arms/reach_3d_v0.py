@@ -115,7 +115,7 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.touch_success = 0
         self.single_touch = 0
         self.cx, self.cy = 0, 0
-        self.eval = False
+        self.eval = True
         
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -209,7 +209,7 @@ class ReachBaseV0(env_base.MujocoEnv):
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
-            ('solved',  contact == 2),#np.array([self.touch_success]) >= 20 and contact == 2),
+            ('solved',  np.array([self.single_touch]) >= 1 or np.array([self.touch_success]) >= 1),#np.array([self.touch_success]) >= 20 and contact == 2),
             ('gripper_height',  gripper_height - 0.83),
             ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
@@ -241,10 +241,11 @@ class ReachBaseV0(env_base.MujocoEnv):
             self.sim.data.qpos[object_qpos_adr:object_qpos_adr+3] = new_pos
         '''
         if self.eval: 
-            target_sites = ['object_6', 'object_7', 'object_8']
+            target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1', 'object_3']
+            self.target_site_name = np.random.choice(target_sites[:5])
         else:
             target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
-        self.target_site_name = np.random.choice(target_sites)
+            self.target_site_name = np.random.choice(target_sites)
         print(self.target_site_name)
         self.target_sid = self.sim.model.site_name2id(self.target_site_name) #object name
         current_directory = os.getcwd()
@@ -298,7 +299,8 @@ class ReachBaseV0(env_base.MujocoEnv):
             objec_bid = self.sim.model.body_name2id(obj_name)
             object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
             object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
-
+            if obj_name == 'object_8':
+                pos[-1] += 0.08
             if obj_name == 'object_4':
                 pos[-1] += 0.08  # Adjust z by 0.05 for object_4
 
