@@ -216,7 +216,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
-            ('solved',  np.array([self.touch_success]) >= 20 and contact == 2),
+            ('solved',  np.array([self.single_touch]) >= 1),
             ('gripper_height',  gripper_height - 0.83),
             ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
@@ -249,9 +249,9 @@ class ReachBaseV0(env_base_3.MujocoEnv):
 
         #randomly choose between the five objects; color it green, and the rest as white. 
         if self.eval:
-            target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1']
-            target_names = ['banana', 'alarm clock', 'cup', 'donut', 'apple']
-            number = np.random.randint(0, 3)
+            target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1', 'object_3']
+            target_names = ['banana', 'alarm clock', 'cup', 'beaker', 'apple', 'donut']
+            number = np.random.randint(0, 5)
         else:
             target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
             target_names = ['apple', 'block', 'beaker', 'donut', 'rubber duck']
@@ -310,7 +310,9 @@ class ReachBaseV0(env_base_3.MujocoEnv):
             objec_bid = self.sim.model.body_name2id(obj_name)
             object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
             object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
-
+            
+            if obj_name == 'object_8':
+                pos[-1] += 0.08
             if obj_name == 'object_4':
                 pos[-1] += 0.08  # Adjust z by 0.05 for object_4
 
