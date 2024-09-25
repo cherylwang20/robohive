@@ -243,11 +243,12 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         '''
 
         if self.eval:   
-            target_sites = ['object_6', 'object_7', 'object_8']
+            target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1', 'object_2']
+            target_indexs = [6, 7, 8, 4, 1, 2]
             self.target_site_name = np.random.choice(target_sites)
-            target_site_index = target_sites.index(self.target_site_name)
+            target_site_index = target_indexs[target_sites.index(self.target_site_name)]
             self.one_hot = np.zeros(8)
-            self.one_hot[target_site_index + 5] = 1
+            self.one_hot[target_site_index - 1] = 1
         else:
             target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
             self.target_site_name = np.random.choice(target_sites)

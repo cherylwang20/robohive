@@ -15,13 +15,14 @@ import collections
 #import mujoco as mp
 import os
 import sys
+sys.path.append('../cheryl16/GroundingDINO')
 import groundingdino
 from groundingdino.util.inference import load_model, load_image, predict, annotate
 import groundingdino.datasets.transforms as T
 from PIL import Image, ImageDraw
 from torchvision.ops import box_convert
 import torch
-
+import random
 # Set environment variables
 import gym
 import numpy as np
@@ -56,10 +57,9 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #'gripper_height': 1,
         #'penalty': 1, #penalty is defined negative
         'sparse': 1,
-        'solved': 0,
+        'solved': 1,
         "done": 10,
     }
-
 
     def __init__(self, model_path, obsd_model_path=None, seed=None, **kwargs):
 
@@ -84,8 +84,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                target_site_name,
                goal_site_name,
                target_xyz_range,
-               image_width=224,
-               image_height=224,
+               image_width=800,
+               image_height=800,
                obj_xyz_range = None,
                frame_skip = 12,#40,
                reward_mode = "dense",
@@ -110,10 +110,10 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.grasp_attempt = 0
         self.obj_init_z = self.sim.data.site_xpos[self.grasp_sid][-1]
         self.fixed_positions = None
-        self.cam_init = False
-        self.color = np.random.choice(['green'])
-        self.current_image = np.ones((image_width, image_height, 4), dtype=np.uint8)
-        self.object_image = np.ones((image_width, image_height, 3), dtype=np.uint8)
+        self.cam_init = True
+        self._setup_camera()
+        self.current_image = np.ones((224, 224, 4), dtype=np.uint8)
+        self.object_image = np.ones((224, 224, 3), dtype=np.uint8)
         self.rgb_out = np.ones((image_height, image_width))
         self.mask_out = np.ones((image_height, image_width))
         self.pixel_perc = 0
@@ -121,16 +121,20 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.touch_success = 0
         self.single_touch = 0
         self.cx, self.cy = 0, 0
-        
+        self.r = 0
+        self.mask_model = load_model( "./GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py", "./GroundingDINO/weights/groundingdino_swint_ogc.pth")
+        self.BOX_THRESHOLD = 0.55
+        self.TEXT_THRESHOLD = 0.25
+        self.TEXT_PROMPT = 'apple'
+        self.depth = 0
+        self.GDINO_Coord = [0, 0]
+        self.GDINO_array = []
+        self.eval = False
+
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
         else: 
             self.eval_mode = False
-            
-        self.mask_model = load_model( "./GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py", "./GroundingDINO/weights/groundingdino_swint_ogc.pth")
-        self.BOX_THRESHOLD = 0.4
-        self.TEXT_THRESHOLD = 0.25
-        self.TEXT_PROMPT = 'apple'
 
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
 
@@ -187,11 +191,11 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     
     def get_reward_dict(self, obs_dict):
         reach_dist = np.linalg.norm(obs_dict['reach_err'], axis=-1)[0]
+        self.depth = reach_dist
         total_pix = np.linalg.norm(obs_dict['total_pix'], axis=-1)[0]
         #target_dist = np.linalg.norm(obs_dict['target_err'], axis=-1)[0]
         claw_rot_err = np.linalg.norm(obs_dict['claw_ori_err'], axis=-1)[0]
         #obj_ori_err = np.linalg.norm(obs_dict['obj_ori_err'], axis=-1)[0]
-        #print(claw_rot_err)
         obj_height = np.array([self.sim.data.site_xpos[self.target_sid][-1]])
         gripper_height = np.array([self.sim.data.site_xpos[self.grasp_sid][-1]])
         pix_perc = np.array([self.pixel_perc - 2.4234])/10
@@ -220,30 +224,27 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
-            ('solved',  np.array([self.touch_success]) >= 20 and contact == 2),
+            ('solved',  np.array([self.single_touch]) >= 1),
             ('gripper_height',  gripper_height - 0.83),
             ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
-        #print(pix_perc, total_pix)
-        #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
         if not self.eval_mode:
             rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         else:
             rwd_dict['dense'] = 1.0 if contact == 2 else 0
             rwd_dict['done'] = contact == 2
-            
         gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
                                  self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
         return rwd_dict
     
     def reset(self, reset_qpos=None, reset_qvel=None, **kwargs):
-        #print('resetting')
         #self.target_sid = self.sim.model.site_name2id(self.target_site_name)
         self.grasping_steps_left = 0
         self.grasp_attempt = 0
         self.touch_success = 0
         self.single_touch = 0
         self.cx, self.cy = 0, 0
+
         '''
         if self.obj_xyz_range is not None:        
             reset_qpos = self.sim.model.key_qpos[1].copy()
@@ -254,32 +255,85 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         '''
 
         #randomly choose between the five objects; color it green, and the rest as white. 
-        target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
-        target_names = ['apple', 'block', 'beaker', 'donut', 'rubber duck']
-        number = np.random.randint(0, 5)
+        if self.eval:
+            target_sites = ['object_6', 'object_7', 'object_8']
+            target_names = ['banana', 'alarm clock', 'cup']
+            number = np.random.randint(0, 3)
+        else:
+            target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
+            target_names = ['apple', 'block', 'donut', 'beaker',  'rubber duck']
+            number = np.random.randint(0, 5)
         self.target_site_name = target_sites[number]
+        print(self.target_site_name)
         self.TEXT_PROMPT = target_names[number]
         self.target_sid = self.sim.model.site_name2id(self.target_site_name) #object name
         current_directory = os.getcwd()
         self.object_image = cv.imread(current_directory + '/mj_envs/robohive/envs/arms/object_image/' + self.target_site_name + '.png', cv.IMREAD_COLOR)
         self.object_image = cv.cvtColor(self.object_image, cv.COLOR_BGR2RGB)
 
-        
-        '''
-        for object_name in target_sites:
-            object_id = self.sim.model.geom_name2id(object_name)
-            if object_name == self.target_site_name:
-                # Set the color to green with alpha 0.9
-                self.sim.model.geom_rgba[object_id] = [0, 1, 0, 0.9]
+        obj_xyz_ranges = {
+            'object': {'low': [-0.15, -0.15, 0], 'high': [0.15, 0.15, 0]},
+        }
+
+        new_x, new_y = np.random.uniform(
+                low=[obj_xyz_ranges['object']['low'][0], obj_xyz_ranges['object']['low'][1]],
+                high=[obj_xyz_ranges['object']['high'][0], obj_xyz_ranges['object']['high'][1]],
+                size=2
+        )
+
+        reset_qpos = self.sim.model.key_qpos[1].copy()
+        position_vec = []
+
+        for obj_name in target_sites:
+            objec_bid = self.sim.model.body_name2id(obj_name)  # get body ID using object name
+            object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+            object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+            initial_pos = reset_qpos[object_qpos_adr:object_qpos_adr + 3]  # copy the initial position
+            z_coord = initial_pos[2]  # get the fixed z-coordinate from the initial position
+
+            # Generate new x, y positions within specified ranges, keeping z constant
+            new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
+            if obj_name == 'object_4': 
+                beak_pos = new_pos
+                beak_pos[-1] -= 0.05
+                position_vec.append(beak_pos)
             else:
-                # Set the color to white with alpha 0.9
-                self.sim.model.geom_rgba[object_id] = [1, 1, 1, 0.9]
-        '''
+                position_vec.append(new_pos)
+            # Set the new position in the simulation
+            #self.sim.model.body_pos[objec_bid] = new_pos
+            reset_qpos[object_qpos_adr:object_qpos_adr + 3] = new_pos
+            if obj_name == 'object_4': 
+                objec_bid = self.sim.model.body_name2id('base_rbf')  # get body ID using object name
+                object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+                object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+                new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
+                initial_pos = reset_qpos[object_qpos_adr:object_qpos_adr + 3]  # copy the initial position
+                z_coord = initial_pos[2]  # get the fixed z-coordinate from the initial position
+                new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
+                reset_qpos[object_qpos_adr:object_qpos_adr + 3] = new_pos
+
+
+        position_vec = sorted(position_vec, key=lambda x: random.random())
+        for idx, (obj_name, pos) in enumerate(zip(target_sites, position_vec)):
+            objec_bid = self.sim.model.body_name2id(obj_name)
+            object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+            object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+
+            if obj_name == 'object_4':
+                pos[-1] += 0.08  # Adjust z by 0.05 for object_4
+
+            reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
+
+            if obj_name == 'object_4':  # Special handling for object_4
+                objec_bid = self.sim.model.body_name2id('base_rbf')
+                object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+                object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+                pos[-1] -= 0.01
+                reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
 
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
-        self.final_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 4), dtype=np.uint8)
-        self.color = np.random.choice(['green'])
+        self.final_image = np.ones((224, 224, 4), dtype=np.uint8)
         return {'image': self.final_image, 'vector': obs}
     
 
@@ -291,11 +345,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             show: If True, displays the observation in a cv2 window.
         """
 
-        rgb, depth = self.get_image_data(
-            width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show
-        )
+        rgb, depth = self.get_image_data(show=show)
         #depth = self.depth_2_meters(depth) #we don't need this, already in meters
-        #site_pos = self.sim.data.site_xpos[self.target_sid]
         #pixel_x, pixel_y = self.world_2_pixel(site_pos)
 
         observation = {}
@@ -319,8 +370,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             if not (x_min <= joint_pos[0] <= x_max and 
                     y_min <= joint_pos[1] <= y_max and 
                     z_min <= joint_pos[2] <= z_max):
-                #print(joint_pos)
-                #print(f"Collision at joint {i}")
                 return True
         return False
     
@@ -353,8 +402,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #if self.pixel_perc > 50 and self.grasp_attempt <= 1:
         #if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.8 and self.grasp_attempt <= 1:
 
-        #print(self.time) self.sim.data.site_xpos[self.grasp_sid][-1] < 0.53
-        #print(self.single_touch) 
         if self.single_touch >= 1000:
             print('hard-coded')
             self.fixed_positions = self.sim.data.qpos[:7].copy()
@@ -387,7 +434,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     def set_color(self, color):
             self.color = color
     
-    def get_image_data(self, show=False, camera="end_effector_cam", width=224, height=224):
+    def get_image_data(self, show=False, camera="end_effector_cam"):
         """
         Returns the RGB and depth images of the provided camera.
 
@@ -400,17 +447,13 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         # Initialize the simulator
         rgb, depth = copy.deepcopy(
-            self.sim.renderer.render_offscreen(width=width, height=height, camera_id=camera, depth = True)
+            self.sim.renderer.render_offscreen(width=self.IMAGE_HEIGHT, height=self.IMAGE_WIDTH, camera_id=camera, depth = True)
         )
 
         self.rgb_out = rgb
-
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
-        blurred = cv.GaussianBlur(rgb, (11, 11), 0)
-        hsv = cv.cvtColor(blurred, cv.COLOR_BGR2HSV)
-        
-        pil_image = Image.fromarray(rgb)
 
+        pil_image = Image.fromarray(rgb)
         boxes, logits, phrases = predict(
             model=self.mask_model,
             image=self.load_image2(pil_image),
@@ -418,10 +461,19 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             box_threshold=self.BOX_THRESHOLD,
             text_threshold=self.TEXT_THRESHOLD
             )
+        if logits.nelement() > 0:
+            max, indices = torch.max(logits, dim = 0)
+            boxes = boxes.numpy()
+            boxes = boxes[indices]
         
-        mask = np.zeros((self.IMAGE_HEIGHT, self.IMAGE_HEIGHT, 1), dtype=np.uint8)
+        mask = np.zeros((self.IMAGE_HEIGHT,  self.IMAGE_WIDTH), dtype=np.uint8)
 
         mask = self.create_mask(mask, boxes=boxes)
+
+        mask = cv.resize(mask, dsize=(224, 224), interpolation=cv.INTER_CUBIC)
+    
+        rgb = cv.resize(rgb, dsize=(224, 224), interpolation=cv.INTER_CUBIC)
+
 
         self.mask_out = mask
 
@@ -441,11 +493,11 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #print(self.current_image.shape)
         
         #define the grasping rectangle
-        x1, y1 = int(63/200 * self.IMAGE_HEIGHT), self.IMAGE_HEIGHT - int(68/200 * self.IMAGE_HEIGHT)
-        x2, y2 = int(136/200 * self.IMAGE_HEIGHT), self.IMAGE_HEIGHT 
+        x1, y1 = int(63/200 * 224), 224 - int(68/200 * 224)
+        x2, y2 = int(136/200 * 224), 224
 
-        cv.rectangle(rgb, (x1, y1), (x2, y2), (0, 0, 255), thickness=2)
-        cv.rectangle(mask, (x1, y1), (x2, y2), 255, thickness=1)
+        #cv.rectangle(rgb, (x1, y1), (x2, y2), (0, 0, 255), thickness=2)
+        #cv.rectangle(mask, (x1, y1), (x2, y2), 255, thickness=1)
 
         roi = mask[y1:y2, x1:x2]
         white_pixels = np.sum(roi == 255)
@@ -454,7 +506,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.total_pix = (np.sum(mask==255)/mask.size) * 100
 
 
-        print('total pixel',self.total_pix)
+        #print('total pixel',self.total_pix)
 
         #print(f"Percentage of white pixels in the rectangle: {self.pixel_perc:.2f}%")
         if show:
@@ -482,10 +534,11 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         np.ndarray: The mask image.
         """
         # Get the dimensions of the source image
-        h, w, _ = image_source.shape
+        h, w = image_source.shape
+        coordn = [0, 0, 0]
 
         # Scale the boxes to the image dimensions
-        boxes = boxes * torch.Tensor([w, h, w, h])
+        boxes = torch.tensor(boxes, dtype=torch.float32) * torch.Tensor([w, h, w, h])
 
         # Convert boxes from cxcywh to xyxy format
         xyxy = box_convert(boxes=boxes, in_fmt="cxcywh", out_fmt="xyxy").numpy()
@@ -493,11 +546,21 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         # Create a black mask
         mask = np.zeros((h, w), dtype=np.uint8)
 
+
         # Draw each box as a white rectangle on the mask
-        for box in xyxy:
-            top_left = (int(box[0]), int(box[1]))
-            bottom_right = (int(box[2]), int(box[3]))
+        if xyxy.size != 0:
+            top_left = (int(xyxy[0]), int(xyxy[1]))
+            bottom_right = (int(xyxy[2]), int(xyxy[3]))
             cv.rectangle(mask, top_left, bottom_right, (255), thickness=-1)  # Fill the rectangle
+            white_pixels = np.argwhere(mask == 255)
+        
+        # Calculate the mean of each column (x, y coordinates)
+            centroid = np.mean(white_pixels, axis=0).astype(int)  # Returns (y, x)
+
+        # Convert from (row, col) to (x, y)
+            centroid = (centroid[1], centroid[0])
+
+            coordn = self.pixel_2_world(centroid[0], centroid[1], self.depth)
 
         return mask
 
@@ -523,7 +586,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         image_transformed, _ = transform(image_source, None)
         return image_transformed
 
-    '''
     def depth_2_meters(self, depth):
         """
         Converts the depth array delivered by MuJoCo (values between 0 and 1) into actual m values.
@@ -532,13 +594,13 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             depth: The depth array to be converted.
         """
         current_directory = os.getcwd()
-        self.model = mp.MjModel.from_xml_path(current_directory + "/mj_envs/robohive/envs/arms/ur10e/scene_gripper.xml")
+        self.model = mp.MjModel.from_xml_path(current_directory + "/mj_envs/robohive/envs/arms/ur10e/scene_chem.xml")
         extend = self.model.stat.extent
         near = self.model.vis.map.znear * extend
         far = self.model.vis.map.zfar * extend
         return near / (1 - depth * (1 - near / far))
 
-    def pixel_2_world(self, pixel_x, pixel_y, depth, width=224, height=224, camera="end_effector_cam"):
+    def pixel_2_world(self, pixel_x, pixel_y, depth, camera="end_effector_cam"):
         """
         Converts pixel coordinates into world coordinates.
 
@@ -550,27 +612,35 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             height: Height of the image (pixel).
             camera: Name of camera used to obtain the image.
         """
-
+        self.cam_pos = self.sim.data.cam_xpos[self.sim.model.camera_name2id(camera)]
+        self.cam_rot_mat = self.sim.data.cam_xmat[self.sim.model.camera_name2id(camera)].reshape(3, 3)
         if not self.cam_init:
-            self.create_camera_data(width, height, camera)
+            self.create_camera_data(self.IMAGE_WIDTH, self.IMAGE_WIDTH, camera)
+        
+        home_pix = np.array([pixel_x * depth, pixel_y * depth, depth])
 
+        cam_coord = np.linalg.inv(self.cam_matrix) @ home_pix
+
+        pos_w = np.linalg.inv(self.cam_rot_mat.T) + self.cam_pos
+        
+        '''
         # Create coordinate vector
         pixel_coord = np.array([pixel_x, pixel_y, 1])
 
         # Apply the intrinsic matrix to get camera space coordinates
         pos_c = np.linalg.inv(self.cam_matrix) @ pixel_coord
         pos_c *= -depth  # Apply depth to scale to the actual position in camera space
-
+        
         # Convert camera space coordinates to world coordinates
         pos_w = np.linalg.inv(self.cam_rot_mat) @ pos_c + self.cam_pos
-
+       '''
         return pos_w
 
-    def _setup_camera(self, height=224, width=224):
+    def _setup_camera(self):
         """Sets up the camera to render the scene from the required view."""
         # This assumes you have a fixed camera in your model XML
         self.camera_id = self.sim.model.camera_name2id('end_effector_cam')
-        self.get_camera_matrices(self.camera_id, height, width)
+        self.get_camera_matrices(self.camera_id, self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
     
     def get_camera_matrices(self, camera_id, height, width):
         """Retrieve projection, position, and rotation matrices for the specified camera."""
@@ -582,7 +652,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.cam_init = True
     
 
-    def world_2_pixel(self, world_coordinate, width=224, height=224, camera="end_effector_cam"):
+    def world_2_pixel(self, world_coordinate, camera="end_effector_cam"):
         """
         Takes a XYZ world position and transforms it into pixel coordinates.
         Mainly implemented for testing the correctness of the camera matrix, focal length etc.
@@ -595,15 +665,33 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         """
 
         if not self.cam_init:
-            self.create_camera_data(width, height, camera)
+            self.create_camera_data(self.IMAGE_HEIGHT, self.IMAGE_WIDTH, camera)
         self.cam_pos = self.sim.data.cam_xpos[self.sim.model.camera_name2id(camera)]
         
         self.cam_rot_mat = self.sim.data.cam_xmat[self.sim.model.camera_name2id(camera)].reshape(3, 3)
 
-        # Homogeneous image point
-        hom_pixel = self.cam_matrix @ self.cam_rot_mat @ (world_coordinate - self.cam_pos)
-        # Real image point
-        pixel = hom_pixel[:2] / hom_pixel[2]
+        
+        cam_coord = self.cam_rot_mat.T @ (world_coordinate - self.cam_pos)
+    
 
-        return np.round(pixel[0]).astype(int), np.round(pixel[1]).astype(int)
-    '''
+        # Project to image plane
+        hom_pixel = self.cam_matrix @ cam_coord
+        # Real image point
+        if hom_pixel[2] != 0:
+            pixel = hom_pixel[:2] / hom_pixel[2]
+        else:
+            pixel = hom_pixel[:2]  # Avoid division by zero
+        radius = self.calculate_radius(self.depth)
+        return np.round(pixel[0]).astype(int), np.round(pixel[1]).astype(int), radius
+    
+    def calculate_radius(self, d_depth):
+        """
+        Calculates the radius based on the depth.
+        The function can be adjusted based on empirical data or desired visualization effect.
+        """
+        base_radius = 20  # Maximum radius when object is at depth zero
+        if d_depth > 0:
+            radius = base_radius*0.2/d_depth
+            return radius  # Example function: Decrease radius with depth
+        else:
+            return 5

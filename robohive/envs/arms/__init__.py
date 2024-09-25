@@ -134,7 +134,7 @@ register(
 register(
     id='UR10eReach3C-v0',
     entry_point='robohive.envs.arms.reach_3d_v0:ReachBaseV0',
-    max_episode_steps=150, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -149,7 +149,7 @@ register(
 register(
     id='UR10eEvalReach3C-v0',
     entry_point='robohive.envs.arms.reach_3d_v0:ReachBaseV0',
-    max_episode_steps=150, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_eval.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -179,7 +179,7 @@ register(
 register(
     id='UR10eEvalReach4C-v0',
     entry_point='robohive.envs.arms.reach_4d_v0:ReachBaseV0',
-    max_episode_steps=150, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_eval.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -209,7 +209,7 @@ register(
 register(
     id='UR10eEvalReach4C-v1',
     entry_point='robohive.envs.arms.reach_4d_v1:ReachBaseV0',
-    max_episode_steps=150, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_eval.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -224,7 +224,7 @@ register(
 register(
     id='UR10eReach7C-v0',
     entry_point='robohive.envs.arms.reach_7d_v0:ReachBaseV0',
-    max_episode_steps=150, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -239,7 +239,7 @@ register(
 register(
     id='UR10eEvalReach7C-v0',
     entry_point='robohive.envs.arms.reach_7d_v0:ReachBaseV0',
-    max_episode_steps=150, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_eval.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -270,7 +270,7 @@ register(
 register(
     id='UR10eEvalReach7C-v1',
     entry_point='robohive.envs.arms.reach_7d_v1:ReachBaseV0',
-    max_episode_steps=150, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_eval.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -285,7 +285,7 @@ register(
 register(
     id='UR10eReach1H-v0',
     entry_point='robohive.envs.arms.reach_1h_v0:ReachBaseV0',
-    max_episode_steps=150, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -300,7 +300,7 @@ register(
 register(
     id='UR10eEvalReach1H-v0',
     entry_point='robohive.envs.arms.reach_1h_v0:ReachBaseV0',
-    max_episode_steps=150, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_eval.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -348,7 +348,7 @@ register(
 register(
     id='UR10eMask3C-v0',
     entry_point='robohive.envs.arms.mask_3d_v0:ReachBaseV0',
-    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -363,7 +363,7 @@ register(
 register(
     id='UR10eMask4C-v0',
     entry_point='robohive.envs.arms.mask_4d_v0:ReachBaseV0',
-    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -378,7 +378,7 @@ register(
 register(
     id='UR10eMask3C-v1',
     entry_point='robohive.envs.arms.mask_3d_v1:ReachBaseV0',
-    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -393,7 +393,7 @@ register(
 register(
     id='UR10eMask4C-v1',
     entry_point='robohive.envs.arms.mask_4d_v1:ReachBaseV0',
-    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_five_obj.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
