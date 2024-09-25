@@ -15,7 +15,7 @@ import collections
 #import mujoco as mp
 import os
 import sys
-sys.path.append('../cheryl16/GroundingDINO')
+# sys.path.append('../cheryl16/GroundingDINO')
 import groundingdino
 from groundingdino.util.inference import load_model, load_image, predict, annotate
 import groundingdino.datasets.transforms as T
@@ -129,7 +129,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         self.depth = 0
         self.GDINO_Coord = [0, 0]
         self.GDINO_array = []
-        self.eval = True
+        self.eval = False
 
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
