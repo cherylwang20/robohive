@@ -118,9 +118,11 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         self.single_touch = 0
         self.cx, self.cy = 0, 0
         self.r = 0
+        np.random.seed(47006)
+        random.seed(47006)
 
         self.depth = 0
-        self.eval = False
+        self.eval = True
 
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -251,7 +253,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         if self.eval:
             target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1', 'object_2']
             target_names = ['banana', 'alarm clock', 'cup', 'beaker', 'apple', 'block']
-            number = np.random.randint(0, 5)
+            number = np.random.randint(0, 3)
         else:
             target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
             target_names = ['apple', 'block', 'beaker', 'donut', 'rubber duck']

@@ -131,6 +131,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.GDINO_Coord = [0, 0]
         self.GDINO_array = []
         self.eval = False
+        np.random.seed(47006)
+        random.seed(47006)
 
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -224,7 +226,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
-            ('solved',  np.array([self.touch_success]) >= 20 and contact == 2),
+            ('solved',  np.array([self.single_touch]) >= 1),
             ('gripper_height',  gripper_height - 0.83),
             ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
