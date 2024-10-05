@@ -1,0 +1,324 @@
+<mujocoinclude>
+    <compiler angle="radian"/>
+
+    <asset>
+        <material name="metal" rgba="0.58 0.58 0.58 1"/>
+        <material name="silicone" rgba="0.1882 0.1882 0.1882 1"/>
+        <material name="gray" rgba="0.4627 0.4627 0.4627 1"/>
+        <material name="mug" specular="1" shininess="1"/>
+
+        <mesh name="apple" file="../../../../simhive/object_sim/apple/apple.stl"/>
+        <mesh name="a_contact0" file="../../../../simhive/object_sim/apple/contact0.stl"/>
+        <mesh name="a_contact1" file="../../../../simhive/object_sim/apple/contact1.stl"/>
+        <mesh name="cylindersmall" file="../../../../simhive/object_sim/cylindersmall/cylindersmall.stl"/>
+        <mesh name="c_contact0" file="../../../../simhive/object_sim/cylindersmall/contact0.stl"/>
+        <mesh name="waterbottle" file="../../../../simhive/object_sim/waterbottle/waterbottle.stl"/>
+        <mesh name="w_contact0" file="../../../../simhive/object_sim/waterbottle/contact0.stl"/>
+        <mesh name="w_contact1" file="../../../../simhive/object_sim/waterbottle/contact1.stl"/>
+        <mesh name="rubberduck" file="../../../../simhive/object_sim/rubberduck/rubberduck.stl"/>
+        <mesh name="d_contact0" file="../../../../simhive/object_sim/rubberduck/contact0.stl"/>
+        <mesh name="d_contact1" file="../../../../simhive/object_sim/rubberduck/contact1.stl"/>
+        <mesh name="d_contact2" file="../../../../simhive/object_sim/rubberduck/contact2.stl"/>
+        <mesh name="torusmedium" file="../../../../simhive/object_sim/torusmedium/torusmedium.stl"/>
+        <mesh name="t_contact0" file="../../../../simhive/object_sim/torusmedium/contact0.stl"/>
+        <mesh name="t_contact1" file="../../../../simhive/object_sim/torusmedium/contact1.stl"/>
+        <mesh name="t_contact2" file="../../../../simhive/object_sim/torusmedium/contact2.stl"/>
+        <mesh name="t_contact3" file="../../../../simhive/object_sim/torusmedium/contact3.stl"/>
+        <mesh name="t_contact4" file="../../../../simhive/object_sim/torusmedium/contact4.stl"/>
+        <mesh name="alarmclock" file="../../../../simhive/object_sim/alarmclock/alarmclock.stl"/>
+        <mesh name="al_contact0" file="../../../../simhive/object_sim/alarmclock/contact0.stl"/>
+        <mesh name="banana" file="../../../../simhive/object_sim/banana/banana.stl"/>
+        <mesh name="b_contact0" file="../../../../simhive/object_sim/banana/contact0.stl"/>
+        <mesh name="b_contact1" file="../../../../simhive/object_sim/banana/contact1.stl"/>
+        <mesh name="b_contact2" file="../../../../simhive/object_sim/banana/contact2.stl"/>
+        <mesh name="b_contact3" file="../../../../simhive/object_sim/banana/contact3.stl"/>
+        <mesh name="b_contact4" file="../../../../simhive/object_sim/banana/contact4.stl"/>
+        <mesh name="lightbulb" file="../../../../simhive/object_sim/lightbulb/lightbulb.stl"/>
+        <mesh name="l_contact0" file="../../../../simhive/object_sim/lightbulb/contact0.stl"/>
+        <mesh name="l_contact1" file="../../../../simhive/object_sim/lightbulb/contact1.stl"/>
+        <mesh name="cup" file="../../../../simhive/object_sim/cup/cup.stl"/>
+        <mesh name="p_contact0" file="../../../../simhive/object_sim/cup/contact0.stl"/>
+        <mesh name="p_contact1" file="../../../../simhive/object_sim/cup/contact1.stl"/>
+        <mesh name="p_contact2" file="../../../../simhive/object_sim/cup/contact2.stl"/>
+        <mesh name="p_contact3" file="../../../../simhive/object_sim/cup/contact3.stl"/>
+        <mesh name="p_contact4" file="../../../../simhive/object_sim/cup/contact4.stl"/>
+        <mesh name="p_contact5" file="../../../../simhive/object_sim/cup/contact5.stl"/>
+        <mesh name="p_contact6" file="../../../../simhive/object_sim/cup/contact6.stl"/>
+        <mesh name="p_contact7" file="../../../../simhive/object_sim/cup/contact7.stl"/>
+        <mesh name="p_contact8" file="../../../../simhive/object_sim/cup/contact8.stl"/>
+        <mesh name="p_contact9" file="../../../../simhive/object_sim/cup/contact9.stl"/>
+        <mesh name="p_contact10" file="../../../../simhive/object_sim/cup/contact10.stl"/>
+        <mesh name="p_contact11" file="../../../../simhive/object_sim/cup/contact11.stl"/>
+
+        <mesh file="beaker_thick_0.obj"/>
+        <mesh file="beaker_thick_1.obj"/>
+        <mesh file="beaker_thick_collision_0.obj"/>
+        <mesh file="beaker_thick_collision_1.obj"/>
+        <mesh file="beaker_thick_collision_2.obj"/>
+        <mesh file="beaker_thick_collision_3.obj"/>
+        <mesh file="beaker_thick_collision_4.obj"/>
+        <mesh file="beaker_thick_collision_5.obj"/>
+        <mesh file="beaker_thick_collision_6.obj"/>
+        <mesh file="beaker_thick_collision_7.obj"/>
+        <mesh file="beaker_thick_collision_8.obj"/>
+        <mesh file="beaker_thick_collision_9.obj"/>
+        <mesh file="beaker_thick_collision_10.obj"/>
+        <mesh file="beaker_thick_collision_11.obj"/>
+        <mesh file="beaker_thick_collision_12.obj"/>
+        <mesh file="beaker_thick_collision_13.obj"/>
+        <mesh file="beaker_thick_collision_14.obj"/>
+
+        <mesh name="wineglass" file="../../../../simhive/object_sim/wineglass/wineglass.stl"/>
+        <mesh name="contact0" file="../../../../simhive/object_sim/wineglass/contact0.stl"/>
+        <mesh name="contact1" file="../../../../simhive/object_sim/wineglass/contact1.stl"/>
+        <mesh name="contact2" file="../../../../simhive/object_sim/wineglass/contact2.stl"/>
+        <mesh name="contact3" file="../../../../simhive/object_sim/wineglass/contact3.stl"/>
+        <mesh name="contact4" file="../../../../simhive/object_sim/wineglass/contact4.stl"/>
+        <mesh name="contact5" file="../../../../simhive/object_sim/wineglass/contact5.stl"/>
+        <mesh name="contact6" file="../../../../simhive/object_sim/wineglass/contact6.stl"/>
+        <mesh name="contact7" file="../../../../simhive/object_sim/wineglass/contact7.stl"/>
+        <mesh name="contact8" file="../../../../simhive/object_sim/wineglass/contact8.stl"/>
+        <mesh name="contact9" file="../../../../simhive/object_sim/wineglass/contact9.stl"/>
+        <mesh name="contact10" file="../../../../simhive/object_sim/wineglass/contact10.stl"/>
+        <mesh name="contact11" file="../../../../simhive/object_sim/wineglass/contact11.stl"/>
+        <mesh name="contact12" file="../../../../simhive/object_sim/wineglass/contact12.stl"/>
+        <mesh name="contact13" file="../../../../simhive/object_sim/wineglass/contact13.stl"/>
+        <mesh name="contact14" file="../../../../simhive/object_sim/wineglass/contact14.stl"/>
+        <mesh name="contact15" file="../../../../simhive/object_sim/wineglass/contact15.stl"/>
+        <mesh name="contact16" file="../../../../simhive/object_sim/wineglass/contact16.stl"/>
+        <mesh name="contact17" file="../../../../simhive/object_sim/wineglass/contact17.stl"/>
+        <mesh name="contact18" file="../../../../simhive/object_sim/wineglass/contact18.stl"/>
+        <mesh name="contact19" file="../../../../simhive/object_sim/wineglass/contact19.stl"/>
+        <mesh name="contact20" file="../../../../simhive/object_sim/wineglass/contact20.stl"/>
+        <mesh name="contact21" file="../../../../simhive/object_sim/wineglass/contact21.stl"/>
+        <mesh name="contact22" file="../../../../simhive/object_sim/wineglass/contact22.stl"/>
+        <mesh name="contact23" file="../../../../simhive/object_sim/wineglass/contact23.stl"/>
+        <mesh name="contact24" file="../../../../simhive/object_sim/wineglass/contact24.stl"/>
+        <mesh name="contact25" file="../../../../simhive/object_sim/wineglass/contact25.stl"/>
+        <mesh name="contact26" file="../../../../simhive/object_sim/wineglass/contact26.stl"/>
+        <mesh name="contact27" file="../../../../simhive/object_sim/wineglass/contact27.stl"/>
+        <mesh name="contact28" file="../../../../simhive/object_sim/wineglass/contact28.stl"/>
+        <mesh name="contact29" file="../../../../simhive/object_sim/wineglass/contact29.stl"/>
+        <mesh name="contact30" file="../../../../simhive/object_sim/wineglass/contact30.stl"/>
+        <mesh name="contact31" file="../../../../simhive/object_sim/wineglass/contact31.stl"/>
+        <mesh name="contact32" file="../../../../simhive/object_sim/wineglass/contact32.stl"/>
+        <mesh name="contact33" file="../../../../simhive/object_sim/wineglass/contact33.stl"/>
+
+        <mesh file="tubes_0.obj"/>
+        <mesh file="tubes_1.obj"/>
+        <mesh file="tubes_collision_0.obj"/>
+        <mesh file="tubes_collision_1.obj"/>
+        <mesh file="tubes_collision_2.obj"/>
+        <mesh file="tubes_collision_3.obj"/>
+        <mesh file="tubes_collision_4.obj"/>
+        <mesh file="tubes_collision_5.obj"/>
+        <mesh file="tubes_collision_6.obj"/>
+        <mesh file="tubes_collision_7.obj"/>
+
+        
+        <mesh file="rack.obj"/>
+        <mesh file="rack_collision_0.obj"/>
+        <mesh file="rack_collision_1.obj"/>
+        <mesh file="rack_collision_2.obj"/>
+        <mesh file="rack_collision_3.obj"/>
+        <mesh file="rack_collision_4.obj"/>
+        <mesh file="rack_collision_5.obj"/>
+
+        <mesh file  = "rbf_0.obj"/>
+        <mesh file  = "rbf_1.obj"/>
+        <mesh file  = "rbf_collision_0.obj"/>
+        <mesh file  = "rbf_collision_1.obj"/>
+        <mesh file  = "rbf_collision_2.obj"/>
+        <mesh file  = "rbf_collision_3.obj"/>
+        <mesh file  = "rbf_collision_4.obj"/>
+        <mesh file  = "rbf_collision_5.obj"/>
+        <mesh file  = "rbf_collision_6.obj"/>
+        <mesh file  = "rbf_collision_7.obj"/>
+        <mesh file  = "rbf_collision_8.obj"/>
+        <mesh file  = "rbf_collision_9.obj"/>
+        <mesh file  = "rbf_collision_10.obj"/>
+        <mesh file  = "rbf_collision_11.obj"/>
+        <mesh file  = "rbf_collision_12.obj"/>
+        <mesh file  = "rbf_collision_13.obj"/>
+        <mesh file  = "rbf_collision_14.obj"/>
+
+        <mesh file="base_2.obj"/>
+        <mesh file="base_2_collision_0.obj"/>
+        <mesh file="base_2_collision_1.obj"/>
+        <mesh file="base_2_collision_2.obj"/>
+        <mesh file="base_2_collision_3.obj"/>
+        <mesh file="base_2_collision_4.obj"/>
+        <mesh file="base_2_collision_5.obj"/>
+        <mesh file="base_2_collision_6.obj"/>
+        <mesh file="base_2_collision_7.obj"/>
+        <mesh file="base_2_collision_8.obj"/>
+        <mesh file="base_2_collision_9.obj"/>
+        <mesh file="base_2_collision_10.obj"/>
+        <mesh file="base_2_collision_11.obj"/>
+        <mesh file="base_2_collision_12.obj"/>
+        <mesh file="base_2_collision_13.obj"/>
+        <mesh file="base_2_collision_14.obj"/>
+
+        <mesh file="flat_base_tube_0.obj"/>
+        <mesh file="flat_base_tube_1.obj"/>
+        <mesh file="flat_base_tube_collision_0.obj"/>
+        <mesh file="flat_base_tube_collision_1.obj"/>
+        <mesh file="flat_base_tube_collision_2.obj"/>
+        <mesh file="flat_base_tube_collision_3.obj"/>
+        <mesh file="flat_base_tube_collision_4.obj"/>
+        <mesh file="flat_base_tube_collision_5.obj"/>
+        <mesh file="flat_base_tube_collision_6.obj"/>
+        <mesh file="flat_base_tube_collision_7.obj"/>
+        <mesh file="flat_base_tube_collision_8.obj"/>
+
+        <material class="panda" name="white" rgba="1 1 1 1"/>
+        <material class="panda" name="off_white" rgba="0.901961 0.921569 0.929412 1"/>
+        <material class="panda" name="black" rgba="0.25 0.25 0.25 1"/>
+        <material class="panda" name="green" rgba="0 1 0 1"/>
+        <material class="panda" name="light_blue" rgba="0.039216 0.541176 0.780392 1"/>
+
+        <!-- Collision meshes -->
+        <mesh name="link0_c" file="panda/link0.stl"/>
+        <mesh name="link1_c" file="panda/link1.stl"/>
+        <mesh name="link2_c" file="panda/link2.stl"/>
+        <mesh name="link3_c" file="panda/link3.stl"/>
+        <mesh name="link4_c" file="panda/link4.stl"/>
+        <mesh name="link5_c0" file="panda/link5_collision_0.obj"/>
+        <mesh name="link5_c1" file="panda/link5_collision_1.obj"/>
+        <mesh name="link5_c2" file="panda/link5_collision_2.obj"/>
+        <mesh name="link6_c" file="panda/link6.stl"/>
+        <mesh name="link7_c" file="panda/link7.stl"/>
+        <mesh name="hand_c" file="panda/hand.stl"/>
+
+        <!-- Visual meshes -->
+        <mesh file="panda/link0_0.obj"/>
+        <mesh file="panda/link0_1.obj"/>
+        <mesh file="panda/link0_2.obj"/>
+        <mesh file="panda/link0_3.obj"/>
+        <mesh file="panda/link0_4.obj"/>
+        <mesh file="panda/link0_5.obj"/>
+        <mesh file="panda/link0_7.obj"/>
+        <mesh file="panda/link0_8.obj"/>
+        <mesh file="panda/link0_9.obj"/>
+        <mesh file="panda/link0_10.obj"/>
+        <mesh file="panda/link0_11.obj"/>
+        <mesh file="panda/link1.obj"/>
+        <mesh file="panda/link2.obj"/>
+        <mesh file="panda/link3_0.obj"/>
+        <mesh file="panda/link3_1.obj"/>
+        <mesh file="panda/link3_2.obj"/>
+        <mesh file="panda/link3_3.obj"/>
+        <mesh file="panda/link4_0.obj"/>
+        <mesh file="panda/link4_1.obj"/>
+        <mesh file="panda/link4_2.obj"/>
+        <mesh file="panda/link4_3.obj"/>
+        <mesh file="panda/link5_0.obj"/>
+        <mesh file="panda/link5_1.obj"/>
+        <mesh file="panda/link5_2.obj"/>
+        <mesh file="panda/link6_0.obj"/>
+        <mesh file="panda/link6_1.obj"/>
+        <mesh file="panda/link6_2.obj"/>
+        <mesh file="panda/link6_3.obj"/>
+        <mesh file="panda/link6_4.obj"/>
+        <mesh file="panda/link6_5.obj"/>
+        <mesh file="panda/link6_6.obj"/>
+        <mesh file="panda/link6_7.obj"/>
+        <mesh file="panda/link6_8.obj"/>
+        <mesh file="panda/link6_9.obj"/>
+        <mesh file="panda/link6_10.obj"/>
+        <mesh file="panda/link6_11.obj"/>
+        <mesh file="panda/link6_12.obj"/>
+        <mesh file="panda/link6_13.obj"/>
+        <mesh file="panda/link6_14.obj"/>
+        <mesh file="panda/link6_15.obj"/>
+        <mesh file="panda/link6_16.obj"/>
+        <mesh file="panda/link7_0.obj"/>
+        <mesh file="panda/link7_1.obj"/>
+        <mesh file="panda/link7_2.obj"/>
+        <mesh file="panda/link7_3.obj"/>
+        <mesh file="panda/link7_4.obj"/>
+        <mesh file="panda/link7_5.obj"/>
+        <mesh file="panda/link7_6.obj"/>
+        <mesh file="panda/link7_7.obj"/>
+        <mesh file="panda/hand_0.obj"/>
+        <mesh file="panda/hand_1.obj"/>
+        <mesh file="panda/hand_2.obj"/>
+        <mesh file="panda/hand_3.obj"/>
+        <mesh file="panda/hand_4.obj"/>
+        <mesh file="panda/finger_0.obj"/>
+        <mesh file="panda/finger_1.obj"/>
+    </asset>
+
+    
+    <default>
+        <default class="visual_b">
+            <geom group="2" type="mesh" contype="0" conaffinity="0"/>
+        </default>
+        <default class="collision_b">
+            <geom group="3" type="mesh" condim="6" friction="3.0 0.5 0.25"/>
+            <default class="table_collision">
+                <geom type="box" friction="3.0 0.5 0.25"/>
+            </default>
+        </default>
+        <default class="panda">
+            <material specular="0.5" shininess="0.25"/>
+            <joint armature="0.1" damping="1" axis="0 0 1" range="-2.8973 2.8973"/>
+            <general dyntype="none" biastype="affine" ctrlrange="-2.8973 2.8973" forcerange="-87 87"/>
+            <default class="finger">
+                <joint axis="0 1 0" type="slide" range="0 0.04"/>
+            </default>
+            <default class="visual">
+                <geom type="mesh" contype="0" conaffinity="0" group="2"/>
+            </default>
+            <default class="collision">
+                <geom type="mesh" group="3"/>
+                <default class="fingertip_pad_collision_1">
+                    <geom type="box" size="0.0085 0.004 0.0085" pos="0 0.0055 0.0445"/>
+                </default>
+                <default class="fingertip_pad_collision_2">
+                    <geom type="box" size="0.003 0.002 0.003" pos="0.0055 0.002 0.05"/>
+                </default>
+                <default class="fingertip_pad_collision_3">
+                    <geom type="box" size="0.003 0.002 0.003" pos="-0.0055 0.002 0.05"/>
+                </default>
+                <default class="fingertip_pad_collision_4">
+                    <geom type="box" size="0.003 0.002 0.0035" pos="0.0055 0.002 0.0395"/>
+                </default>
+                <default class="fingertip_pad_collision_5">
+                    <geom type="box" size="0.003 0.002 0.0035" pos="-0.0055 0.002 0.0395"/>
+                </default>
+            </default>
+        </default>
+    </default>
+
+    <tendon>
+        <fixed name="split">
+        <joint joint="finger_joint1" coef="0.5"/>
+        <joint joint="finger_joint2" coef="0.5"/>
+        </fixed>
+    </tendon>
+
+  <equality>
+    <joint joint1="finger_joint1" joint2="finger_joint2" solimp="0.95 0.99 0.001" solref="0.005 1"/>
+  </equality>
+
+  <actuator>
+    <general class="panda" name="actuator1" joint="joint1" gainprm="4500" biasprm="0 -4500 -450"/>
+    <general class="panda" name="actuator2" joint="joint2" gainprm="4500" biasprm="0 -4500 -450"
+      ctrlrange="-1.7628 1.7628"/>
+    <general class="panda" name="actuator3" joint="joint3" gainprm="3500" biasprm="0 -3500 -350"/>
+    <general class="panda" name="actuator4" joint="joint4" gainprm="3500" biasprm="0 -3500 -350"
+      ctrlrange="-3.0718 -0.0698"/>
+    <general class="panda" name="actuator5" joint="joint5" gainprm="2000" biasprm="0 -2000 -200" forcerange="-12 12"/>
+    <general class="panda" name="actuator6" joint="joint6" gainprm="2000" biasprm="0 -2000 -200" forcerange="-12 12"
+      ctrlrange="-0.0175 3.7525"/>
+    <general class="panda" name="actuator7" joint="joint7" gainprm="2000" biasprm="0 -2000 -200" forcerange="-12 12"/>
+    <!-- Remap original ctrlrange (0, 0.04) to (0, 255): 0.04 * 100 / 255 = 0.01568627451 -->
+    <general class="panda" name="actuator8" tendon="split" forcerange="-10 10" ctrlrange="0 255" gear="10 0 0 0 0 0"
+      gainprm="0.3137254902 0 0" biasprm="0 -100 -10"/>
+  </actuator>
+
+
+
+
+</mujocoinclude>
