@@ -336,7 +336,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         
         if self.eval:
             for idx, (obj_name, pos) in enumerate(zip(target_sites, position_vec)):
-                if obj_name != self.target_site_name and obj_name != 'object_2' and obj_name != 'object_1':
+                if obj_name != self.target_site_name: #and obj_name != 'object_2' and obj_name != 'object_1':
                     objec_bid = self.sim.model.body_name2id(obj_name)
                     object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
                     object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]

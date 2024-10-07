@@ -119,7 +119,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.cx, self.cy = 0, 0
         self.r = 0
         self.depth = 0
-        self.eval = True
+        self.eval = False
         np.random.seed(47006)
         random.seed(47006)
         

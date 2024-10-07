@@ -21,6 +21,7 @@ import groundingdino
 from PIL import Image, ImageDraw
 from torchvision.ops import box_convert
 import torch
+import random
 
 # Set environment variables
 import gym
@@ -124,7 +125,12 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.cx, self.cy = 0, 0
         self.r = 0
         self.depth = 0
-        
+        self.eval = False
+        np.random.seed(47006)
+        random.seed(47006)
+
+
+
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
         else: 
@@ -209,7 +215,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             if self.touch_success == 1:
                 print('grasping')
             self.touch_success +=1
-        #print(contact)
+        #print(total_pix, pix_perc)
         #power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
@@ -224,7 +230,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
-            ('solved',  np.array([self.touch_success]) >= 20 and contact == 2),
+            ('solved',  np.array([self.single_touch]) >= 1),
             ('gripper_height',  gripper_height - 0.83),
             ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
@@ -232,6 +238,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         #print([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()])
         if not self.eval_mode:
             rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
+            #print(rwd_dict['dense'])
         else:
             rwd_dict['dense'] = 1.0 if contact == 2 else 0
             rwd_dict['done'] = contact == 2
@@ -256,29 +263,82 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             object_qpos_adr = self.sim.model.body(self.object_bid).jntadr[0]
             self.sim.data.qpos[object_qpos_adr:object_qpos_adr+3] = new_pos
         '''
-
-        #randomly choose between the five objects; color it green, and the rest as white. 
-        target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
-        target_names = ['apple', 'block', 'beaker', 'donut', 'rubber duck']
-        number = np.random.randint(0, 5)
+        if self.eval:
+            target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1', 'object_2']
+            target_names = ['banana', 'alarm clock', 'cup', 'beaker', 'apple', 'block']
+            number = np.random.randint(0, 3)
+        else:
+            target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
+            target_names = ['apple', 'block', 'donut','beaker', 'rubber duck']
+            number = np.random.randint(0, 5)
         self.target_site_name = target_sites[number]
-        self.TEXT_PROMPT = target_names[number]
+        print(self.target_site_name)
         self.target_sid = self.sim.model.site_name2id(self.target_site_name) #object name
         current_directory = os.getcwd()
         self.object_image = cv.imread(current_directory + '/mj_envs/robohive/envs/arms/object_image/' + self.target_site_name + '.png', cv.IMREAD_COLOR)
         self.object_image = cv.cvtColor(self.object_image, cv.COLOR_BGR2RGB)
 
-        
-        '''
-        for object_name in target_sites:
-            object_id = self.sim.model.geom_name2id(object_name)
-            if object_name == self.target_site_name:
-                # Set the color to green with alpha 0.9
-                self.sim.model.geom_rgba[object_id] = [0, 1, 0, 0.9]
+        obj_xyz_ranges = {
+            'object': {'low': [-0.1, -0.1, 0], 'high': [0.1, 0.1, 0]},
+        }
+
+        new_x, new_y = np.random.uniform(
+                low=[obj_xyz_ranges['object']['low'][0], obj_xyz_ranges['object']['low'][1]],
+                high=[obj_xyz_ranges['object']['high'][0], obj_xyz_ranges['object']['high'][1]],
+                size=2
+        )
+
+        reset_qpos = self.sim.model.key_qpos[1].copy()
+        position_vec = []
+
+        for obj_name in target_sites:
+            objec_bid = self.sim.model.body_name2id(obj_name)  # get body ID using object name
+            object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+            object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+            initial_pos = reset_qpos[object_qpos_adr:object_qpos_adr + 3]  # copy the initial position
+            z_coord = initial_pos[2]  # get the fixed z-coordinate from the initial position
+
+            # Generate new x, y positions within specified ranges, keeping z constant
+            new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
+            if obj_name == 'object_4': 
+                beak_pos = new_pos
+                beak_pos[-1] -= 0.05
+                position_vec.append(beak_pos)
             else:
-                # Set the color to white with alpha 0.9
-                self.sim.model.geom_rgba[object_id] = [1, 1, 1, 0.9]
-        '''
+                position_vec.append(new_pos)
+            # Set the new position in the simulation
+            #self.sim.model.body_pos[objec_bid] = new_pos
+            reset_qpos[object_qpos_adr:object_qpos_adr + 3] = new_pos
+            if obj_name == 'object_4': 
+                objec_bid = self.sim.model.body_name2id('base_rbf')  # get body ID using object name
+                object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+                object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+                new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
+                initial_pos = reset_qpos[object_qpos_adr:object_qpos_adr + 3]  # copy the initial position
+                z_coord = initial_pos[2]  # get the fixed z-coordinate from the initial position
+                new_pos = [initial_pos[0] + new_x, initial_pos[1] + new_y, z_coord]
+                reset_qpos[object_qpos_adr:object_qpos_adr + 3] = new_pos
+
+
+        position_vec = sorted(position_vec, key=lambda x: random.random())
+        for idx, (obj_name, pos) in enumerate(zip(target_sites, position_vec)):
+            objec_bid = self.sim.model.body_name2id(obj_name)
+            object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+            object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+            if obj_name == 'object_8':
+                pos[-1] += 0.08
+            if obj_name == 'object_4':
+                pos[-1] += 0.08  # Adjust z by 0.05 for object_4
+
+            reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
+
+            if obj_name == 'object_4':  # Special handling for object_4
+                objec_bid = self.sim.model.body_name2id('base_rbf')
+                object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+                object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+                pos[-1] -= 0.01
+                reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
+
 
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()

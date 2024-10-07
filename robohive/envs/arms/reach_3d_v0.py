@@ -116,6 +116,8 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.single_touch = 0
         self.cx, self.cy = 0, 0
         self.eval = False
+        np.random.seed(47006)
+        random.seed(47006)
         
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -241,8 +243,8 @@ class ReachBaseV0(env_base.MujocoEnv):
             self.sim.data.qpos[object_qpos_adr:object_qpos_adr+3] = new_pos
         '''
         if self.eval: 
-            target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1', 'object_3']
-            self.target_site_name = np.random.choice(target_sites[:5])
+            target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1', 'object_2']
+            self.target_site_name = np.random.choice(target_sites[:3])
         else:
             target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
             self.target_site_name = np.random.choice(target_sites)

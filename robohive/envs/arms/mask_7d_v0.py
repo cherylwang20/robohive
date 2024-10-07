@@ -130,6 +130,8 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         self.GDINO_Coord = [0, 0]
         self.GDINO_array = []
         self.eval = False
+        np.random.seed(47006)
+        random.seed(47006)
 
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -258,7 +260,7 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         if self.eval:
             target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1', 'object_2']
             target_names = ['banana', 'alarm clock', 'cup', 'beaker', 'apple', 'block']
-            number = np.random.randint(0, 5)
+            number = np.random.randint(0, 3)
         else:
             target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
             target_names = ['apple', 'block', 'donut', 'beaker',  'duck']
@@ -331,6 +333,27 @@ class ReachBaseV0(env_base_3.MujocoEnv):
                 object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
                 pos[-1] -= 0.01
                 reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
+        
+        if self.eval:
+            for idx, (obj_name, pos) in enumerate(zip(target_sites, position_vec)):
+                if obj_name != self.target_site_name and obj_name != 'object_2' and obj_name != 'object_1':
+                    objec_bid = self.sim.model.body_name2id(obj_name)
+                    object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+                    object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+                    pos[-1] -= 0.5
+                    reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
+                else: 
+                    objec_bid = self.sim.model.body_name2id(obj_name)
+                    object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+                    object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+                    pos[-1] += 0.02
+                    reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
+                if obj_name == 'object_4':  # Special handling for object_4
+                    objec_bid = self.sim.model.body_name2id('base_rbf')
+                    object_jnt_adr = self.sim.model.body_jntadr[objec_bid]
+                    object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
+                    pos[-1] -= 0.5
+                    reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
 
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()

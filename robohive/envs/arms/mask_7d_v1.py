@@ -119,8 +119,11 @@ class ReachBaseV0(env_base_3.MujocoEnv):
         self.cx, self.cy = 0, 0
         self.r = 0
 
+
         self.depth = 0
-        self.eval = False
+        self.eval = True
+        np.random.seed(47006)
+        random.seed(47006)
 
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -249,9 +252,9 @@ class ReachBaseV0(env_base_3.MujocoEnv):
 
         #randomly choose between the five objects; color it green, and the rest as white. 
         if self.eval:
-            target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1', 'object_3']
-            target_names = ['banana', 'alarm clock', 'cup', 'beaker', 'apple', 'donut']
-            number = np.random.randint(0, 5)
+            target_sites = ['object_6', 'object_7', 'object_8', 'object_4', 'object_1', 'object_2']
+            target_names = ['banana', 'alarm clock', 'cup', 'beaker', 'apple', 'block']
+            number = np.random.randint(0, 3)
         else:
             target_sites = ['object_1', 'object_2', 'object_3', 'object_4', 'object_5']
             target_names = ['apple', 'block', 'beaker', 'donut', 'rubber duck']
