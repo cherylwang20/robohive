@@ -1,0 +1,154 @@
+<mujoco model="franka scene">
+  
+  <!--size njmax='1000' nconmax='1000'/>-->
+  <size nconmax="1000" njmax="1000" nkey="1" nuser_jnt="1"/>
+
+  <include file="franka_vel_assets.xml"/>
+  <!-- <include file="../../../simhive/scene_sim/topfloor_scene.xml"/> -->
+  <include file="../../../simhive/furniture_sim/simpleTable/simpleTable_asset.xml"/>
+  <include file="../../../simhive/furniture_sim/ventionTable/ventionTable_asset.xml"/>
+  <include file="../../../simhive/furniture_sim/bin/bin_asset.xml"/>
+  
+  <statistic center="0.4 0 0.4" extent="1"/>
+  <compiler autolimits = "true" inertiafromgeom="auto" inertiagrouprange="3 4" angle="radian" meshdir="assets"/>
+  <!--option timestep='0.001' viscosity="0.1"/-->
+
+  <option timestep="0.002" viscosity="0.00002" cone="elliptic" tolerance="1e-4" solver='Newton' integrator="RK4">
+    <flag multiccd="enable"/>
+  </option>
+  
+  <visual>
+    <rgba haze="0.15 0.25 0.35 1.5"/>
+    <global offwidth="1080" offheight="880" azimuth="120" elevation="-20"/>
+  </visual>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+    <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.2 0.3 0.4" rgb2="0.1 0.2 0.3"
+      markrgb="0.8 0.8 0.8" width="300" height="300"/>
+    <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5" reflectance="0.2"/>
+  </asset>
+
+  <worldbody>
+    <camera name='front_cam' pos="-0.024 2.950 1.520" xyaxes="-1.000 -0.013 -0.000 0.003 -0.223 0.975"/>
+    <camera name='right_cam' pos="-0.629 1.055 1.560" xyaxes="-0.716 -0.698 0.000 0.432 -0.443 0.786"/>
+    <camera name='top_cam' pos='0 0.5 2.2' euler='0 0 0' fovy = '58'/>
+    <camera name = 'ft_cam'  pos="1.926 1.945 2.658" xyaxes="-0.612 0.791 -0.000 -0.508 -0.393 0.766"/>
+    <light directional="false" diffuse="0.4 0.4 0.4" specular="0.1 0.1 0.1" pos="1 1 3" dir="-1 -1 -3"/>
+
+  
+
+    <body pos='0 -.20 .823' euler='0 0 1.57'>
+        <include file="franka_vel_include.xml"/>
+    </body>
+
+    <!-- Tables -->
+    <body name="ventiontable" pos='0 -.3 0'>
+        <include file="../../../simhive/furniture_sim/ventionTable/ventionTable_body.xml"/>
+    </body>
+    <body name="scenetable" pos='0 0.49 0.065'>
+        <include file="../../../simhive/furniture_sim/simpleTable/simpleMarbleTable_body.xml"/>
+    </body>
+
+
+      <!-- tasks details added here via include-->
+
+    <!--site name='pick_target' type='sphere' size='.08' pos='-0.3 0.5 1.2' group='1' rgba='.1 .1 1 0.1'/>
+    <site name='place_target' type='cylinder' size='.088 0.021' pos='-0.4 0.5 .85' group='1' rgba='1 1 1 0.2'/>-->
+
+    <body name="object_1" pos="0.15 0.42 0.93" euler="0 0 0">
+      <freejoint/>
+      <site name="object_1" size="0.001" pos="0 0.0 0"/>
+      <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
+      <geom rgba="1 0.0 0 1" name="object_1" mesh="apple" class="visual_b"/>
+      <geom name="apple_contact0_1" mesh="a_contact0" class="collision_b"/>
+      <geom name="apple_contact1_1" mesh="a_contact1" class="collision_b"/>
+    </body>
+
+    <body name="object_2" pos="-0.15 0.42 0.93" euler="1.57 0 0">
+      <freejoint/>
+      <site name="object_2" size="0.001" pos="0 0.0 0.0"/>
+      <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
+      <geom name = 'object_2' type="box" size="0.02 0.02 0.02" group="1" rgba="0 1 0 1"/>
+    </body>
+
+    <body name="object_3" pos="-0.0 0.42 0.93" euler="0 0 0">
+      <freejoint/>
+      <site name="object_3" size="0.001" pos="0 0.0 0."/>
+      <inertial pos="0. 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
+      <geom name="torusmedium_visual" rgba="0.9 0.54 0.26 1" mesh="torusmedium" class="visual_b"/>
+      <geom name="torusmedium_contact0" mesh="t_contact0" class="collision_b"/>
+      <geom name="torusmedium_contact1" mesh="t_contact1" class="collision_b"/>
+      <geom name="torusmedium_contact2" mesh="t_contact2" class="collision_b"/>
+      <geom name="torusmedium_contact3" mesh="t_contact3" class="collision_b"/>
+      <geom name="torusmedium_contact4" mesh="t_contact4" class="collision_b"/>
+    </body>
+
+    <body name="object_4" pos="0.3 0.42 1.0" euler="1.57 0 0">
+      <freejoint/>
+      <site name="object_4" size="0.001" pos="0 0.0 0.0"/>
+      <geom name = "object_4" rgba="0 0.9 0.3 .7" mesh="rbf_0" class="visual_b"/>
+      <geom rgba="1 1 1 .4" mesh="rbf_1" class="visual_b"/>
+      <geom mesh="rbf_collision_0" class="collision_b"/>
+      <geom mesh="rbf_collision_1" class="collision_b"/>
+      <geom mesh="rbf_collision_2" class="collision_b"/>
+      <geom mesh="rbf_collision_3" class="collision_b"/>
+      <geom mesh="rbf_collision_4" class="collision_b"/>
+      <geom mesh="rbf_collision_5" class="collision_b"/>
+      <geom mesh="rbf_collision_6" class="collision_b"/>
+      <geom mesh="rbf_collision_7" class="collision_b"/>
+      <geom mesh="rbf_collision_8" class="collision_b"/>
+      <geom mesh="rbf_collision_9" class="collision_b"/>
+      <geom mesh="rbf_collision_10" class="collision_b"/>
+      <geom mesh="rbf_collision_11" class="collision_b"/>
+      <geom mesh="rbf_collision_12" class="collision_b"/>
+      <geom mesh="rbf_collision_13" class="collision_b"/>
+      <geom mesh="rbf_collision_14" class="collision_b"/>
+    </body>
+
+    <body name="base_rbf" pos="0.3 0.42 0.96" euler="1.57 0 0">
+      <freejoint/>
+      <geom rgba="0.4627 0.4627 0.4627 1" mesh="base_2" class="visual_b"/>
+      <geom mesh="base_2_collision_0" class="collision_b"/>
+      <geom mesh="base_2_collision_1" class="collision_b"/>
+      <geom mesh="base_2_collision_2" class="collision_b"/>
+      <geom mesh="base_2_collision_3" class="collision_b"/>
+      <geom mesh="base_2_collision_4" class="collision_b"/>
+      <geom mesh="base_2_collision_5" class="collision_b"/>
+      <geom mesh="base_2_collision_6" class="collision_b"/>
+      <geom mesh="base_2_collision_7" class="collision_b"/>
+      <geom mesh="base_2_collision_8" class="collision_b"/>
+      <geom mesh="base_2_collision_9" class="collision_b"/>
+      <geom mesh="base_2_collision_10" class="collision_b"/>
+      <geom mesh="base_2_collision_11" class="collision_b"/>
+      <geom mesh="base_2_collision_12" class="collision_b"/>
+      <geom mesh="base_2_collision_13" class="collision_b"/>
+      <geom mesh="base_2_collision_14" class="collision_b"/>
+    </body>
+
+    <body name="object_5" pos="-0.3 0.42 0.93" euler="0 0 0.8">
+      <freejoint/>
+      <site name="object_5" size="0.001" pos="0 0.0 0.0"/>
+      <inertial pos="0 0 0" mass="0.088" diaginertia="0.0001 0.0001 0.0001" />
+      <geom name="rubberduck_visual" rgba="0.8 0.8 0 1"  class="visual_b" mesh="rubberduck"/>
+      <geom name="rubberduck_contact0" mesh="d_contact0" class="collision_b"/>
+      <geom name="rubberduck_contact1" mesh="d_contact1" class="collision_b"/>
+      <geom name="rubberduck_contact2" mesh="d_contact2" class="collision_b"/>
+    </body>
+
+    
+
+  </worldbody>
+
+  <!-- <keyframe>`  
+      <key qpos='1.69641 -1.75924 -0.7855 -1.13622 1.57075 -0.00449232 0.00435232 0.000149045 0.00285231 -0.00308148 0.00260377 0.000143225 0.00284262 -0.00307378 0.199743 0.620779 0.854309 0.999901 -0.0132687 -0.00474585 7.63322e-05 -0.33 0.619987 0.844784 0.707107 0.707107 -3.49206e-19 3.49857e-19 -0.0800058 0.619996 0.838445 1 0.000109371 -0.000173641 3.76565e-07 0.102435 0.379085 0.932896 0.704953 0.709239 0.00340008 -0.00305067 0.100133 0.379521 0.924862 0.707101 0.707113 -9.06699e-05 -8.54061e-05 -0.200002 0.38 0.873686 0.92106 -6.68178e-06 -1.86463e-05 0.38942'/>
+      <key qpos='1.69641 -0.81679 -2.60786 -0.43981 1.57924 0.00360276 0.00254555 0.000149076 0.00285237 -0.00308157 0.00260376 0.000143194 0.00284257 -0.00307368 0.150597 0.42244 0.854077 0.999096 -0.041598 0.00880455 0.000394671 -0.15 0.419987 0.844784 0.707107 0.707107 6.08712e-19 -6.10417e-19 -1.07039e-05 0.419997 0.838446 1 8.83859e-05 -0.000283882 2.51816e-07 0.303179 0.420191 0.932889 0.705661 0.708526 0.00471417 -0.00340816 0.300749 0.42052 0.924862 0.707102 0.707111 -4.8005e-05 -5.36094e-05 -0.300001 0.420001 0.873686 0.921059 -1.44679e-05 -1.01486e-05 0.389423'/>
+      <key name = 'home' qpos='1.69641 -0.81679 -2.60786 -0.43981 1.57924 0.00360276 0.00254555 0.000149028 0.00285228 -0.00308143 0.00260377 0.000143243 0.00284266 -0.00307383 0.129576 0.420459 0.854341 0.999943 -0.00782853 -0.00731608 1.53647e-05 -0.13 0.419987 0.844784 0.707107 0.707107 -2.94273e-19 2.9393e-19 -1.22759e-05 0.650018 0.838445 1 0.000102597 -0.000173719 -1.10769e-06 0.301709 0.248624 0.932949 0.704714 0.709488 0.00174455 -0.00149364 0.299715 0.24903 0.924861 0.707102 0.707112 -1.36951e-05 -1.61762e-05 -0.300061 0.249977 0.873696 0.921061 -1.58566e-05 -0.00065147 0.389419'/>
+
+  </keyframe> -->
+
+  <keyframe>
+    <key qpos="-0.0051317 0.627934 0.00244454 -1.18895 0.0211049 1.92151 0.75165 0.0 0.00986644 0.151691 0.425484 0.873375 0.998255 -0.0568273 0.0160529 0.000575323 -0.15 0.419987 0.844784 0.707107 0.707107 0 0 -1.51898e-05 0.419996 0.838446 1 8.90385e-05 -0.000283658 3.79769e-07 0.303289 0.42017 0.932932 0.705129 0.709031 0.0075886 -0.0033377 0.300717 0.420489 0.924869 0.707102 0.707111 5.16976e-05 4.64157e-05 -0.300001 0.420001 0.873686 0.921056 -1.44208e-05 -1.02159e-05 0.389429" qvel="-0.136811 0.0312975 0.2179 0.0625613 -0.0713615 -0.0515571 0.0 2.06183 2.06154 2.69067e-06 -1.76803e-06 3.14964e-05 1.35078e-05 3.22345e-05 4.3689e-06 0 0 0 0 0 0 -7.86417e-08 4.38655e-08 2.38151e-06 -4.55395e-06 1.07173e-06 7.038e-09 -0.000282773 9.21477e-05 0.000273808 0.000495871 0.00012122 -9.63151e-05 8.50311e-06 3.67084e-06 6.00756e-06 -4.75995e-05 3.62754e-07 -8.85436e-05 -8.34709e-07 8.09872e-07 -3.22666e-07 -2.43723e-05 -5.43796e-08 2.70913e-07" ctrl="0 0.61705 0 -1.18061 0.02897 1.92379 0.75322 0"/>
+  </keyframe>
+
+</mujoco>
