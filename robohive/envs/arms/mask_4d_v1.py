@@ -21,6 +21,7 @@ import groundingdino
 from PIL import Image, ImageDraw
 from torchvision.ops import box_convert
 import torch
+import math
 import random
 
 # Set environment variables
@@ -42,7 +43,7 @@ from robohive.envs.arms.python_api_2 import BodyIdInfo, arm_control, get_touchin
 class ReachBaseV0(env_base_1.MujocoEnv):
 
     DEFAULT_OBS_KEYS = [
-        'time', 'qp_robot', 'qv_robot'
+        'qp_robot', 'qv_robot'
     ]
     DEFAULT_PROPRIO_KEYS = [
         'qp_robot', 'qv_robot'
@@ -85,10 +86,10 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                target_site_name,
                goal_site_name,
                target_xyz_range,
-               image_width=224,
-               image_height=224,
+               image_width=212,
+               image_height=120,
                obj_xyz_range = None,
-               frame_skip = 12,#40,
+               frame_skip = 20,#40,
                reward_mode = "dense",
                obs_keys=DEFAULT_OBS_KEYS,
                proprio_keys=DEFAULT_PROPRIO_KEYS,
@@ -122,12 +123,13 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.total_pix = 0
         self.touch_success = 0
         self.single_touch = 0
-        self.cx, self.cy = 0, 0
-        self.r = 0
+        self.target_x, self.target_y = 0, 0
+        self.target_r = 0
+        self.r = 2
         self.depth = 0
         self.eval = False
-        np.random.seed(47006)
-        random.seed(47006)
+        #np.random.seed(47006)
+        #random.seed(47006)
 
 
 
@@ -342,8 +344,14 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
-        self.final_image = np.ones((self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 4), dtype=np.uint8)
-        self.color = np.random.choice(['green'])
+        self.final_image = np.ones((self.IMAGE_HEIGHT, self.IMAGE_WIDTH, 4), dtype=np.uint8)
+        
+        site_pos = self.sim.data.site_xpos[self.target_sid]
+        camera_matrix = self.compute_camera_matrix()
+        self.target_x, self.target_y  = self.world_2_pixel(site_pos, camera_matrix) 
+        site_pos[0] += 0.04
+        rx, ry  = self.world_2_pixel(site_pos, camera_matrix) 
+        self.r = math.sqrt((rx - self.target_x) ** 2 + (ry - self.target_y) ** 2)
         return {'image': self.final_image, 'vector': obs}
     
 
@@ -360,17 +368,15 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         )
         #depth = self.depth_2_meters(depth) #we don't need this, already in meters
         site_pos = self.sim.data.site_xpos[self.target_sid]
-        pixel_x, pixel_y, radius = self.world_2_pixel(site_pos)
-        self.cx, self.cy = pixel_x, pixel_y
-        self.r = radius
+        camera_matrix = self.compute_camera_matrix()
+        self.target_x, self.target_y = self.world_2_pixel(site_pos, camera_matrix) 
+        site_pos[0] += 0.04
+        rx, ry  = self.world_2_pixel(site_pos, camera_matrix) 
+        self.r = math.sqrt((rx - self.target_x) ** 2 + (ry - self.target_y) ** 2)
+        #pixel_x, pixel_y = self.world_2_pixel(site_pos)
 
         observation = {}
         observation["rgb"] = rgb
-        #observation["depth"] =   np.array([depth[pixel_y][pixel_x]]) #np.array([ 2.701]) #
-        #print(np.array([depth[pixel_y][pixel_x]]), np.array([depth[pixel_y][224 - pixel_x]]))
-        #observation["pixel_coords"] = [pixel_x, pixel_y]
-        #print('pixel coords,', pixel_x, pixel_y)
-
         return observation
 
     #setting a boundary of virtual box such that the arm will not accidentally
@@ -453,7 +459,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
     def set_color(self, color):
             self.color = color
     
-    def get_image_data(self, show=False, camera="end_effector_cam", width=224, height=224):
+    def get_image_data(self, show=False, camera="end_effector_cam", width=212, height=120):
         """
         Returns the RGB and depth images of the provided camera.
 
@@ -472,16 +478,13 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.rgb_out = rgb
 
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
-        blurred = cv.GaussianBlur(rgb, (11, 11), 0)
-        hsv = cv.cvtColor(blurred, cv.COLOR_BGR2HSV)
         
-        mask = np.zeros(( self.IMAGE_HEIGHT,  self.IMAGE_HEIGHT), dtype=np.uint8)
-        x, y = self.cx, self.cy
-        if isinstance(self.r, np.ndarray):
-            half_side = int(self.r.item())
-        else:
-            half_side = int(self.r)
-        cv.rectangle(mask, (224 - x - half_side, y - half_side), (224- x + half_side, y + half_side), 255, thickness=-1)
+        mask = np.zeros(( self.IMAGE_HEIGHT,  self.IMAGE_WIDTH), dtype=np.uint8)
+        x, y = int(self.target_x), int(self.target_y)
+        
+        half_side = int(max(self.r, 2))
+        
+        cv.rectangle(mask, (x - half_side, y - half_side), (x + half_side, y + half_side), 255, thickness=-1)
 
         self.mask_out = mask
 
@@ -498,11 +501,10 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         self.current_image = np.concatenate((rgb/255, np.expand_dims(mask/255, axis=-1)), axis=2)
 
-        #print(self.current_image.shape)
         
         #define the grasping rectangle
-        x1, y1 = int(63/200 * self.IMAGE_HEIGHT), self.IMAGE_HEIGHT - int(68/200 * self.IMAGE_HEIGHT)
-        x2, y2 = int(136/200 * self.IMAGE_HEIGHT), self.IMAGE_HEIGHT 
+        x1, x2 = int(self.IMAGE_WIDTH * 0.25), int(self.IMAGE_WIDTH * 0.75)
+        y1, y2 = int(self.IMAGE_HEIGHT * 0.40), int(self.IMAGE_HEIGHT * 0.80)
 
         cv.rectangle(rgb, (x1, y1), (x2, y2), (0, 0, 255), thickness=2)
         cv.rectangle(mask, (x1, y1), (x2, y2), 255, thickness=1)
@@ -512,10 +514,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         total_pixels = roi.size
         self.pixel_perc = (white_pixels / total_pixels) * 100
         self.total_pix = (np.sum(mask==255)/mask.size) * 100
-
-
-        #print('total pixel',self.total_pix)
-
 
         return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
 
@@ -556,7 +554,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         mode='rgb_array'
         if mode == 'rgb_array':
             rgb, depth = copy.deepcopy(
-            self.sim.renderer.render_offscreen(width=224, height=224, camera_id='end_effector_cam', depth = True)
+            self.sim.renderer.render_offscreen(width=212, height=120, camera_id='end_effector_cam', depth = True)
             )
             return rgb
         else:
@@ -587,7 +585,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         far = self.model.vis.map.zfar * extend
         return near / (1 - depth * (1 - near / far))
 
-    def pixel_2_world(self, pixel_x, pixel_y, depth, width=224, height=224, camera="end_effector_cam"):
+    def pixel_2_world(self, pixel_x, pixel_y, depth, width=212, height=120, camera="end_effector_cam"):
         """
         Converts pixel coordinates into world coordinates.
 
@@ -615,23 +613,44 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         return pos_w
 
-    def _setup_camera(self, height=224, width=224):
+    def _setup_camera(self, height=212, width=120):
         """Sets up the camera to render the scene from the required view."""
         # This assumes you have a fixed camera in your model XML
         self.camera_id = self.sim.model.camera_name2id('end_effector_cam')
-        self.get_camera_matrices(self.camera_id, height, width)
+        #self.get_camera_matrices(self.camera_id, height, width)
     
-    def get_camera_matrices(self, camera_id, height, width):
-        """Retrieve projection, position, and rotation matrices for the specified camera."""
-        fovy = self.sim.model.cam_fovy[camera_id]  # Fetch camera settings
-        # Calculate focal length
-        f = 0.5 * height / np.tan(fovy * np.pi / 360)
-        #construct camera matrix
-        self.cam_matrix = np.array(((f, 0, width / 2), (0, f, height / 2), (0, 0, 1)))
-        self.cam_init = True
+    def compute_camera_matrix(self, camera="end_effector_cam"):
+        """Returns the 3x4 camera matrix."""
+        # If the camera is a 'free' camera, we get its position and orientation
+        # from the scene data structure. It is a stereo camera, so we average over
+        # the left and right channels. Note: we call `self.update()` in order to
+        # ensure that the contents of `scene.camera` are correct.
+
+        pos = self.sim.data.cam_xpos[self.sim.model.camera_name2id(camera)]
+        rot_mat = self.sim.data.cam_xmat[self.sim.model.camera_name2id(camera)].reshape(3, 3)
+        camera_id = self.sim.model.camera_name2id(camera)
+        fov = self.sim.model.cam_fovy[camera_id]
+
+        # Translation matrix (4x4).
+        translation = np.eye(4)
+        translation[0:3, 3] = -pos
+
+        # Rotation matrix (4x4).
+        rotation = np.eye(4)
+        rotation[0:3, 0:3] = rot_mat.T
+
+        # Focal transformation matrix (3x4).
+        focal_scaling = (1./np.tan(np.deg2rad(fov)/2)) * self.IMAGE_HEIGHT / 2.0
+        focal = np.diag([-focal_scaling, focal_scaling, 1.0, 0])[0:3, :]
+
+        # Image matrix (3x3).
+        image = np.eye(3)
+        image[0, 2] = (self.IMAGE_WIDTH - 1) / 2.0
+        image[1, 2] = (self.IMAGE_HEIGHT - 1) / 2.0
+        return image @ focal @ rotation @ translation
     
 
-    def world_2_pixel(self, world_coordinate, width=224, height=224, camera="end_effector_cam"):
+    def world_2_pixel(self, world_coordinate, camera_matrix):
         """
         Takes a XYZ world position and transforms it into pixel coordinates.
         Mainly implemented for testing the correctness of the camera matrix, focal length etc.
@@ -642,26 +661,13 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             height: Height of the image (pixel).
             camera: Name of camera used to obtain the image.
         """
-
-        if not self.cam_init:
-            self.create_camera_data(width, height, camera)
-        self.cam_pos = self.sim.data.cam_xpos[self.sim.model.camera_name2id(camera)]
         
-        self.cam_rot_mat = self.sim.data.cam_xmat[self.sim.model.camera_name2id(camera)].reshape(3, 3)
-
-        
-        cam_coord = self.cam_rot_mat.T @ (world_coordinate - self.cam_pos)
-    
-
-        # Project to image plane
-        hom_pixel = self.cam_matrix @ cam_coord
-        # Real image point
-        if hom_pixel[2] != 0:
-            pixel = hom_pixel[:2] / hom_pixel[2]
-        else:
-            pixel = hom_pixel[:2]  # Avoid division by zero
-        radius = self.calculate_radius(self.depth)
-        return np.round(pixel[0]).astype(int), np.round(pixel[1]).astype(int), radius
+        w = np.ones((4,), dtype=float)
+        w[0:3] = world_coordinate
+        xs, ys, s = camera_matrix @ w 
+        x = xs / s
+        y = ys / s 
+        return np.round(x).astype(int), np.round(y).astype(int)
     
     def calculate_radius(self, d_depth):
         """

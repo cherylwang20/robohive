@@ -115,9 +115,9 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.touch_success = 0
         self.single_touch = 0
         self.cx, self.cy = 0, 0
-        self.eval = False
-        np.random.seed(47006)
-        random.seed(47006)
+        self.eval = True
+        np.random.seed(47004)
+        random.seed(47004)
         
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']

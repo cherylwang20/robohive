@@ -137,8 +137,8 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
         # observation = self.reset()
         assert not done, "Check initialization. Simulation starts in a done state."
         self.observation_space = gym.spaces.Dict({
-            'image': gym.spaces.Box(low=0, high=255, shape=(224, 224, 4), dtype=np.float32),  # Use np.float32 here
-            'vector': gym.spaces.Box(obs_range[0]*np.ones(15), obs_range[1]*np.ones(15), dtype=np.float32)  # Ensure consistency in dtype usage
+            'image': gym.spaces.Box(low=0, high=255, shape=(120, 212, 4), dtype=np.float32),  # Use np.float32 here
+            'vector': gym.spaces.Box(obs_range[0]*np.ones(14), obs_range[1]*np.ones(14), dtype=np.float32)  # Ensure consistency in dtype usage
         })
         
         #self.observation_space = gym.spaces.Box(obs_range[0]*np.ones(observation.size), obs_range[1]*np.ones(observation.size), dtype=np.float32)
@@ -295,7 +295,7 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
 
         # returns obs(t+1), rwd(t+1), done(t+1), info(t+1)
         #print(image.size)
-        obs = {'image': image.reshape((224, 224, 4)), 'vector': obs}
+        obs = {'image': image.reshape((120, 212, 4)), 'vector': obs}
 
         return obs, env_info['rwd_'+self.rwd_mode], bool(env_info['done']), env_info
 

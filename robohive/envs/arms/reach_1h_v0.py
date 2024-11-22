@@ -117,8 +117,8 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         self.one_hot = np.zeros(8)
         self.cx, self.cy = 0, 0
         self.eval = True
-        np.random.seed(47006)
-        random.seed(47006)
+        np.random.seed(47004)
+        random.seed(47004)
         
         if 'eval_mode' in kwargs:
             self.eval_mode = kwargs['eval_mode']
@@ -267,7 +267,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
 
         print(self.one_hot)
         obj_xyz_ranges = {
-            'object': {'low': [-0.1, -0.1, 0], 'high': [0.1, 0.1, 0]},
+            'object': {'low': [-0.05, -0.05, 0], 'high': [0.05, 0.05, 0]},
         }
 
         new_x, new_y = np.random.uniform(
@@ -315,6 +315,9 @@ class ReachBaseV0(env_base_2.MujocoEnv):
             object_qpos_adr = self.sim.model.jnt_qposadr[object_jnt_adr]
 
             if obj_name == 'object_4':
+                pos[-1] += 0.08  # Adjust z by 0.05 for object_4
+
+            if obj_name == 'object_8':
                 pos[-1] += 0.08  # Adjust z by 0.05 for object_4
 
             reset_qpos[object_qpos_adr:object_qpos_adr + 3] = pos
