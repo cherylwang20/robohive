@@ -240,8 +240,6 @@ class ReachBaseV0(gym.Env):
         else:
             rwd_dict['dense'] = 1.0 if contact == 2 else 0
             rwd_dict['done'] = contact == 2
-        gripper_width = np.linalg.norm([self.sim.data.site_xpos[self.sim.model.site_name2id('left_silicone_pad')]- 
-                                 self.sim.data.site_xpos[self.sim.model.site_name2id('right_silicone_pad')]], axis = -1)
         return rwd_dict
     
     def reset(self, reset_qpos=None, reset_qvel=None, **kwargs):
