@@ -4,7 +4,7 @@
     branch = robohive
 [submodule "robohive/simhive/furniture_sim"]
 	path = robohive/simhive/furniture_sim
-	url = https://github.com/vikashplus/furniture_sim.git
+	url = https://github.com/cherylwang20/furniture_sim.git
 [submodule "robohive/simhive/franka_sim"]
 	path = robohive/simhive/franka_sim
 	url = https://github.com/vikashplus/franka_sim.git
