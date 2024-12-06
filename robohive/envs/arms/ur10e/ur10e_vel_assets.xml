@@ -64,21 +64,7 @@
         <mesh name="s_contact3" file="../../../../simhive/object_sim/stanfordbunny/contact3.stl" scale = '0.7 0.7 0.7'/>
         <mesh name="s_contact4" file="../../../../simhive/object_sim/stanfordbunny/contact4.stl" scale = '0.7 0.7 0.7'/>
         <mesh name="s_contact5" file="../../../../simhive/object_sim/stanfordbunny/contact5.stl" scale = '0.7 0.7 0.7'/>
-        <mesh name="mug" file="../../../../simhive/object_sim/mug/mug.stl"/>
-        <mesh name="contact0" file="../object_sim/mug/contact0.stl"/>
-        <mesh name="contact1" file="../object_sim/mug/contact1.stl"/>
-        <mesh name="contact2" file="../object_sim/mug/contact2.stl"/>
-        <mesh name="contact3" file="../object_sim/mug/contact3.stl"/>
-        <mesh name="contact4" file="../object_sim/mug/contact4.stl"/>
-        <mesh name="contact5" file="../object_sim/mug/contact5.stl"/>
-        <mesh name="contact6" file="../object_sim/mug/contact6.stl"/>
-        <mesh name="contact7" file="../object_sim/mug/contact7.stl"/>
-        <mesh name="contact8" file="../object_sim/mug/contact8.stl"/>
-        <mesh name="contact9" file="../object_sim/mug/contact9.stl"/>
-        <mesh name="contact10" file="../object_sim/mug/contact10.stl"/>
-        <mesh name="contact11" file="../object_sim/mug/contact11.stl"/>
-        <mesh name="contact12" file="../object_sim/mug/contact12.stl"/>
-        <mesh name="contact13" file="../object_sim/mug/contact13.stl"/>
+
 
         <mesh file="beaker_thick_0.obj"/>
         <mesh file="beaker_thick_1.obj"/>

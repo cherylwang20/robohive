@@ -122,7 +122,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.obj_scale_change = [0.05, 0.05, 0.05]
         self.obj_mass_change = (-0.050, 0.050)
         self.obj_friction_change = (0.1, 0.001, 0.00002)
-       
+        self.vel_action = [0]*6
+    
         self.pixel_perc = 0
         self.total_pix = 0
         self.touch_success = 0
@@ -157,7 +158,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         obs_dict = {}
         obs_dict['time'] = np.array([self.sim.data.time])
         obs_dict['qp_robot'] = sim.data.qpos[:7].copy()
-        obs_dict['qv_robot'] = sim.data.qvel[:7].copy()
+        obs_dict['qv_robot'] = self.vel_action.copy()
         #print('gripper velocity & position', obs_dict['qp_robot'][-1], obs_dict['qv_robot'][-1])
         obs_dict['xmat_pinch'] = mat2euler(np.reshape(self.sim.data.site_xmat[self.grasp_sid], (3, 3)))
         #obs_dict['obj_ori'] = mat2euler(np.reshape(self.sim.data.site_xmat[self.target_sid], (3, 3)))
@@ -433,11 +434,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         change control method here if needed 
         """
         self.save_state()
-        #if self.pixel_perc > 50 and self.grasp_attempt <= 1:
-        #if self.sim.data.site_xpos[self.grasp_sid][-1] < 0.8 and self.grasp_attempt <= 1:
 
-        #print(self.time) self.sim.data.site_xpos[self.grasp_sid][-1] < 0.53
-        #print(self.single_touch) 
         if self.single_touch >= 1000:
             print('hard-coded')
             self.fixed_positions = self.sim.data.qpos[:7].copy()
@@ -450,12 +447,8 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                                         render_cbk=self.mj_render if self.mujoco_render_frames else None)
         else:
             a = np.clip(a, self.action_space.low, self.action_space.high)
-            if self.time < 1.5:
-                a[-1] = 1
-            else:
-                a[-1] = -1
             self.fixed_positions = None
-            self.last_ctrl = self.robot.step(ctrl_desired=a,
+            self.last_ctrl, self.vel_action = self.robot.step(ctrl_desired=a,
                                         last_qpos = self.sim.data.qpos[:7].copy(),
                                         dt = self.dt,
                                         render_cbk=self.mj_render if self.mujoco_render_frames else None)

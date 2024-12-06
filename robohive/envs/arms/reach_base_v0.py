@@ -9,13 +9,13 @@ import collections
 import gym
 import numpy as np
 
-from robohive.envs import env_base
+from robohive.envs import env_base_UR
 
 
-class ReachBaseV0(env_base.MujocoEnv):
+class ReachBaseV0(env_base_UR.MujocoEnv):
 
     DEFAULT_OBS_KEYS = [
-        'qp_robot', 'qv_robot', 'reach_err'
+        'qp_robot', 'qv_robot','reach_err'
     ]
     DEFAULT_PROPRIO_KEYS = [
         'qp_robot', 'qv_robot'
@@ -50,7 +50,7 @@ class ReachBaseV0(env_base.MujocoEnv):
                robot_site_name,
                target_site_name,
                target_xyz_range,
-               frame_skip = 40,
+               frame_skip = 20,
                reward_mode = "dense",
                obs_keys=DEFAULT_OBS_KEYS,
                proprio_keys=DEFAULT_PROPRIO_KEYS,
@@ -62,28 +62,28 @@ class ReachBaseV0(env_base.MujocoEnv):
         self.grasp_sid = self.sim.model.site_name2id(robot_site_name)
         self.target_sid = self.sim.model.site_name2id(target_site_name)
         self.target_xyz_range = target_xyz_range
-
         super()._setup(obs_keys=obs_keys,
                        proprio_keys=proprio_keys,
                        weighted_reward_keys=weighted_reward_keys,
                        reward_mode=reward_mode,
                        frame_skip=frame_skip,
                        **kwargs)
+        self.init_qpos[:] = self.sim.model.key_qpos[0].copy()
 
 
     def get_obs_dict(self, sim):
         obs_dict = {}
         obs_dict['time'] = np.array([self.sim.data.time])
-        obs_dict['qp_robot'] = sim.data.qpos.copy()
-        obs_dict['qv_robot'] = sim.data.qvel.copy()
+        obs_dict['qp_robot'] = sim.data.qpos[:6].copy()
+        obs_dict['qv_robot'] = sim.data.qvel[:6].copy()
         obs_dict['reach_err'] = sim.data.site_xpos[self.target_sid]-sim.data.site_xpos[self.grasp_sid]
+        #print('qpos', obs_dict['qp_robot'], 'qvel', obs_dict['qv_robot'], 'reach_err', obs_dict['reach_err'])
         return obs_dict
 
 
     def get_reward_dict(self, obs_dict):
         reach_dist = np.linalg.norm(obs_dict['reach_err'], axis=-1)
-        far_th = 1.0
-
+        far_th = 2.0
         rwd_dict = collections.OrderedDict((
             # Optional Keys
             ('reach',   reach_dist),
@@ -96,8 +96,25 @@ class ReachBaseV0(env_base.MujocoEnv):
         ))
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         return rwd_dict
+    
+    def step(self, a, **kwargs):
+        """
+        Step the simulation forward (t => t+1)
+        Uses robot interface to safely step the forward respecting pos/ vel limits
+        Accepts a(t) returns obs(t+1), rwd(t+1), done(t+1), info(t+1)
+        """
+        a = np.clip(a, self.action_space.low, self.action_space.high)
+        self.last_ctrl, self.vel_action = self.robot.step(ctrl_desired=a,
+                                        last_qpos = self.sim.data.qpos[:7].copy(),
+                                        #ctrl_normalized=self.normalize_act,
+                                        dt=self.dt,
+                                        #realTimeSim=self.mujoco_render_frames,
+                                        render_cbk=self.mj_render if self.mujoco_render_frames else None)
+        return self.forward(**kwargs)
+
 
     def reset(self, reset_qpos=None, reset_qvel=None):
+        reset_qpos = self.sim.model.key_qpos[0].copy()
         self.sim.model.site_pos[self.target_sid] = self.np_random.uniform(high=self.target_xyz_range['high'], low=self.target_xyz_range['low'])
         self.sim_obsd.model.site_pos[self.target_sid] = self.sim.model.site_pos[self.target_sid]
         obs = super().reset(reset_qpos, reset_qvel)
