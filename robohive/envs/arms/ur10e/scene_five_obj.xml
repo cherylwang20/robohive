@@ -87,7 +87,7 @@
     <body name="object_4" pos="0.3 0.42 1.0" euler="1.57 0 0">
       <freejoint/>
       <site name="object_4" size="0.001" pos="0 0.0 0.0"/>
-      <geom name = "object_4" rgba="1 1 1 ." mesh="rbf_0" class="visual_b"/>
+      <geom name = "object_4" rgba="1 1 1 1" mesh="rbf_0" class="visual_b"/>
       <geom rgba="1 1 1 .4" mesh="rbf_1" class="visual_b"/>
       <geom mesh="rbf_collision_0" class="collision_b"/>
       <geom mesh="rbf_collision_1" class="collision_b"/>

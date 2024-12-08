@@ -264,9 +264,9 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
         """
         a = np.clip(a, self.action_space.low, self.action_space.high)
         self.last_ctrl = self.robot.step(ctrl_desired=a,
-                                        ctrl_normalized=self.normalize_act,
-                                        step_duration=self.dt,
-                                        realTimeSim=self.mujoco_render_frames,
+                                        #ctrl_normalized=self.normalize_act,
+                                        dt=self.dt,
+                                        #realTimeSim=self.mujoco_render_frames,
                                         render_cbk=self.mj_render if self.mujoco_render_frames else None)
         return self.forward(**kwargs)
 

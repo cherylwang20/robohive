@@ -8,7 +8,7 @@ from collections import deque
 import enum
 from functools import partial
 
-xml = './ur10e/scene_chem_vel.xml' 
+xml = './ur10e/scene_cylinder.xml' 
 contacts = deque(maxlen=1000)
 
 class ObjLabels(enum.Enum):
@@ -44,7 +44,7 @@ def get_touching_objects(model: mujoco.MjModel, data: mujoco.MjData, id_info: Bo
             yield body_id_to_label(model.geom(con.geom1).bodyid, id_info)
 
 def body_id_to_label(body_id, id_info: BodyIdInfo):
-    #print(id_info.left_range[0], id_info.right_range[0], body_id)
+    print(id_info.left_range[0], id_info.right_range[0], body_id)
     if id_info.left_range[0]  - 1 <= body_id < id_info.left_range[1]:
         return ObjLabels.LEFT_GRIP
     elif id_info.right_range[0] - 1 <= body_id < id_info.right_range[1]:
