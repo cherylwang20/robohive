@@ -232,9 +232,9 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             #('power_cost', power_cost),
             # Must keys
             ('sparse',  pix_perc),
-            ('solved',  np.array([self.single_touch]) >= 1),
+            ('solved',  np.array([self.touch_success]) >= 1),
             ('gripper_height',  gripper_height - 0.83),
-            ('done', contact == 2), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
+            ('done', np.array([self.touch_success >= 10])), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
         if not self.eval_mode:
             rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
@@ -438,22 +438,20 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         #print(self.time) self.sim.data.site_xpos[self.grasp_sid][-1] < 0.53
         #print(self.single_touch) 
-        if self.single_touch >= 1000:
-            print('hard-coded')
+        if self.touch_success >= 1000:
+            print('hard-coded pick up')
             self.fixed_positions = self.sim.data.qpos[:7].copy()
             self.fixed_positions[-1] = 1
-            a[-1] = 1
-            self.grasping_steps_left -= 1 # Decrement the counter each step
+            a = [0, 0, 0, 0, 0, 0, 1]
+            if self.touch_success >= 30:
+                a = [0, -0.5, -0.5, 0, 0, 0, 1]
+            self.rwd_dict['dense'] += 1
             self.last_ctrl = self.robot.step(ctrl_desired=a,
                                         last_qpos = self.fixed_positions,
                                         dt = self.dt,
                                         render_cbk=self.mj_render if self.mujoco_render_frames else None)
         else:
             a = np.clip(a, self.action_space.low, self.action_space.high)
-            if self.time < 1.5:
-                a[-1] = 1
-            else:
-                a[-1] = -1
             self.fixed_positions = None
             self.last_ctrl = self.robot.step(ctrl_desired=a,
                                         last_qpos = self.sim.data.qpos[:7].copy(),
@@ -464,6 +462,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         
         if self.check_collision():
             print("Collision detected, reverting action")
+            self.rwd_dict['dense'] -= 1
             self.restore_state()
     
         self.object_image_normalized = self.object_image / 255
