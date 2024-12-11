@@ -135,10 +135,11 @@ class MujocoEnv(gym.Env, gym.utils.EzPickle, ObsVecDict):
         observation, _reward, done, _info = self.step(np.zeros(self.sim.model.nu))
         # Question: Should we replace above with following? Its specially helpful for hardware as it forces a env reset before continuing, without which the hardware will make a big jump from its position to the position asked by step.
         # observation = self.reset()
+        vector_len = len(observation['vector'])
         assert not done, "Check initialization. Simulation starts in a done state."
         self.observation_space = gym.spaces.Dict({
-            'image': gym.spaces.Box(low=0, high=255, shape=(224, 224, 3), dtype=np.float32),  # Use np.float32 here
-            'vector': gym.spaces.Box(obs_range[0]*np.ones(23), obs_range[1]*np.ones(23), dtype=np.float32)  # Ensure consistency in dtype usage
+            'image': gym.spaces.Box(low=0, high=255, shape=(120, 212, 3), dtype=np.float32),  # Use np.float32 here
+            'vector': gym.spaces.Box(obs_range[0]*np.ones(vector_len), obs_range[1]*np.ones(vector_len), dtype=np.float32)  # Ensure consistency in dtype usage
         })
         
         #self.observation_space = gym.spaces.Box(obs_range[0]*np.ones(observation.size), obs_range[1]*np.ones(observation.size), dtype=np.float32)

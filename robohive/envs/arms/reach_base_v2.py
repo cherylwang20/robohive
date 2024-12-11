@@ -8,16 +8,18 @@ License :: Under Apache License, Version 2.0 (the "License"); you may not use th
 import collections
 import gym
 import numpy as np
+import cv2 as cv
+import copy
 
-from robohive.envs import env_base_UR
+from robohive.envs import env_base_2
 from robohive.envs.arms.python_api_2 import BodyIdInfo, arm_control, get_touching_objects, ObjLabels
 
 
 
-class ReachBaseV0(env_base_UR.MujocoEnv):
+class ReachBaseV0(env_base_2.MujocoEnv):
 
     DEFAULT_OBS_KEYS = [
-        'qp_robot', 'qv_robot','reach_err', 'goal_pos'
+        'qp_robot', 'qv_robot','reach_err'
     ]
     DEFAULT_PROPRIO_KEYS = [
         'qp_robot', 'qv_robot'
@@ -54,6 +56,8 @@ class ReachBaseV0(env_base_UR.MujocoEnv):
                target_site_name,
                target_xyz_range,
                frame_skip = 20,
+               image_width = 212,
+               image_height= 120,
                reward_mode = "dense",
                obs_keys=DEFAULT_OBS_KEYS,
                proprio_keys=DEFAULT_PROPRIO_KEYS,
@@ -66,6 +70,9 @@ class ReachBaseV0(env_base_UR.MujocoEnv):
         self.target_site_name = target_site_name
         self.target_sid = self.sim.model.site_name2id(target_site_name)
         self.target_xyz_range = target_xyz_range
+        self.IMAGE_WIDTH = image_width
+        self.IMAGE_HEIGHT = image_height
+        self.current_image = np.ones((image_width, image_height, 3), dtype=np.uint8)
         self.vel_action = [0]*6
         self.contact = 0 
         super()._setup(obs_keys=obs_keys,
@@ -95,6 +102,31 @@ class ReachBaseV0(env_base_UR.MujocoEnv):
         obs_vec = self._obj_label_to_obs(touching_objects)
         obs_dict["touching_body"] = obs_vec
         return obs_dict
+    
+    def get_image_data(self, show=False, camera="end_effector_cam", width= 212, height= 120):
+        """
+        Returns the RGB and depth images of the provided camera.
+
+        Args:
+            show: If True displays the images for five seconds or until a key is pressed.
+            camera: String specifying the name of the camera to use.
+        """
+        #rgb_out =  self.sim.renderer.render_offscreen(width=800, height=800, camera_id='ft_cam')
+        #self.sim.renderer.close()
+
+        # Initialize the simulator
+        rgb, depth = copy.deepcopy(
+            self.sim.renderer.render_offscreen(height=height,width=width,  camera_id=camera, depth = True)
+        )
+
+        self.rgb_out = rgb
+
+        rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
+
+
+        self.current_image = rgb/255
+
+        return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
 
     def _obj_label_to_obs(self, touching_body):
         # Function to convert touching body set to an binary observation vector
@@ -169,6 +201,8 @@ class ReachBaseV0(env_base_UR.MujocoEnv):
         # finalize step
         env_info = self.get_env_infos()
 
+        obs = {'image': self.current_image.reshape((self.IMAGE_HEIGHT, self.IMAGE_WIDTH, 3)), 'vector': obs}
+
         return obs, env_info['rwd_'+self.rwd_mode], bool(env_info['done']), env_info
 
 
@@ -199,4 +233,5 @@ class ReachBaseV0(env_base_UR.MujocoEnv):
         reset_qpos[object_qpos_adr:object_qpos_adr + 3] = new_pos
 
         obs = super().reset(reset_qpos, reset_qvel)
-        return obs
+        self.final_image = np.ones((self.IMAGE_HEIGHT, self.IMAGE_WIDTH, 3), dtype=np.uint8)
+        return {'image': self.final_image, 'vector': obs}
