@@ -235,7 +235,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             ('sparse',  pix_perc),
             ('solved',  np.array([self.touch_success]) >= 1),
             ('gripper_height',  gripper_height - 0.83),
-            ('done', np.array([self.touch_success >= 10])), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
+            ('done', np.array([self.touch_success >= 1])), #    obj_height  - self.obj_init_z > 0.2, #reach_dist > far_th
         ))
         if not self.eval_mode:
             rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
@@ -342,7 +342,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             current_rgba = self.sim.model.geom_rgba[object_gid]
 
             # Create a small random change for RGB, leaving alpha unchanged
-            random_change = np.random.uniform(-0.1, 0.1, size=3)  # Small random change for RGB
+            random_change = np.random.uniform(-0.05, 0.05, size=3)  # Small random change for RGB
             new_rgb = np.clip(current_rgba[:3] + random_change, 0, 1)  # Adjust RGB and ensure values are within [0, 1]
 
             # Update the RGBA values in the simulation
@@ -405,6 +405,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                     z_min <= joint_pos[2] <= z_max):
                 #print(joint_pos)
                 #print(f"Collision at joint {i}")
+                self.rwd_dict['dense'] -= 1
                 return True
         return False
     

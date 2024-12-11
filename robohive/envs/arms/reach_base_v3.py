@@ -92,6 +92,8 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         obs_dict['reach_err'] = sim.data.site_xpos[self.target_sid]-sim.data.site_xpos[self.grasp_sid]
         obs_dict['goal_pos'] = sim.data.site_xpos[self.target_sid]
 
+        self.get_image_data()
+
         this_model = sim.model
         id_info = BodyIdInfo(this_model)
         this_data = sim.data
