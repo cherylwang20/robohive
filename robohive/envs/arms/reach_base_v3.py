@@ -72,6 +72,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         self.target_xyz_range = target_xyz_range
         self.IMAGE_WIDTH = image_width
         self.IMAGE_HEIGHT = image_height
+        self.rgb_out = np.ones((image_width, image_height))
         self.current_image = np.ones((image_width, image_height, 3), dtype=np.uint8)
         self.vel_action = [0]*6
         self.contact = 0 
@@ -120,7 +121,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         rgb, depth = copy.deepcopy(
             self.sim.renderer.render_offscreen(height=height,width=width,  camera_id=camera, depth = True)
         )
-
+        
         self.rgb_out = rgb
 
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
@@ -213,7 +214,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         self.sim.model.site_pos[self.target_sid] = self.np_random.uniform(high=self.target_xyz_range['high'], low=self.target_xyz_range['low'])
         self.sim_obsd.model.site_pos[self.target_sid] = self.sim.model.site_pos[self.target_sid]
         obj_xyz_ranges = {
-            'object': {'low': [-0.05, -0.05, 0], 'high': [0.15, 0.15, 0]},
+            'object': {'low': [-0.85, -0.05, 0], 'high': [.85, 0.15, 0]},
         }
 
         new_x, new_y = np.random.uniform(
