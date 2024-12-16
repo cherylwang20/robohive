@@ -6,6 +6,8 @@ License :: Under Apache License, Version 2.0 (the "License"); you may not use th
 ================================================= """
 
 import collections
+import random
+import os
 import gym
 import numpy as np
 import cv2 as cv
@@ -13,6 +15,9 @@ import copy
 import kornia.augmentation as KAug
 import kornia.enhance as KEnhance
 import torch
+from PIL import Image
+import torchvision.transforms as transforms
+import torch 
 
 from robohive.envs import env_base_2
 from robohive.envs.arms.python_api_2 import BodyIdInfo, arm_control, get_touching_objects, ObjLabels
@@ -132,11 +137,46 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         
         rgb = torch.from_numpy(rgb).float() / 255.0
         rgb = rgb.permute(2, 0, 1).unsqueeze(0)
-        rgb = self.augment_image(rgb)
 
-        self.current_image = rgb
+        real_images = self.load_images('background/212x120')
+        index = random.randint(0, len(real_images) - 1) 
+        selected_image = real_images[index] 
+        rgb = self.augment_image(rgb)
+        rgb = rgb.squeeze(0)
+        alpha = random.uniform(0.85, .95)
+        rgb = KEnhance.add_weighted(rgb, alpha, selected_image, 1-alpha, 0)
+
+
+        rgb = rgb.permute(1, 2, 0)  # (C, H, W) to (H, W, C)
+        
+        rgb = rgb.numpy()
+        if rgb.dtype != np.uint8:
+            rgb = (rgb * 255).astype(np.uint8)
+
+        cv.imshow('Resized Image', rgb)  # This creates a window named 'Resized Image' and shows the image
+
+        cv.waitKey(1000)  # Waits indefinitely for a key press
+        cv.destroyAllWindows()  # Closes all the OpenCV windows
+
+        self.current_image = rgb/255
+
 
         return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
+    
+    def load_images(self, folder_path):
+        image_files = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if file.endswith(('.png', '.jpg', '.jpeg'))]
+        images = []
+        for file in image_files:
+            image = Image.open(file).convert('RGB')
+
+            transform = transforms.Compose([
+                transforms.Resize((120, 212)),
+                transforms.ToTensor()
+            ])
+            image = transform(image)
+            image = image[[2, 1, 0], :, :]
+            images.append(image)
+        return images
 
     def augment_image(self, rgb):
         low , high = 0.8, 1.2
@@ -144,7 +184,8 @@ class ReachBaseV0(env_base_2.MujocoEnv):
             KAug.RandomContrast(contrast=(low, high), clip_output=True, p=0.8),
             KAug.RandomBrightness((low, high)),
             KAug.RandomSaturation((low, high)), 
-            KAug.RandomGaussianBlur(kernel_size=(5, 5), sigma=(low, high), p=0.5)
+            KAug.RandomGaussianBlur(kernel_size=(5, 5), sigma=(low, high), p=0.5),
+            KAug.RandomGaussianNoise(mean=0., std=.01, p=0.3)
         )
 
         augmented_rgb = transform(rgb)
@@ -235,7 +276,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         self.sim.model.site_pos[self.target_sid] = self.np_random.uniform(high=self.target_xyz_range['high'], low=self.target_xyz_range['low'])
         self.sim_obsd.model.site_pos[self.target_sid] = self.sim.model.site_pos[self.target_sid]
         obj_xyz_ranges = {
-            'object': {'low': [-0.55, -0.05, 0], 'high': [.55, 0.05, 0]},
+            'object': {'low': [-0.35, -0.05, 0], 'high': [.35, 0.05, 0]},
         }
 
         new_x, new_y = np.random.uniform(
