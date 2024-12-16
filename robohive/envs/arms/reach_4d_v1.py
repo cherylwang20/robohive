@@ -11,11 +11,13 @@ We are using this as a testing ground for reaching with visual inputs.
 """
 
 import warnings
-
+import kornia.augmentation as KAug
+import kornia.enhance as KEnhance
 # Suppress all deprecation warnings
 warnings.simplefilter("ignore", DeprecationWarning)
 
 import collections
+import kornia
 #import mujoco as mp
 import os
 from torchvision.ops import box_convert
@@ -219,7 +221,6 @@ class ReachBaseV0(env_base_1.MujocoEnv):
                 print('grasping')
             self.touch_success +=1
         #print(contact)
-        #power_cost = np.linalg.norm(obs_dict['power_cost'], axis = -1)[0]
         rwd_dict = collections.OrderedDict((
             # Optional Keys[]
             ('reach',  reach_dist ),
@@ -342,11 +343,18 @@ class ReachBaseV0(env_base_1.MujocoEnv):
             current_rgba = self.sim.model.geom_rgba[object_gid]
 
             # Create a small random change for RGB, leaving alpha unchanged
-            random_change = np.random.uniform(-0.05, 0.05, size=3)  # Small random change for RGB
+            random_change = np.random.uniform(-0.1, 0.1, size=3)  # Small random change for RGB
             new_rgb = np.clip(current_rgba[:3] + random_change, 0, 1)  # Adjust RGB and ensure values are within [0, 1]
 
             # Update the RGBA values in the simulation
             self.sim.model.geom_rgba[object_gid, :3] = new_rgb
+        
+        ### here we want to augment the lighting in the scene
+        light_id = 1
+        #self.sim.model.light_dir[light_id] = np.random.rand(3) * 2 - 1
+        self.sim.model.light_diffuse[light_id] = np.random.rand(3)
+        self.sim.model.light_ambient[light_id] = np.random.rand(3)
+        self.sim.model.light_specular[light_id] = np.random.rand(3)
 
         obs = super().reset(reset_qpos = reset_qpos, reset_qvel = None, **kwargs)
         #self._last_robot_qpos = self.sim.model.key_qpos[0].copy()
@@ -436,7 +444,7 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         """
         self.save_state()
 
-        if self.single_touch >= 1000:
+        if self.touch_success >= 5:
             print('hard-coded')
             self.fixed_positions = self.sim.data.qpos[:7].copy()
             self.fixed_positions[-1] = 1
@@ -502,6 +510,22 @@ class ReachBaseV0(env_base_1.MujocoEnv):
 
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
 
+        #add augmentation here
+        rgb = torch.from_numpy(rgb).float() / 255.0
+        rgb = rgb.permute(2, 0, 1).unsqueeze(0)
+        rgb = self.augment_image(rgb)
+
+        #return the rgb to its original shape
+        if rgb.dim() == 4:
+            rgb = rgb.permute(0, 2, 3, 1)  # (B, C, H, W) to (B, H, W, C)
+            rgb = rgb.squeeze(0)  # Assuming only one image in the batch
+        elif rgb.dim() == 3:
+            rgb = rgb.permute(1, 2, 0)  # (C, H, W) to (H, W, C)
+        
+        rgb = rgb.numpy()
+        if rgb.dtype != np.uint8:
+            rgb = (rgb * 255).astype(np.uint8)
+
         mask = np.zeros(( self.IMAGE_HEIGHT,  self.IMAGE_WIDTH), dtype=np.uint8)
         x, y = int(self.target_x), int(self.target_y)
         
@@ -509,34 +533,15 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         
         cv.rectangle(mask, (x - half_side, y - half_side), (x + half_side, y + half_side), 255, thickness=-1)
 
-        '''
-        if isinstance(self.r, np.ndarray):
-            half_side = int(self.r.item())
-        else:
-            half_side = int(self.r)
-        cv.rectangle(mask, (224 - x - half_side, y - half_side), (224- x + half_side, y + half_side), 255, thickness=-1)
-        '''
         self.mask_out = mask
-
-        #print(self.TEXT_PROMPT, boxes, logits, phrases)
-
-        # Display the mask
-        '''
-        cv.imshow('Mask', mask)
-        cv.imshow("rbg", rgb)
-        cv.waitKey(1)
-        cv.waitKey(delay=5000)
-        cv.destroyAllWindows()
-        '''
 
         self.current_image = np.concatenate((rgb/255, np.expand_dims(mask/255, axis=-1)), axis=2)
 
-        
         #define the grasping rectangle
         x1, x2 = int(self.IMAGE_WIDTH * 0.25), int(self.IMAGE_WIDTH * 0.75)
         y1, y2 = int(self.IMAGE_HEIGHT * 0.40), int(self.IMAGE_HEIGHT * 0.80)
 
-        cv.rectangle(rgb, (x1, y1), (x2, y2), (0, 0, 255), thickness=2)
+        cv.rectangle(rgb.copy(), (x1, y1), (x2, y2), (0, 0, 255), thickness=2)
         cv.rectangle(mask, (x1, y1), (x2, y2), 255, thickness=1)
 
         roi = mask[y1:y2, x1:x2]
@@ -545,20 +550,21 @@ class ReachBaseV0(env_base_1.MujocoEnv):
         self.pixel_perc = (white_pixels / total_pixels) * 100
         self.total_pix = (np.sum(mask==255)/mask.size) * 100
 
-
-        #print('total pixel',self.total_pix)
-
-        #print(f"Percentage of white pixels in the rectangle: {self.pixel_perc:.2f}%")
-        #if show:
-            #cv.imshow("rbg", rgb)# cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
-            #cv.imshow("mask", mask)
-            #cv.imshow('Inverted Colored Depth', depth_normalized)
-            #cv.waitKey(1)
-            # cv.waitKey(delay=5000)
-            # cv.destroyAllWindows()
-
         return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
 
+    def augment_image(self, rgb):
+        low , high = 0.8, 1.2
+        self.transform = torch.nn.Sequential(
+            KAug.RandomContrast(contrast=(low, high), clip_output=True, p=0.8),
+            KAug.RandomBrightness((low, high)),
+            KAug.RandomSaturation((low, high)), 
+            KAug.RandomGaussianBlur(kernel_size=(5, 5), sigma=(low, high), p=0.5)
+        )
+
+        augmented_rgb = self.transform(rgb)
+
+        return augmented_rgb
+    
     def depth_2_meters(self, depth):
         """
         Converts the depth array delivered by MuJoCo (values between 0 and 1) into actual m values.

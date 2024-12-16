@@ -10,6 +10,9 @@ import gym
 import numpy as np
 import cv2 as cv
 import copy
+import kornia.augmentation as KAug
+import kornia.enhance as KEnhance
+import torch
 
 from robohive.envs import env_base_2
 from robohive.envs.arms.python_api_2 import BodyIdInfo, arm_control, get_touching_objects, ObjLabels
@@ -19,7 +22,7 @@ from robohive.envs.arms.python_api_2 import BodyIdInfo, arm_control, get_touchin
 class ReachBaseV0(env_base_2.MujocoEnv):
 
     DEFAULT_OBS_KEYS = [
-        'qp_robot', 'qv_robot','reach_err'
+        'qp_robot', 'qv_robot','goal_pos'
     ]
     DEFAULT_PROPRIO_KEYS = [
         'qp_robot', 'qv_robot'
@@ -27,8 +30,8 @@ class ReachBaseV0(env_base_2.MujocoEnv):
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "reach": -1.0,
         #"bonus": 4.0,
-        'solved': 1, 
-        "penalty": -50,
+        'solved': 10, 
+        #"penalty": -50,
     }
 
 
@@ -76,6 +79,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         self.current_image = np.ones((image_width, image_height, 3), dtype=np.uint8)
         self.vel_action = [0]*6
         self.contact = 0 
+        #frame_skip = np.random.randint(12, 27)
         super()._setup(obs_keys=obs_keys,
                        proprio_keys=proprio_keys,
                        weighted_reward_keys=weighted_reward_keys,
@@ -125,11 +129,27 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         self.rgb_out = rgb
 
         rgb = cv.cvtColor(rgb, cv.COLOR_BGR2RGB)
+        
+        rgb = torch.from_numpy(rgb).float() / 255.0
+        rgb = rgb.permute(2, 0, 1).unsqueeze(0)
+        rgb = self.augment_image(rgb)
 
-
-        self.current_image = rgb/255
+        self.current_image = rgb
 
         return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
+
+    def augment_image(self, rgb):
+        low , high = 0.8, 1.2
+        transform = torch.nn.Sequential(
+            KAug.RandomContrast(contrast=(low, high), clip_output=True, p=0.8),
+            KAug.RandomBrightness((low, high)),
+            KAug.RandomSaturation((low, high)), 
+            KAug.RandomGaussianBlur(kernel_size=(5, 5), sigma=(low, high), p=0.5)
+        )
+
+        augmented_rgb = transform(rgb)
+
+        return augmented_rgb
 
     def _obj_label_to_obs(self, touching_body):
         # Function to convert touching body set to an binary observation vector
@@ -159,8 +179,8 @@ class ReachBaseV0(env_base_2.MujocoEnv):
             ('penalty', (reach_dist>far_th)),
             # Must keys
             ('sparse',  -1.0*reach_dist),
-            ('solved',  np.array([[self.contact >= 10]])),
-            ('done',    reach_dist > far_th),
+            ('solved',  reach_dist < 0.1),
+            ('done',    reach_dist < 0.1),
         ))
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         return rwd_dict
@@ -215,7 +235,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         self.sim.model.site_pos[self.target_sid] = self.np_random.uniform(high=self.target_xyz_range['high'], low=self.target_xyz_range['low'])
         self.sim_obsd.model.site_pos[self.target_sid] = self.sim.model.site_pos[self.target_sid]
         obj_xyz_ranges = {
-            'object': {'low': [-0.85, -0.05, 0], 'high': [.85, 0.15, 0]},
+            'object': {'low': [-0.55, -0.05, 0], 'high': [.55, 0.05, 0]},
         }
 
         new_x, new_y = np.random.uniform(
