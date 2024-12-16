@@ -24,7 +24,7 @@ class ReachBaseV0(env_base_UR.MujocoEnv):
     ]
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "reach": -1.0,
-        #"bonus": 4.0,
+        "bonus": 4.0,
         'solved': 1, 
         "penalty": -50,
     }

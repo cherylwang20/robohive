@@ -159,7 +159,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
             ('penalty', (reach_dist>far_th)),
             # Must keys
             ('sparse',  -1.0*reach_dist),
-            ('solved',  np.array([[self.contact >= 10]])),
+            ('solved',  reach_dist < 0.05),
             ('done',    reach_dist > far_th),
         ))
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
