@@ -66,7 +66,7 @@ register(
 register(
     id='UR10eReachFixed-v12',
     entry_point='robohive.envs.arms.reach_base_v2:ReachBaseV0',
-    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_cylinder.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',
@@ -80,7 +80,7 @@ register(
 register(
     id='UR10eReachFixed-v13',
     entry_point='robohive.envs.arms.reach_base_v3:ReachBaseV0',
-    max_episode_steps=200, #50steps*40Skip*2ms = 4s
+    max_episode_steps=250, #50steps*40Skip*2ms = 4s
     kwargs={
         'model_path': curr_dir+'/ur10e/scene_cylinder.xml',
         #'config_path': curr_dir+'/ur10e/ur10e_v0.config',

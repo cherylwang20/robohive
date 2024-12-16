@@ -27,8 +27,8 @@ class ReachBaseV0(env_base_2.MujocoEnv):
     DEFAULT_RWD_KEYS_AND_WEIGHTS = {
         "reach": -1.0,
         #"bonus": 4.0,
-        'solved': 1, 
-        "penalty": -50,
+        'solved': 10,
+        #"penalty": -50,
     }
 
 
@@ -92,7 +92,6 @@ class ReachBaseV0(env_base_2.MujocoEnv):
         obs_dict['qv_robot'] = self.vel_action.copy()
         obs_dict['reach_err'] = sim.data.site_xpos[self.target_sid]-sim.data.site_xpos[self.grasp_sid]
         obs_dict['goal_pos'] = sim.data.site_xpos[self.target_sid]
-
         self.get_image_data()
 
         this_model = sim.model
@@ -148,7 +147,7 @@ class ReachBaseV0(env_base_2.MujocoEnv):
 
     def get_reward_dict(self, obs_dict):
         reach_dist = np.linalg.norm(obs_dict['reach_err'], axis=-1)
-        far_th = 2.0
+        far_th = 5.0
         contact = np.array([[np.sum(obs_dict["touching_body"][0][0][:2])]])
         if contact > 0:
             self.contact += 1
@@ -159,8 +158,13 @@ class ReachBaseV0(env_base_2.MujocoEnv):
             ('penalty', (reach_dist>far_th)),
             # Must keys
             ('sparse',  -1.0*reach_dist),
+<<<<<<< HEAD
             ('solved',  reach_dist < 0.05),
             ('done',    reach_dist > far_th),
+=======
+            ('solved',  reach_dist < 0.1),
+            ('done',    reach_dist < 0.1),
+>>>>>>> b79a5d472e7d25d7b17c58d218326b3b40deaee7
         ))
         rwd_dict['dense'] = np.sum([wt*rwd_dict[key] for key, wt in self.rwd_keys_wt.items()], axis=0)
         return rwd_dict
